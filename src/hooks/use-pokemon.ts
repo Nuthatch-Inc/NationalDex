@@ -8,8 +8,20 @@ import {
   getPokemonIdFromUrl,
   getPokemonMoves,
   getEvolutionChain,
+  getMoveList,
+  getMoveListItem,
+  getFullMoveDetail,
+  getFullAbilityDetail,
 } from "@/lib/pokeapi"
-import type { Pokemon, PokemonSpecies, PokemonMove, EvolutionChainLink } from "@/types/pokemon"
+import type {
+  Pokemon,
+  PokemonSpecies,
+  PokemonMove,
+  EvolutionChainLink,
+  MoveListItem,
+  FullMoveDetail,
+  FullAbilityDetail,
+} from "@/types/pokemon"
 
 const PAGE_SIZE = 20
 
@@ -69,6 +81,57 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
     queryKey: ["evolution-chain", evolutionChainUrl],
     queryFn: () => getEvolutionChain(evolutionChainUrl!),
     enabled: evolutionChainUrl !== null,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  })
+}
+
+// ============================================================================
+// Move List & Detail (for dedicated pages)
+// ============================================================================
+
+const MOVES_PAGE_SIZE = 50
+
+export function useMoveList() {
+  return useInfiniteQuery({
+    queryKey: ["move-list"],
+    queryFn: async ({ pageParam = 0 }) => {
+      const listResponse = await getMoveList(pageParam, MOVES_PAGE_SIZE)
+
+      // Fetch details for each move in this page
+      const movePromises = listResponse.results.map((m) => getMoveListItem(m.name))
+      const moves = await Promise.all(movePromises)
+
+      return {
+        count: listResponse.count,
+        next: listResponse.next,
+        moves: moves.filter((m): m is MoveListItem => m !== null),
+      }
+    },
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.next) return undefined
+      const url = new URL(lastPage.next)
+      const offset = url.searchParams.get("offset")
+      return offset ? Number.parseInt(offset, 10) : undefined
+    },
+    initialPageParam: 0,
+    staleTime: 1000 * 60 * 60, // 1 hour - moves don't change often
+  })
+}
+
+export function useFullMoveDetail(name: string | null) {
+  return useQuery<FullMoveDetail>({
+    queryKey: ["move-detail", name],
+    queryFn: () => getFullMoveDetail(name!),
+    enabled: name !== null,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  })
+}
+
+export function useFullAbilityDetail(name: string | null) {
+  return useQuery<FullAbilityDetail>({
+    queryKey: ["ability-detail", name],
+    queryFn: () => getFullAbilityDetail(name!),
+    enabled: name !== null,
     staleTime: 1000 * 60 * 60, // 1 hour
   })
 }

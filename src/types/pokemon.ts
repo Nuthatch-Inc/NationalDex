@@ -130,6 +130,50 @@ export interface AbilityDetail {
   isMainSeries: boolean
 }
 
+// Extended types for dedicated pages
+export interface MoveListItem {
+  id: number
+  name: string
+  type: PokemonType
+  damageClass: "physical" | "special" | "status"
+  power: number | null
+  accuracy: number | null
+  pp: number
+  generation: string
+}
+
+export interface MoveListResponse {
+  count: number
+  next: string | null
+  previous: string | null
+  results: { name: string; url: string }[]
+}
+
+export interface MovePokemon {
+  id: number
+  name: string
+  sprite: string
+  learnMethods: {
+    method: "level-up" | "machine" | "egg" | "tutor" | "other"
+    levelLearnedAt: number
+  }[]
+}
+
+export interface FullMoveDetail extends MoveDetail {
+  pokemon: MovePokemon[]
+}
+
+export interface AbilityPokemon {
+  id: number
+  name: string
+  sprite: string
+  isHidden: boolean
+}
+
+export interface FullAbilityDetail extends AbilityDetail {
+  pokemon: AbilityPokemon[]
+}
+
 export const TYPE_COLORS: Record<PokemonType, string> = {
   normal: "#A8A77A",
   fire: "#EE8130",

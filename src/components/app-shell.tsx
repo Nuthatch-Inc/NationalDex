@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Grid3X3, Heart, Settings, Search } from "lucide-react"
+import { Grid3X3, Heart, Settings, Search, Swords } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useNav } from "./navigation/nav-provider"
 
 const navItems = [
   { href: "/", icon: Grid3X3, label: "dex" },
+  { href: "/moves", icon: Swords, label: "moves" },
   { href: "#search", icon: Search, label: "search", action: true },
   { href: "/favorites", icon: Heart, label: "favs" },
   { href: "/settings", icon: Settings, label: "config" },
@@ -23,12 +24,12 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <main className="flex-1 pb-12">
+      <main className="flex-1 pb-nav">
         {children}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 h-12 border-t bg-background">
-        <div className="flex h-full items-center justify-around max-w-lg mx-auto">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background pb-safe">
+        <div className="flex h-12 items-center justify-around max-w-lg mx-auto">
           {navItems.map((item) => {
             const isActive =
               !item.action &&

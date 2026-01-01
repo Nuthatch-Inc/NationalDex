@@ -1,22 +1,15 @@
 "use client"
 
-import { use, useMemo, useState } from "react"
+import { use, useMemo } from "react"
 import Link from "next/link"
 import { ArrowLeft, Heart } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { usePokemonWithSpecies, usePokemonMoves, useEvolutionChain } from "@/hooks/use-pokemon"
 import { useFavorites } from "@/hooks/use-favorites"
-import { calculateTypeEffectiveness, getMoveDetail, getAbilityDetail } from "@/lib/pokeapi"
+import { calculateTypeEffectiveness } from "@/lib/pokeapi"
 import { TYPE_COLORS } from "@/types/pokemon"
-import type { PokemonType, PokemonStat, PokemonMove, EvolutionChainLink, PokemonSpecies, Pokemon, MoveDetail, AbilityDetail } from "@/types/pokemon"
+import type { PokemonType, PokemonStat, PokemonMove, EvolutionChainLink, PokemonSpecies, Pokemon } from "@/types/pokemon"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -31,39 +24,10 @@ export default function PokemonPage({ params }: PageProps) {
     species?.evolutionChainUrl ?? null
   )
 
-  // Dialog state
-  const [selectedMove, setSelectedMove] = useState<MoveDetail | null>(null)
-  const [selectedAbility, setSelectedAbility] = useState<AbilityDetail | null>(null)
-  const [dialogLoading, setDialogLoading] = useState(false)
-
   const typeEffectiveness = useMemo(() => {
     if (!pokemon) return null
     return calculateTypeEffectiveness(pokemon.types)
   }, [pokemon])
-
-  const handleMoveClick = async (moveName: string) => {
-    setDialogLoading(true)
-    try {
-      const detail = await getMoveDetail(moveName)
-      setSelectedMove(detail)
-    } catch (error) {
-      console.error("Failed to fetch move details:", error)
-    } finally {
-      setDialogLoading(false)
-    }
-  }
-
-  const handleAbilityClick = async (abilityName: string) => {
-    setDialogLoading(true)
-    try {
-      const detail = await getAbilityDetail(abilityName)
-      setSelectedAbility(detail)
-    } catch (error) {
-      console.error("Failed to fetch ability details:", error)
-    } finally {
-      setDialogLoading(false)
-    }
-  }
 
   if (isLoading || !pokemon) {
     return <PokemonPageSkeleton />
@@ -170,35 +134,11 @@ export default function PokemonPage({ params }: PageProps) {
         />
 
         {/* Details */}
-        <DetailsSection
-          pokemon={pokemon}
-          species={species}
-          onAbilityClick={handleAbilityClick}
-        />
+        <DetailsSection pokemon={pokemon} species={species} />
 
         {/* Moves */}
-        <MovesSection
-          moves={moves}
-          isLoading={movesLoading}
-          onMoveClick={handleMoveClick}
-        />
+        <MovesSection moves={moves} isLoading={movesLoading} />
       </div>
-
-      {/* Move Dialog */}
-      <MoveDialog
-        move={selectedMove}
-        open={selectedMove !== null}
-        onOpenChange={(open) => !open && setSelectedMove(null)}
-        loading={dialogLoading}
-      />
-
-      {/* Ability Dialog */}
-      <AbilityDialog
-        ability={selectedAbility}
-        open={selectedAbility !== null}
-        onOpenChange={(open) => !open && setSelectedAbility(null)}
-        loading={dialogLoading}
-      />
     </div>
   )
 }
@@ -276,11 +216,9 @@ function StatRow({ stat }: { stat: PokemonStat }) {
 function MovesSection({
   moves,
   isLoading,
-  onMoveClick
 }: {
   moves?: PokemonMove[]
   isLoading: boolean
-  onMoveClick: (moveName: string) => void
 }) {
   if (isLoading) {
     return (
@@ -324,13 +262,13 @@ function MovesSection({
       <Label>moves</Label>
       <div className="space-y-6">
         {levelUpMoves.length > 0 && (
-          <MoveGroup title="Level Up" moves={levelUpMoves} showLevel onMoveClick={onMoveClick} />
+          <MoveGroup title="Level Up" moves={levelUpMoves} showLevel />
         )}
         {tmMoves.length > 0 && (
-          <MoveGroup title="TM / HM" moves={tmMoves} onMoveClick={onMoveClick} />
+          <MoveGroup title="TM / HM" moves={tmMoves} />
         )}
         {eggMoves.length > 0 && (
-          <MoveGroup title="Egg Moves" moves={eggMoves} onMoveClick={onMoveClick} />
+          <MoveGroup title="Egg Moves" moves={eggMoves} />
         )}
       </div>
     </section>
@@ -341,36 +279,36 @@ function MoveGroup({
   title,
   moves,
   showLevel = false,
-  onMoveClick
 }: {
   title: string
   moves: PokemonMove[]
   showLevel?: boolean
-  onMoveClick: (moveName: string) => void
 }) {
   return (
     <div className="space-y-2">
       <Label>{title}</Label>
       <div className="space-y-1">
-        {moves.map((move, idx) => (
-          <button
-            type="button"
-            key={`${move.name}-${idx}`}
-            onClick={() => onMoveClick(move.name)}
-            className="flex items-center gap-2 text-xs py-1 border-b border-muted last:border-0 w-full text-left hover:bg-muted/50 transition-colors cursor-pointer"
-          >
-            {showLevel && (
-              <span className="w-8 text-muted-foreground tabular-nums">
-                {move.levelLearnedAt > 0 ? `Lv.${move.levelLearnedAt}` : "—"}
+        {moves.map((move, idx) => {
+          const slug = move.name.toLowerCase().replace(/\s+/g, "-")
+          return (
+            <Link
+              key={`${move.name}-${idx}`}
+              href={`/moves/${slug}`}
+              className="flex items-center gap-2 text-xs py-1 border-b border-muted last:border-0 w-full text-left hover:bg-muted/50 transition-colors cursor-pointer"
+            >
+              {showLevel && (
+                <span className="w-8 text-muted-foreground tabular-nums">
+                  {move.levelLearnedAt > 0 ? `Lv.${move.levelLearnedAt}` : "—"}
+                </span>
+              )}
+              <span className="flex-1 font-medium">{move.name}</span>
+              <TypeBadge type={move.type} size="sm" />
+              <span className="w-12 text-right tabular-nums text-muted-foreground">
+                {move.power ? `${move.power} pwr` : move.damageClass}
               </span>
-            )}
-            <span className="flex-1 font-medium">{move.name}</span>
-            <TypeBadge type={move.type} size="sm" />
-            <span className="w-12 text-right tabular-nums text-muted-foreground">
-              {move.power ? `${move.power} pwr` : move.damageClass}
-            </span>
-          </button>
-        ))}
+            </Link>
+          )
+        })}
       </div>
     </div>
   )
@@ -498,11 +436,9 @@ function formatEvolutionMethod(detail: EvolutionChainLink["evolutionDetails"][0]
 function DetailsSection({
   pokemon,
   species,
-  onAbilityClick
 }: {
   pokemon: Pokemon
   species?: PokemonSpecies
-  onAbilityClick: (abilityName: string) => void
 }) {
   const genderDisplay = species
     ? species.genderRate === -1
@@ -570,20 +506,22 @@ function DetailsSection({
       <div className="space-y-2">
         <Label>abilities</Label>
         <div className="flex flex-wrap gap-2">
-          {pokemon.abilities.map((ability) => (
-            <button
-              type="button"
-              key={ability.name}
-              onClick={() => onAbilityClick(ability.name)}
-              className={cn(
-                "text-xs px-2 py-1 border rounded hover:bg-muted/50 transition-colors cursor-pointer",
-                ability.isHidden && "text-muted-foreground border-dashed"
-              )}
-            >
-              {ability.name}
-              {ability.isHidden && " (hidden)"}
-            </button>
-          ))}
+          {pokemon.abilities.map((ability) => {
+            const slug = ability.name.toLowerCase().replace(/\s+/g, "-")
+            return (
+              <Link
+                key={ability.name}
+                href={`/abilities/${slug}`}
+                className={cn(
+                  "text-xs px-2 py-1 border rounded hover:bg-muted/50 transition-colors cursor-pointer",
+                  ability.isHidden && "text-muted-foreground border-dashed"
+                )}
+              >
+                {ability.name}
+                {ability.isHidden && " (hidden)"}
+              </Link>
+            )
+          })}
         </div>
       </div>
 
@@ -659,93 +597,3 @@ function PokemonPageSkeleton() {
   )
 }
 
-// ============================================================================
-// Dialogs
-// ============================================================================
-
-function MoveDialog({
-  move,
-  open,
-  onOpenChange,
-  loading
-}: {
-  move: MoveDetail | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  loading: boolean
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        {loading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        ) : move ? (
-          <>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                {move.name}
-                <TypeBadge type={move.type} size="sm" />
-              </DialogTitle>
-              <DialogDescription>{move.description}</DialogDescription>
-            </DialogHeader>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <DetailRow label="Category" value={move.damageClass} />
-              <DetailRow label="Power" value={move.power?.toString() ?? "—"} />
-              <DetailRow label="Accuracy" value={move.accuracy ? `${move.accuracy}%` : "—"} />
-              <DetailRow label="PP" value={move.pp.toString()} />
-              <DetailRow label="Priority" value={move.priority.toString()} />
-              <DetailRow label="Target" value={move.target} />
-              <DetailRow label="Generation" value={move.generation} />
-              {move.effectChance && (
-                <DetailRow label="Effect Chance" value={`${move.effectChance}%`} />
-              )}
-            </div>
-          </>
-        ) : null}
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function AbilityDialog({
-  ability,
-  open,
-  onOpenChange,
-  loading
-}: {
-  ability: AbilityDetail | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  loading: boolean
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        {loading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        ) : ability ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>{ability.name}</DialogTitle>
-              <DialogDescription>{ability.shortDescription}</DialogDescription>
-            </DialogHeader>
-            {ability.description && ability.description !== ability.shortDescription && (
-              <p className="text-sm leading-relaxed">{ability.description}</p>
-            )}
-            <div className="text-xs text-muted-foreground">
-              Introduced in {ability.generation}
-            </div>
-          </>
-        ) : null}
-      </DialogContent>
-    </Dialog>
-  )
-}

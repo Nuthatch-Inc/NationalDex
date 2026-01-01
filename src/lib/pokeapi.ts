@@ -12,6 +12,12 @@ import type {
   TypeEffectiveness,
   MoveDetail,
   AbilityDetail,
+  MoveListResponse,
+  MoveListItem,
+  FullMoveDetail,
+  MovePokemon,
+  FullAbilityDetail,
+  AbilityPokemon,
 } from "@/types/pokemon"
 
 const client = new Pokedex({
@@ -369,3 +375,145 @@ export async function getAbilityDetail(nameOrId: string | number): Promise<Abili
     isMainSeries: data.is_main_series,
   }
 }
+
+// ============================================================================
+// Move List & Detail (for dedicated pages)
+// ============================================================================
+
+export async function getMoveList(
+  offset = 0,
+  limit = 20
+): Promise<MoveListResponse> {
+  const response = await client.getMovesList({ offset, limit })
+  return {
+    count: response.count,
+    next: response.next,
+    previous: response.previous,
+    results: response.results,
+  }
+}
+
+export async function getMoveListItem(name: string): Promise<MoveListItem | null> {
+  try {
+    const data = await client.getMoveByName(name)
+    return {
+      id: data.id,
+      name: formatName(data.name),
+      type: data.type.name as PokemonType,
+      damageClass: data.damage_class.name as "physical" | "special" | "status",
+      power: data.power,
+      accuracy: data.accuracy,
+      pp: data.pp ?? 0,
+      generation: formatName(data.generation.name),
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function getFullMoveDetail(nameOrId: string | number): Promise<FullMoveDetail> {
+  const apiName = typeof nameOrId === "string"
+    ? nameOrId.toLowerCase().replace(/\s+/g, "-")
+    : nameOrId
+
+  const data = await client.getMoveByName(apiName)
+
+  const englishEffect = data.effect_entries.find(
+    (e) => e.language.name === "en"
+  )
+  const englishFlavor = data.flavor_text_entries.find(
+    (e) => e.language.name === "en"
+  )
+
+  let description = englishEffect?.short_effect ?? englishFlavor?.flavor_text ?? ""
+  if (data.effect_chance) {
+    description = description.replace(/\$effect_chance/g, String(data.effect_chance))
+  }
+
+  // Get Pokemon that learn this move
+  const pokemon: MovePokemon[] = data.learned_by_pokemon.map((p) => {
+    const id = getPokemonIdFromUrl(p.url)
+    return {
+      id,
+      name: formatName(p.name),
+      sprite: getSpriteUrl(id),
+      learnMethods: [], // Will be populated if needed
+    }
+  })
+
+  return {
+    id: data.id,
+    name: formatName(data.name),
+    type: data.type.name as PokemonType,
+    damageClass: data.damage_class.name as "physical" | "special" | "status",
+    power: data.power,
+    accuracy: data.accuracy,
+    pp: data.pp ?? 0,
+    priority: data.priority,
+    description: description.replace(/\f|\n/g, " "),
+    effectChance: data.effect_chance,
+    target: formatName(data.target.name),
+    generation: formatName(data.generation.name),
+    pokemon,
+  }
+}
+
+// ============================================================================
+// Ability Detail (for dedicated page)
+// ============================================================================
+
+export async function getFullAbilityDetail(nameOrId: string | number): Promise<FullAbilityDetail> {
+  const apiName = typeof nameOrId === "string"
+    ? nameOrId.toLowerCase().replace(/\s+/g, "-").replace(/[()]/g, "")
+    : nameOrId
+
+  const data = await client.getAbilityByName(apiName)
+
+  const englishEffect = data.effect_entries.find(
+    (e) => e.language.name === "en"
+  )
+  const englishFlavor = data.flavor_text_entries.find(
+    (e) => e.language.name === "en"
+  )
+
+  // Get Pokemon with this ability
+  const pokemon: AbilityPokemon[] = data.pokemon.map((p) => {
+    const id = getPokemonIdFromUrl(p.pokemon.url)
+    return {
+      id,
+      name: formatName(p.pokemon.name),
+      sprite: getSpriteUrl(id),
+      isHidden: p.is_hidden,
+    }
+  })
+
+  return {
+    id: data.id,
+    name: formatName(data.name),
+    description: englishEffect?.effect?.replace(/\f|\n/g, " ") ?? "",
+    shortDescription: englishFlavor?.flavor_text?.replace(/\f|\n/g, " ") ?? englishEffect?.short_effect ?? "",
+    generation: formatName(data.generation.name),
+    isMainSeries: data.is_main_series,
+    pokemon,
+  }
+}
+
+// Generation mapping for filtering
+export const GENERATIONS = [
+  { id: "generation-i", name: "Gen I", label: "Red/Blue" },
+  { id: "generation-ii", name: "Gen II", label: "Gold/Silver" },
+  { id: "generation-iii", name: "Gen III", label: "Ruby/Sapphire" },
+  { id: "generation-iv", name: "Gen IV", label: "Diamond/Pearl" },
+  { id: "generation-v", name: "Gen V", label: "Black/White" },
+  { id: "generation-vi", name: "Gen VI", label: "X/Y" },
+  { id: "generation-vii", name: "Gen VII", label: "Sun/Moon" },
+  { id: "generation-viii", name: "Gen VIII", label: "Sword/Shield" },
+  { id: "generation-ix", name: "Gen IX", label: "Scarlet/Violet" },
+] as const
+
+export const ALL_TYPES: PokemonType[] = [
+  "normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison",
+  "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"
+]
+
+export const DAMAGE_CLASSES = ["physical", "special", "status"] as const

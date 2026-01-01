@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { JetBrains_Mono } from "next/font/google"
 import { Providers } from "@/components/providers"
 import "./globals.css"
@@ -9,9 +9,27 @@ const mono = JetBrains_Mono({
   weight: ["400", "500", "600", "700"],
 })
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#09090b",
+}
+
 export const metadata: Metadata = {
   title: "natdex",
   description: "minimal pokédex",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "natdex",
+  },
+  icons: {
+    apple: "/icons/icon-192x192.png",
+  },
 }
 
 export default function RootLayout({
