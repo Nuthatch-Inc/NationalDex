@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Grid3X3, Heart, MoreHorizontal, Search, Users, Settings, MapPin, Package, Info, GitCompareArrows, CircleHelp, ListPlus } from "lucide-react"
@@ -43,6 +44,26 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname()
   const { toggleSearch, moreOpen, setMoreOpen } = useNav()
+  const isPopStateNav = useRef(false)
+
+  // Track back/forward navigation via popstate
+  useEffect(() => {
+    const handlePopState = () => {
+      isPopStateNav.current = true
+    }
+
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [])
+
+  // Reset scroll position on forward navigation, preserve on back/forward
+  useEffect(() => {
+    if (isPopStateNav.current) {
+      isPopStateNav.current = false
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }, [pathname])
 
   const handleAction = (item: typeof navItems[0]) => {
     if (item.label === "search") {
