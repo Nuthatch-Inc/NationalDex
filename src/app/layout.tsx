@@ -19,13 +19,13 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: "betterdex",
+  title: "nationaldex",
   description: "minimal pokédex",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "betterdex",
+    title: "nationaldex",
   },
   icons: {
     apple: "/icons/icon-192x192.png",

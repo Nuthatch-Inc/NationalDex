@@ -7,7 +7,7 @@ export default function AboutPage() {
     <div className="p-4 md:p-6">
       <div className="max-w-md space-y-8">
         <section className="space-y-3">
-          <h1 className="text-lg font-medium">betterdex</h1>
+          <h1 className="text-lg font-medium">nationaldex</h1>
           <p className="text-sm text-muted-foreground">
             A modern Pokedex web app built for Pokemon fans.
           </p>
