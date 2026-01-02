@@ -130,48 +130,52 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Desktop Header */}
-      <header className="hidden lg:flex fixed top-0 left-0 right-0 z-50 h-14 items-center justify-between border-b bg-background px-6 fixed-bottom-stable">
-        <Link href="/" className="text-lg font-medium">
-          nationaldex
-        </Link>
-        <nav className="flex items-center gap-1">
-          {navItems.map((item) => renderNavItem(item, "desktop"))}
-          {/* Desktop More Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-muted transition-colors",
-                isMoreActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <MoreHorizontal className="size-4" strokeWidth={1.5} />
-              <span className="text-xs">more</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {moreMenuItems.map((item) => {
-                const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
-                return (
-                  <DropdownMenuItem key={item.href} asChild>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-2 cursor-pointer",
-                        isActive && "bg-muted"
-                      )}
-                    >
-                      <item.icon className="size-4" strokeWidth={1.5} />
-                      <span>{item.label}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </nav>
+      <header className="hidden lg:flex fixed top-0 left-0 right-0 z-50 h-14 items-center border-b bg-background px-6 fixed-bottom-stable">
+        <div className="flex w-full max-w-7xl mx-auto items-center justify-between">
+          <Link href="/" className="text-lg font-medium">
+            nationaldex
+          </Link>
+          <nav className="flex items-center gap-1">
+            {navItems.map((item) => renderNavItem(item, "desktop"))}
+            {/* Desktop More Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-muted transition-colors",
+                  isMoreActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <MoreHorizontal className="size-4" strokeWidth={1.5} />
+                <span className="text-xs">more</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {moreMenuItems.map((item) => {
+                  const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+                  return (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-2 cursor-pointer",
+                          isActive && "bg-muted"
+                        )}
+                      >
+                        <item.icon className="size-4" strokeWidth={1.5} />
+                        <span>{item.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+        </div>
       </header>
 
       <main className="flex-1 pt-safe pb-nav lg:pb-0 lg:pt-14">
-        {children}
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
       </main>
 
       {/* Mobile/Tablet Bottom Nav - hidden on desktop */}
