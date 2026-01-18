@@ -171,180 +171,167 @@ function HomeContent() {
       )}
 
       {/* Moves List */}
-      {filter.category === "moves" && (
-        <>
-          {isMovesLoading ? (
-            <div className="space-y-1">
-              {loadingRowKeys.map((key) => (
-                <div key={key} className="h-8 animate-pulse rounded bg-muted" />
-              ))}
-            </div>
-          ) : (
-            <>
-              <div className="rounded-lg border bg-card">
-                <div className="grid grid-cols-[60px_1fr] text-xs font-medium text-muted-foreground border-b px-3 py-2 sm:grid-cols-[60px_1fr_100px]">
-                  <span>#</span>
-                  <span>Name</span>
-                  <span className="hidden sm:block text-right">ID</span>
-                </div>
-                <div className="divide-y">
-                  {filteredMoves
-                    ?.slice(0, movesDisplayCount)
-                    .map((move, index) => (
-                      <Link
-                        key={move.id}
-                        href={`/moves/${toID(move.name)}`}
-                        className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
-                      >
-                        <span className="text-muted-foreground tabular-nums">
-                          {index + 1}
-                        </span>
-                        <span className="font-medium truncate">
-                          {move.name}
-                        </span>
-                        <span className="hidden sm:block text-right text-muted-foreground tabular-nums">
-                          {move.id}
-                        </span>
-                      </Link>
-                    ))}
-                </div>
+      {filter.category === "moves" &&
+        (isMovesLoading ? (
+          <div className="space-y-1">
+            {loadingRowKeys.map((key) => (
+              <div key={key} className="h-8 animate-pulse rounded bg-muted" />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="rounded-lg border bg-card">
+              <div className="grid grid-cols-[60px_1fr] text-xs font-medium text-muted-foreground border-b px-3 py-2 sm:grid-cols-[60px_1fr_100px]">
+                <span>#</span>
+                <span>Name</span>
+                <span className="hidden sm:block text-right">ID</span>
               </div>
-              {filteredMoves && movesDisplayCount < filteredMoves.length && (
-                <div ref={movesRef} className="flex justify-center py-4">
-                  <span className="text-xs text-muted-foreground">
-                    Showing {movesDisplayCount} of {filteredMoves.length} moves
-                  </span>
+              <div className="divide-y">
+                {filteredMoves
+                  ?.slice(0, movesDisplayCount)
+                  .map((move, index) => (
+                    <Link
+                      key={move.id}
+                      href={`/moves/${toID(move.name)}`}
+                      className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
+                    >
+                      <span className="text-muted-foreground tabular-nums">
+                        {index + 1}
+                      </span>
+                      <span className="font-medium truncate">{move.name}</span>
+                      <span className="hidden sm:block text-right text-muted-foreground tabular-nums">
+                        {move.id}
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+            </div>
+            {filteredMoves && movesDisplayCount < filteredMoves.length && (
+              <div ref={movesRef} className="flex justify-center py-4">
+                <span className="text-xs text-muted-foreground">
+                  Showing {movesDisplayCount} of {filteredMoves.length} moves
+                </span>
+              </div>
+            )}
+            {filteredMoves &&
+              movesDisplayCount >= filteredMoves.length &&
+              filteredMoves.length > 0 && (
+                <div className="py-4 text-center text-xs text-muted-foreground">
+                  {filteredMoves.length} moves total
                 </div>
               )}
-              {filteredMoves &&
-                movesDisplayCount >= filteredMoves.length &&
-                filteredMoves.length > 0 && (
-                  <div className="py-4 text-center text-xs text-muted-foreground">
-                    {filteredMoves.length} moves total
-                  </div>
-                )}
-            </>
-          )}
-        </>
-      )}
+          </>
+        ))}
 
       {/* Abilities List */}
-      {filter.category === "abilities" && (
-        <>
-          {isAbilitiesLoading ? (
-            <div className="space-y-1">
-              {loadingRowKeys.map((key) => (
-                <div key={key} className="h-8 animate-pulse rounded bg-muted" />
-              ))}
-            </div>
-          ) : (
-            <>
-              <div className="rounded-lg border bg-card">
-                <div className="grid grid-cols-[60px_1fr] text-xs font-medium text-muted-foreground border-b px-3 py-2 sm:grid-cols-[60px_1fr_100px]">
-                  <span>#</span>
-                  <span>Name</span>
-                  <span className="hidden sm:block text-right">ID</span>
-                </div>
-                <div className="divide-y">
-                  {filteredAbilities
-                    ?.slice(0, abilitiesDisplayCount)
-                    .map((ability, index) => (
-                      <Link
-                        key={ability.id}
-                        href={`/abilities/${toID(ability.name)}`}
-                        className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
-                      >
-                        <span className="text-muted-foreground tabular-nums">
-                          {index + 1}
-                        </span>
-                        <span className="font-medium truncate">
-                          {ability.name}
-                        </span>
-                        <span className="hidden sm:block text-right text-muted-foreground tabular-nums">
-                          {ability.id}
-                        </span>
-                      </Link>
-                    ))}
-                </div>
+      {filter.category === "abilities" &&
+        (isAbilitiesLoading ? (
+          <div className="space-y-1">
+            {loadingRowKeys.map((key) => (
+              <div key={key} className="h-8 animate-pulse rounded bg-muted" />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="rounded-lg border bg-card">
+              <div className="grid grid-cols-[60px_1fr] text-xs font-medium text-muted-foreground border-b px-3 py-2 sm:grid-cols-[60px_1fr_100px]">
+                <span>#</span>
+                <span>Name</span>
+                <span className="hidden sm:block text-right">ID</span>
               </div>
-              {filteredAbilities &&
-                abilitiesDisplayCount < filteredAbilities.length && (
-                  <div ref={abilitiesRef} className="flex justify-center py-4">
-                    <span className="text-xs text-muted-foreground">
-                      Showing {abilitiesDisplayCount} of{" "}
-                      {filteredAbilities.length} abilities
-                    </span>
-                  </div>
-                )}
-              {filteredAbilities &&
-                abilitiesDisplayCount >= filteredAbilities.length &&
-                filteredAbilities.length > 0 && (
-                  <div className="py-4 text-center text-xs text-muted-foreground">
-                    {filteredAbilities.length} abilities total
-                  </div>
-                )}
-            </>
-          )}
-        </>
-      )}
-
-      {/* Items List */}
-      {filter.category === "items" && (
-        <>
-          {isItemsLoading ? (
-            <div className="space-y-1">
-              {loadingRowKeys.map((key) => (
-                <div key={key} className="h-8 animate-pulse rounded bg-muted" />
-              ))}
-            </div>
-          ) : (
-            <>
-              <div className="rounded-lg border bg-card">
-                <div className="grid grid-cols-[60px_1fr] text-xs font-medium text-muted-foreground border-b px-3 py-2 sm:grid-cols-[60px_1fr_100px]">
-                  <span>#</span>
-                  <span>Name</span>
-                  <span className="hidden sm:block text-right">ID</span>
-                </div>
-                <div className="divide-y">
-                  {filteredItems
-                    ?.slice(0, itemsDisplayCount)
-                    .map((item, index) => (
-                      <Link
-                        key={item.id}
-                        href={`/items/${toID(item.name)}`}
-                        className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
-                      >
-                        <span className="text-muted-foreground tabular-nums">
-                          {index + 1}
-                        </span>
-                        <span className="font-medium truncate">
-                          {item.name}
-                        </span>
-                        <span className="hidden sm:block text-right text-muted-foreground tabular-nums">
-                          {item.id}
-                        </span>
-                      </Link>
-                    ))}
-                </div>
+              <div className="divide-y">
+                {filteredAbilities
+                  ?.slice(0, abilitiesDisplayCount)
+                  .map((ability, index) => (
+                    <Link
+                      key={ability.id}
+                      href={`/abilities/${toID(ability.name)}`}
+                      className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
+                    >
+                      <span className="text-muted-foreground tabular-nums">
+                        {index + 1}
+                      </span>
+                      <span className="font-medium truncate">
+                        {ability.name}
+                      </span>
+                      <span className="hidden sm:block text-right text-muted-foreground tabular-nums">
+                        {ability.id}
+                      </span>
+                    </Link>
+                  ))}
               </div>
-              {filteredItems && itemsDisplayCount < filteredItems.length && (
-                <div ref={itemsRef} className="flex justify-center py-4">
+            </div>
+            {filteredAbilities &&
+              abilitiesDisplayCount < filteredAbilities.length && (
+                <div ref={abilitiesRef} className="flex justify-center py-4">
                   <span className="text-xs text-muted-foreground">
-                    Showing {itemsDisplayCount} of {filteredItems.length} items
+                    Showing {abilitiesDisplayCount} of{" "}
+                    {filteredAbilities.length} abilities
                   </span>
                 </div>
               )}
-              {filteredItems &&
-                itemsDisplayCount >= filteredItems.length &&
-                filteredItems.length > 0 && (
-                  <div className="py-4 text-center text-xs text-muted-foreground">
-                    {filteredItems.length} items total
-                  </div>
-                )}
-            </>
-          )}
-        </>
-      )}
+            {filteredAbilities &&
+              abilitiesDisplayCount >= filteredAbilities.length &&
+              filteredAbilities.length > 0 && (
+                <div className="py-4 text-center text-xs text-muted-foreground">
+                  {filteredAbilities.length} abilities total
+                </div>
+              )}
+          </>
+        ))}
+
+      {/* Items List */}
+      {filter.category === "items" &&
+        (isItemsLoading ? (
+          <div className="space-y-1">
+            {loadingRowKeys.map((key) => (
+              <div key={key} className="h-8 animate-pulse rounded bg-muted" />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="rounded-lg border bg-card">
+              <div className="grid grid-cols-[60px_1fr] text-xs font-medium text-muted-foreground border-b px-3 py-2 sm:grid-cols-[60px_1fr_100px]">
+                <span>#</span>
+                <span>Name</span>
+                <span className="hidden sm:block text-right">ID</span>
+              </div>
+              <div className="divide-y">
+                {filteredItems
+                  ?.slice(0, itemsDisplayCount)
+                  .map((item, index) => (
+                    <Link
+                      key={item.id}
+                      href={`/items/${toID(item.name)}`}
+                      className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
+                    >
+                      <span className="text-muted-foreground tabular-nums">
+                        {index + 1}
+                      </span>
+                      <span className="font-medium truncate">{item.name}</span>
+                      <span className="hidden sm:block text-right text-muted-foreground tabular-nums">
+                        {item.id}
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+            </div>
+            {filteredItems && itemsDisplayCount < filteredItems.length && (
+              <div ref={itemsRef} className="flex justify-center py-4">
+                <span className="text-xs text-muted-foreground">
+                  Showing {itemsDisplayCount} of {filteredItems.length} items
+                </span>
+              </div>
+            )}
+            {filteredItems &&
+              itemsDisplayCount >= filteredItems.length &&
+              filteredItems.length > 0 && (
+                <div className="py-4 text-center text-xs text-muted-foreground">
+                  {filteredItems.length} items total
+                </div>
+              )}
+          </>
+        ))}
     </div>
   );
 }

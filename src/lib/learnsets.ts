@@ -1,5 +1,5 @@
 import type { Learnset } from "@pkmn/data";
-import { gens, getMove, toID } from "./pkmn";
+import { gens, toID } from "./pkmn";
 
 const cache: Map<string, Learnset> = new Map();
 let loaded = false;
@@ -63,7 +63,7 @@ function parseLearnMethod(source: string): {
   method: LearnMethod;
   level: number;
 } {
-  const genChar = source[0];
+  const _genChar = source[0];
   const methodChar = source[1];
   const rest = source.slice(2);
 

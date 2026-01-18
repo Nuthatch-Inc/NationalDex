@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useComparison } from "@/hooks/use-comparison";
 import { calculateTypeEffectiveness, usePokemon } from "@/hooks/use-pokemon";
 import { cn } from "@/lib/utils";
-import type { Pokemon, PokemonStat, TypeEffectiveness } from "@/types/pokemon";
+import type { PokemonStat } from "@/types/pokemon";
 
 export default function ComparisonPage() {
   const { comparison, isLoaded, removeFromComparison, clearComparison } =

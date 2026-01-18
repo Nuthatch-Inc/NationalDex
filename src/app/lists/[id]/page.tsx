@@ -26,7 +26,7 @@ export default function ListDetailPage({ params }: PageProps) {
   const [editedName, setEditedName] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
 
-  const list = useMemo(() => getList(listId), [getList, listId, lists]);
+  const list = useMemo(() => getList(listId), [getList, listId]);
 
   useEffect(() => {
     if (isLoaded && !list) {
@@ -108,7 +108,7 @@ export default function ListDetailPage({ params }: PageProps) {
       if (!groups[item.type]) {
         groups[item.type] = [];
       }
-      groups[item.type]!.push(item);
+      groups[item.type]?.push(item);
     }
     return groups;
   }, [list.items]);

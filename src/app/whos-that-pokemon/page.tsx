@@ -70,7 +70,7 @@ export default function WhosThatPokemonPage() {
     }
   }, [guess, pokemon, revealed]);
 
-  const handleGiveUp = useCallback(() => {
+  const _handleGiveUp = useCallback(() => {
     setRevealed(true);
     setIsCorrect(false);
     setStreak(0);

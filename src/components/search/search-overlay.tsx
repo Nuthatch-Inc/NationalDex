@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  FlaskConical,
-  Loader2,
-  Search,
-  Sparkles,
-  Swords,
-  Zap,
-} from "lucide-react";
+import { FlaskConical, Loader2, Sparkles, Swords, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useNav } from "@/components/navigation/nav-provider";
