@@ -3,14 +3,14 @@
 import { useMemo } from "react"
 import Fuse, { type IFuseOptions } from "fuse.js"
 import {
-  getAllSpecies,
   getAllMoves,
   getAllAbilities,
   getAllItems,
   ALL_TYPES,
   toID,
 } from "@/lib/pkmn"
-import { pokemonSpriteById } from "@/lib/sprites"
+import { getDexPokemonList } from "@/lib/dex-pokemon"
+import { pokemonSprite, pokemonSpriteById } from "@/lib/sprites"
 import type {
   SearchResult,
   PokemonSearchResult,
@@ -35,14 +35,14 @@ export function useSearchIndex() {
     const items: SearchResult[] = []
 
     // Add Pokemon
-    for (const s of getAllSpecies()) {
+    for (const p of getDexPokemonList(9, { forms: "distinct-sprites" })) {
       items.push({
-        id: `pokemon-${s.num}`,
-        name: s.name,
+        id: `pokemon-${p.slug}`,
+        name: p.name,
         type: "pokemon",
-        url: `/pokemon/${s.num}`,
-        pokemonId: s.num,
-        sprite: pokemonSpriteById(s.num),
+        url: `/pokemon/${p.slug}`,
+        pokemonId: p.id,
+        sprite: pokemonSprite(p.name) || pokemonSpriteById(p.id),
       } as PokemonSearchResult)
     }
 

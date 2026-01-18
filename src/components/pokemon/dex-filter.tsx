@@ -5,8 +5,8 @@ import { Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { TypeBadge } from "@/components/pokemon/type-badge"
-import { ALL_TYPES, getAllSpecies, getAllMoves, getAllAbilities, getAllItems, toID } from "@/lib/pkmn"
-import { pokemonSpriteById } from "@/lib/sprites"
+import { ALL_TYPES, getAllMoves, getAllAbilities, getAllItems, toID } from "@/lib/pkmn"
+import { getDexPokemonList } from "@/lib/dex-pokemon"
 import type { PokemonType } from "@/types/pokemon"
 
 export type DexCategory = "pokemon" | "moves" | "abilities" | "items"
@@ -74,6 +74,7 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
         {(["pokemon", "moves", "abilities", "items"] as const).map((cat) => (
           <button
             key={cat}
+            type="button"
             onClick={() => handleCategoryChange(cat)}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               filter.category === cat
@@ -98,6 +99,7 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
         />
         {filter.search && (
           <button
+            type="button"
             onClick={() => handleSearchChange("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
@@ -112,6 +114,7 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
           {ALL_TYPES.map((type) => (
             <button
               key={type}
+              type="button"
               onClick={() => handleTypeToggle(type as PokemonType)}
               className={`transition-opacity ${
                 filter.types.length > 0 && !filter.types.includes(type as PokemonType)
@@ -152,11 +155,10 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
 export function useFilteredPokemon(filter: DexFilterState) {
   const allPokemon = useMemo(
     () =>
-      getAllSpecies().map((s) => ({
-        name: s.name,
-        id: s.num,
-        sprite: pokemonSpriteById(s.num),
-        types: s.types as PokemonType[],
+      getDexPokemonList(9, { forms: "distinct-sprites" }).map((p) => ({
+        name: p.name,
+        id: p.id,
+        types: p.types,
       })),
     []
   )

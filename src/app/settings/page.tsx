@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useTheme } from "next-themes"
-import { cn } from "@/lib/utils"
-import { useFavorites } from "@/hooks/use-favorites"
+import { useTheme } from "next-themes";
+import { useFavorites } from "@/hooks/use-favorites";
+import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme()
-  const { favorites, clearFavorites } = useFavorites()
+  const { theme, setTheme } = useTheme();
+  const { favorites, clearFavorites } = useFavorites();
 
   return (
     <div className="p-4 md:p-6">
-      <div className="max-w-md space-y-8">
+      <div className="space-y-8">
         <section className="space-y-3">
-          <label className="text-[10px] text-muted-foreground uppercase tracking-wider block">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider block">
             theme
-          </label>
+          </p>
           <div className="flex gap-2">
             {(["light", "dark", "system"] as const).map((t) => (
               <button
@@ -25,7 +25,7 @@ export default function SettingsPage() {
                   "text-xs px-3 py-1.5 border transition-colors",
                   theme === t
                     ? "bg-foreground text-background"
-                    : "hover:bg-muted"
+                    : "hover:bg-muted",
                 )}
               >
                 {t}
@@ -35,9 +35,9 @@ export default function SettingsPage() {
         </section>
 
         <section className="space-y-3">
-          <label className="text-[10px] text-muted-foreground uppercase tracking-wider block">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider block">
             data
-          </label>
+          </p>
           <div className="flex items-center justify-between py-2 border-b">
             <div>
               <p className="text-sm">favorites</p>
@@ -58,11 +58,19 @@ export default function SettingsPage() {
 
         <section className="pt-8 border-t text-xs text-muted-foreground space-y-1">
           <p>
-            data: <a href="https://pokeapi.co" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">pokeapi.co</a>
+            data:{" "}
+            <a
+              href="https://pokeapi.co"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              pokeapi.co
+            </a>
           </p>
           <p>pokemon is a trademark of nintendo</p>
         </section>
       </div>
     </div>
-  )
+  );
 }

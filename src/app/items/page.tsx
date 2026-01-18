@@ -1,21 +1,20 @@
-"use client"
+"use client";
 
-import { useMemo, useState, useEffect, useRef, useCallback } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Search, X, Filter } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { getAllItems, toID } from "@/lib/pkmn"
-import { ITEM_POCKET_COLORS, ITEM_POCKET_LABELS } from "@/types/pokemon"
-import type { ItemPocket, ItemListItem } from "@/types/pokemon"
+import { Filter, Search, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getAllItems, toID } from "@/lib/pkmn";
+import { cn } from "@/lib/utils";
+import type { ItemListItem, ItemPocket } from "@/types/pokemon";
+import { ITEM_POCKET_COLORS, ITEM_POCKET_LABELS } from "@/types/pokemon";
 
 interface Filters {
-  search: string
-  pockets: ItemPocket[]
+  search: string;
+  pockets: ItemPocket[];
 }
 
-const ITEMS_PER_PAGE = 100
+const ITEMS_PER_PAGE = 100;
 
 const ALL_ITEM_POCKETS: ItemPocket[] = [
   "medicine",
@@ -26,78 +25,90 @@ const ALL_ITEM_POCKETS: ItemPocket[] = [
   "key",
   "mail",
   "misc",
-]
+];
 
 export default function ItemsPage() {
   const [filters, setFilters] = useState<Filters>({
     search: "",
     pockets: [],
-  })
-  const [showFilters, setShowFilters] = useState(false)
-  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE)
-  const loadMoreRef = useRef<HTMLDivElement>(null)
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Get all items synchronously
   const allItems = useMemo(() => {
-    return getAllItems().map((i): ItemListItem => ({
-      id: i.num,
-      name: i.name,
-      sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
-      category: i.desc?.split(".")[0] || "Item",
-      pocket: "misc" as ItemPocket,
-      cost: 0,
-    }))
-  }, [])
-
-  const handleObserver = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const [entry] = entries
-      if (entry.isIntersecting && displayCount < filteredItems.length) {
-        setDisplayCount((prev) => Math.min(prev + ITEMS_PER_PAGE, filteredItems.length))
-      }
-    },
-    [displayCount]
-  )
-
-  useEffect(() => {
-    const element = loadMoreRef.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(handleObserver, {
-      threshold: 0,
-      rootMargin: "200px",
-    })
-    observer.observe(element)
-
-    return () => observer.disconnect()
-  }, [handleObserver])
+    return getAllItems().map(
+      (i): ItemListItem => ({
+        id: i.num,
+        name: i.name,
+        sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
+        category: i.desc?.split(".")[0] || "Item",
+        pocket: "misc" as ItemPocket,
+        cost: 0,
+      }),
+    );
+  }, []);
 
   // Apply filters client-side
   const filteredItems = useMemo(() => {
     return allItems.filter((item) => {
       // Search filter
       if (filters.search) {
-        const searchLower = filters.search.toLowerCase()
+        const searchLower = filters.search.toLowerCase();
         if (!item.name.toLowerCase().includes(searchLower)) {
-          return false
+          return false;
         }
       }
 
       // Pocket filter
-      if (filters.pockets.length > 0 && !filters.pockets.includes(item.pocket)) {
-        return false
+      if (
+        filters.pockets.length > 0 &&
+        !filters.pockets.includes(item.pocket)
+      ) {
+        return false;
       }
 
-      return true
-    })
-  }, [allItems, filters])
+      return true;
+    });
+  }, [allItems, filters.search, filters.pockets]);
+
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && displayCount < filteredItems.length) {
+        setDisplayCount((prev) =>
+          Math.min(prev + ITEMS_PER_PAGE, filteredItems.length),
+        );
+      }
+    },
+    [displayCount, filteredItems.length],
+  );
+
+  useEffect(() => {
+    const element = loadMoreRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      threshold: 0,
+      rootMargin: "200px",
+    });
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [handleObserver]);
+
+  const filtersKey = useMemo(() => {
+    return `${filters.search}|${filters.pockets.join(",")}`;
+  }, [filters.search, filters.pockets]);
 
   // Reset display count when filters change
   useEffect(() => {
-    setDisplayCount(ITEMS_PER_PAGE)
-  }, [filters])
+    void filtersKey;
+    setDisplayCount(ITEMS_PER_PAGE);
+  }, [filtersKey]);
 
-  const activeFilterCount = filters.pockets.length
+  const activeFilterCount = filters.pockets.length;
 
   const togglePocket = (pocket: ItemPocket) => {
     setFilters((prev) => ({
@@ -105,17 +116,17 @@ export default function ItemsPage() {
       pockets: prev.pockets.includes(pocket)
         ? prev.pockets.filter((p) => p !== pocket)
         : [...prev.pockets, pocket],
-    }))
-  }
+    }));
+  };
 
   const clearFilters = () => {
-    setFilters({ search: "", pockets: [] })
-  }
+    setFilters({ search: "", pockets: [] });
+  };
 
   return (
     <div className="min-h-screen p-4 md:p-6">
       {/* Search & Filter Controls */}
-      <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto mb-6 space-y-4">
+      <div className="mb-6 space-y-4">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -123,7 +134,9 @@ export default function ItemsPage() {
               type="text"
               placeholder="Search items..."
               value={filters.search}
-              onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, search: e.target.value }))
+              }
               className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
             />
             {filters.search && (
@@ -141,7 +154,7 @@ export default function ItemsPage() {
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
               "flex items-center gap-2 px-4 py-2 text-sm border rounded-lg hover:bg-muted transition-colors",
-              showFilters && "bg-muted"
+              showFilters && "bg-muted",
             )}
           >
             <Filter className="size-4" />
@@ -164,7 +177,9 @@ export default function ItemsPage() {
                 {filters.pockets.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setFilters((prev) => ({ ...prev, pockets: [] }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, pockets: [] }))
+                    }
                     className="text-xs text-muted-foreground hover:text-foreground"
                   >
                     Clear
@@ -197,14 +212,15 @@ export default function ItemsPage() {
       </div>
 
       {/* Results Count */}
-      <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto mb-4">
+      <div className="mb-4">
         <p className="text-xs text-muted-foreground">
-          Showing {Math.min(displayCount, filteredItems.length)} of {filteredItems.length} items
+          Showing {Math.min(displayCount, filteredItems.length)} of{" "}
+          {filteredItems.length} items
         </p>
       </div>
 
       {/* Items List */}
-      <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+      <div>
         <div className="border rounded-lg overflow-hidden">
           {/* Header */}
           <div className="grid grid-cols-[40px,1fr,120px] gap-2 px-4 py-2 bg-muted text-xs text-muted-foreground font-medium">
@@ -228,12 +244,14 @@ export default function ItemsPage() {
         {/* Infinite scroll trigger */}
         {displayCount < filteredItems.length && (
           <div ref={loadMoreRef} className="py-4 flex justify-center">
-            <span className="text-xs text-muted-foreground">Loading more...</span>
+            <span className="text-xs text-muted-foreground">
+              Loading more...
+            </span>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================================
@@ -245,7 +263,7 @@ function Label({ children }: { children: React.ReactNode }) {
     <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
       {children}
     </span>
-  )
+  );
 }
 
 function PocketFilterButton({
@@ -253,18 +271,20 @@ function PocketFilterButton({
   selected,
   onClick,
 }: {
-  pocket: ItemPocket
-  selected: boolean
-  onClick: () => void
+  pocket: ItemPocket;
+  selected: boolean;
+  onClick: () => void;
 }) {
-  const color = ITEM_POCKET_COLORS[pocket]
+  const color = ITEM_POCKET_COLORS[pocket];
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
         "text-[10px] px-2 py-0.5 uppercase tracking-wider rounded transition-all",
-        selected ? "ring-2 ring-offset-1 ring-offset-background" : "opacity-60 hover:opacity-100"
+        selected
+          ? "ring-2 ring-offset-1 ring-offset-background"
+          : "opacity-60 hover:opacity-100",
       )}
       style={{
         backgroundColor: `${color}20`,
@@ -275,11 +295,11 @@ function PocketFilterButton({
     >
       {ITEM_POCKET_LABELS[pocket]}
     </button>
-  )
+  );
 }
 
 function ItemRow({ item }: { item: ItemListItem }) {
-  const slug = toID(item.name)
+  const slug = toID(item.name);
 
   return (
     <Link
@@ -300,7 +320,9 @@ function ItemRow({ item }: { item: ItemListItem }) {
         )}
       </div>
       <span className="font-medium truncate">{item.name}</span>
-      <span className="text-xs text-muted-foreground truncate">{item.category}</span>
+      <span className="text-xs text-muted-foreground truncate">
+        {item.category}
+      </span>
     </Link>
-  )
+  );
 }

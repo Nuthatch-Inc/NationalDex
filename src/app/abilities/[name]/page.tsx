@@ -1,40 +1,41 @@
-"use client"
+"use client";
 
-import { use, useState, useMemo } from "react"
-import Link from "next/link"
-import { Search, X } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { useFullAbilityDetail } from "@/hooks/use-pokemon"
-import { AddToListDialog } from "@/components/add-to-list-dialog"
-import { GEN_RANGES, getGenerationByPokemonId } from "@/lib/pkmn"
-import type { AbilityPokemon } from "@/types/pokemon"
+import { Search, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { use, useMemo, useState } from "react";
+import { AddToListDialog } from "@/components/add-to-list-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useFullAbilityDetail } from "@/hooks/use-pokemon";
+import { GEN_RANGES, getGenerationByPokemonId } from "@/lib/pkmn";
+import { cn } from "@/lib/utils";
+import type { AbilityPokemon } from "@/types/pokemon";
 
 interface PageProps {
-  params: Promise<{ name: string }>
+  params: Promise<{ name: string }>;
 }
 
 export default function AbilityDetailPage({ params }: PageProps) {
-  const { name } = use(params)
-  const { data: ability, isLoading, error } = useFullAbilityDetail(name)
+  const { name } = use(params);
+  const { data: ability, isLoading, error } = useFullAbilityDetail(name);
 
   if (isLoading) {
-    return <AbilityDetailSkeleton />
+    return <AbilityDetailSkeleton />;
   }
 
   if (error || !ability) {
     return (
       <div className="min-h-screen p-4 md:p-6">
-        <div className="max-w-2xl mx-auto text-center py-12">
+        <div className="text-center py-12">
           <p className="text-muted-foreground">Ability not found</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <section className="space-y-3">
           <div className="flex items-center gap-3">
@@ -49,21 +50,25 @@ export default function AbilityDetailPage({ params }: PageProps) {
         </section>
 
         {/* Full Description */}
-        {ability.description && ability.description !== ability.shortDescription && (
-          <section className="space-y-3">
-            <Label>effect</Label>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {ability.description}
-            </p>
-          </section>
-        )}
+        {ability.description &&
+          ability.description !== ability.shortDescription && (
+            <section className="space-y-3">
+              <Label>effect</Label>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {ability.description}
+              </p>
+            </section>
+          )}
 
         {/* Details */}
         <section className="space-y-3">
           <Label>details</Label>
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             <DetailRow label="Generation" value={ability.generation} />
-            <DetailRow label="Main Series" value={ability.isMainSeries ? "Yes" : "No"} />
+            <DetailRow
+              label="Main Series"
+              value={ability.isMainSeries ? "Yes" : "No"}
+            />
           </div>
         </section>
 
@@ -71,7 +76,7 @@ export default function AbilityDetailPage({ params }: PageProps) {
         <PokemonSection pokemon={ability.pokemon} abilityName={ability.name} />
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================================
@@ -83,7 +88,7 @@ function Label({ children }: { children: React.ReactNode }) {
     <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
       {children}
     </span>
-  )
+  );
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -92,66 +97,73 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span>{value}</span>
     </>
-  )
+  );
 }
 
-function PokemonSection({ pokemon, abilityName }: { pokemon: AbilityPokemon[]; abilityName: string }) {
-  const [search, setSearch] = useState("")
-  const [selectedGens, setSelectedGens] = useState<string[]>([])
-  const [showHiddenOnly, setShowHiddenOnly] = useState<boolean | null>(null) // null = all, true = hidden only, false = regular only
+function PokemonSection({
+  pokemon,
+  abilityName,
+}: {
+  pokemon: AbilityPokemon[];
+  abilityName: string;
+}) {
+  const [search, setSearch] = useState("");
+  const [selectedGens, setSelectedGens] = useState<string[]>([]);
+  const [showHiddenOnly, setShowHiddenOnly] = useState<boolean | null>(null); // null = all, true = hidden only, false = regular only
 
   const filteredPokemon = useMemo(() => {
     return pokemon.filter((poke) => {
       // Search filter
       if (search) {
-        const searchLower = search.toLowerCase()
-        const matchesName = poke.name.toLowerCase().includes(searchLower)
-        const matchesId = poke.id.toString().includes(search)
+        const searchLower = search.toLowerCase();
+        const matchesName = poke.name.toLowerCase().includes(searchLower);
+        const matchesId = poke.id.toString().includes(search);
         if (!matchesName && !matchesId) {
-          return false
+          return false;
         }
       }
 
       // Generation filter
       if (selectedGens.length > 0) {
-        const pokeGen = getGenerationByPokemonId(poke.id)
+        const pokeGen = getGenerationByPokemonId(poke.id);
         if (!pokeGen || !selectedGens.includes(pokeGen)) {
-          return false
+          return false;
         }
       }
 
       // Hidden ability filter
       if (showHiddenOnly === true && !poke.isHidden) {
-        return false
+        return false;
       }
       if (showHiddenOnly === false && poke.isHidden) {
-        return false
+        return false;
       }
 
-      return true
-    })
-  }, [pokemon, search, selectedGens, showHiddenOnly])
+      return true;
+    });
+  }, [pokemon, search, selectedGens, showHiddenOnly]);
 
   const sortedPokemon = useMemo(() => {
-    return [...filteredPokemon].sort((a, b) => a.id - b.id)
-  }, [filteredPokemon])
+    return [...filteredPokemon].sort((a, b) => a.id - b.id);
+  }, [filteredPokemon]);
 
   const toggleGen = (genId: string) => {
     setSelectedGens((prev) =>
-      prev.includes(genId) ? prev.filter((g) => g !== genId) : [...prev, genId]
-    )
-  }
+      prev.includes(genId) ? prev.filter((g) => g !== genId) : [...prev, genId],
+    );
+  };
 
   const clearFilters = () => {
-    setSearch("")
-    setSelectedGens([])
-    setShowHiddenOnly(null)
-  }
+    setSearch("");
+    setSelectedGens([]);
+    setShowHiddenOnly(null);
+  };
 
-  const hasFilters = search || selectedGens.length > 0 || showHiddenOnly !== null
+  const hasFilters =
+    search || selectedGens.length > 0 || showHiddenOnly !== null;
 
-  const normalCount = pokemon.filter((p) => !p.isHidden).length
-  const hiddenCount = pokemon.filter((p) => p.isHidden).length
+  const normalCount = pokemon.filter((p) => !p.isHidden).length;
+  const hiddenCount = pokemon.filter((p) => p.isHidden).length;
 
   return (
     <section className="space-y-4">
@@ -191,7 +203,7 @@ function PokemonSection({ pokemon, abilityName }: { pokemon: AbilityPokemon[]; a
                 "px-2 py-1 text-[10px] border rounded transition-colors",
                 selectedGens.includes(gen.id)
                   ? "bg-foreground text-background border-foreground"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted",
               )}
             >
               {gen.name}
@@ -204,36 +216,42 @@ function PokemonSection({ pokemon, abilityName }: { pokemon: AbilityPokemon[]; a
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setShowHiddenOnly(showHiddenOnly === null ? null : null)}
+              onClick={() =>
+                setShowHiddenOnly(showHiddenOnly === null ? null : null)
+              }
               className={cn(
                 "px-2 py-1 text-[10px] border rounded transition-colors",
                 showHiddenOnly === null
                   ? "bg-foreground text-background border-foreground"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted",
               )}
             >
               All ({pokemon.length})
             </button>
             <button
               type="button"
-              onClick={() => setShowHiddenOnly(showHiddenOnly === false ? null : false)}
+              onClick={() =>
+                setShowHiddenOnly(showHiddenOnly === false ? null : false)
+              }
               className={cn(
                 "px-2 py-1 text-[10px] border rounded transition-colors",
                 showHiddenOnly === false
                   ? "bg-foreground text-background border-foreground"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted",
               )}
             >
               Regular ({normalCount})
             </button>
             <button
               type="button"
-              onClick={() => setShowHiddenOnly(showHiddenOnly === true ? null : true)}
+              onClick={() =>
+                setShowHiddenOnly(showHiddenOnly === true ? null : true)
+              }
               className={cn(
                 "px-2 py-1 text-[10px] border border-dashed rounded transition-colors",
                 showHiddenOnly === true
                   ? "bg-foreground text-background border-foreground"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted",
               )}
             >
               Hidden ({hiddenCount})
@@ -272,14 +290,18 @@ function PokemonSection({ pokemon, abilityName }: { pokemon: AbilityPokemon[]; a
               href={`/pokemon/${poke.id}`}
               className={cn(
                 "flex flex-col items-center p-2 rounded hover:bg-muted transition-colors group",
-                poke.isHidden && "border border-dashed border-muted-foreground/30"
+                poke.isHidden &&
+                  "border border-dashed border-muted-foreground/30",
               )}
             >
-              <img
+              <Image
                 src={poke.sprite}
                 alt={poke.name}
+                width={48}
+                height={48}
                 className="size-12 pixelated group-hover:scale-110 transition-transform"
                 loading="lazy"
+                unoptimized
               />
               <span className="text-[10px] text-muted-foreground truncate max-w-full">
                 #{poke.id.toString().padStart(3, "0")}
@@ -292,16 +314,18 @@ function PokemonSection({ pokemon, abilityName }: { pokemon: AbilityPokemon[]; a
           No Pokémon match your filters
         </p>
       ) : (
-        <p className="text-sm text-muted-foreground">No Pokémon have this ability.</p>
+        <p className="text-sm text-muted-foreground">
+          No Pokémon have this ability.
+        </p>
       )}
     </section>
-  )
+  );
 }
 
 function AbilityDetailSkeleton() {
   return (
     <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="space-y-6">
         <section className="space-y-3">
           <Skeleton className="h-7 w-40" />
           <Skeleton className="h-4 w-full" />
@@ -319,11 +343,11 @@ function AbilityDetailSkeleton() {
           <Skeleton className="h-3 w-24" />
           <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
             {Array.from({ length: 24 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
+              <Skeleton key={`pokemon-skeleton-${i}`} className="h-16 w-full" />
             ))}
           </div>
         </section>
       </div>
     </div>
-  )
+  );
 }

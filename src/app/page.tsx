@@ -5,8 +5,8 @@ import { useInView } from "react-intersection-observer"
 import Link from "next/link"
 import { PokemonCard, PokemonCardSkeleton } from "@/components/pokemon/pokemon-card"
 import { DexFilter, useFilteredPokemon, useFilteredMoves, useFilteredAbilities, useFilteredItems, type DexFilterState } from "@/components/pokemon/dex-filter"
-import { getAllSpecies, toID } from "@/lib/pkmn"
-import { pokemonSpriteById } from "@/lib/sprites"
+import { toID } from "@/lib/pkmn"
+import { getDexPokemonList } from "@/lib/dex-pokemon"
 
 const ITEMS_PER_PAGE = 50
 
@@ -21,10 +21,16 @@ function HomeContent() {
   const [abilitiesDisplayCount, setAbilitiesDisplayCount] = useState(ITEMS_PER_PAGE)
   const [itemsDisplayCount, setItemsDisplayCount] = useState(ITEMS_PER_PAGE)
 
+  const loadingRowKeys = useMemo(() => Array.from({ length: 20 }, (_, i) => `loading-row-${i}`), [])
+
+  const filterResetKey = useMemo(() => {
+    return `${filter.category}|${filter.search}|${filter.types.join(",")}`
+  }, [filter.category, filter.search, filter.types])
+
   const allPokemon = useMemo(() => {
-    return getAllSpecies().map((s) => ({
-      name: s.name,
-      id: s.num,
+    return getDexPokemonList(9, { forms: "distinct-sprites" }).map((p) => ({
+      name: p.name,
+      id: p.id,
     }))
   }, [])
 
@@ -63,11 +69,12 @@ function HomeContent() {
 
   // Reset display counts when filter changes
   useEffect(() => {
+    void filterResetKey
     setPokemonDisplayCount(ITEMS_PER_PAGE)
     setMovesDisplayCount(ITEMS_PER_PAGE)
     setAbilitiesDisplayCount(ITEMS_PER_PAGE)
     setItemsDisplayCount(ITEMS_PER_PAGE)
-  }, [filter.search, filter.category])
+  }, [filterResetKey])
 
   const displayedPokemon = hasPokemonFilters
     ? filteredPokemon
@@ -86,7 +93,7 @@ function HomeContent() {
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
             {displayedPokemon?.map((pokemon) => (
               <PokemonCard
-                key={pokemon.id}
+                key={`${pokemon.id}-${pokemon.name}`}
                 name={pokemon.name}
                 id={pokemon.id}
               />
@@ -116,8 +123,8 @@ function HomeContent() {
         <>
           {isMovesLoading ? (
             <div className="space-y-1">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="h-8 animate-pulse rounded bg-muted" />
+              {loadingRowKeys.map((key) => (
+                <div key={key} className="h-8 animate-pulse rounded bg-muted" />
               ))}
             </div>
           ) : (
@@ -164,8 +171,8 @@ function HomeContent() {
         <>
           {isAbilitiesLoading ? (
             <div className="space-y-1">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="h-8 animate-pulse rounded bg-muted" />
+              {loadingRowKeys.map((key) => (
+                <div key={key} className="h-8 animate-pulse rounded bg-muted" />
               ))}
             </div>
           ) : (
@@ -212,8 +219,8 @@ function HomeContent() {
         <>
           {isItemsLoading ? (
             <div className="space-y-1">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div key={i} className="h-8 animate-pulse rounded bg-muted" />
+              {loadingRowKeys.map((key) => (
+                <div key={key} className="h-8 animate-pulse rounded bg-muted" />
               ))}
             </div>
           ) : (
@@ -267,20 +274,23 @@ export default function HomePage() {
 }
 
 function HomePageSkeleton() {
+  const filterTypeSkeletonKeys = useMemo(() => Array.from({ length: 18 }, (_, i) => `filter-type-${i}`), [])
+  const pokemonCardSkeletonKeys = useMemo(() => Array.from({ length: 20 }, (_, i) => `pokemon-card-${i}`), [])
+
   return (
     <div className="p-4 md:p-6">
       {/* Filter Skeleton */}
       <div className="mb-4 space-y-3">
         <div className="h-9 animate-pulse rounded-md bg-muted" />
         <div className="flex flex-wrap gap-1.5">
-          {Array.from({ length: 18 }).map((_, i) => (
-            <div key={i} className="h-5 w-14 animate-pulse rounded bg-muted" />
+          {filterTypeSkeletonKeys.map((key) => (
+            <div key={key} className="h-5 w-14 animate-pulse rounded bg-muted" />
           ))}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <PokemonCardSkeleton key={i} />
+        {pokemonCardSkeletonKeys.map((key) => (
+          <PokemonCardSkeleton key={key} />
         ))}
       </div>
     </div>

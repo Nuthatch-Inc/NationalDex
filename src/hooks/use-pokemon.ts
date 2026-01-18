@@ -1,66 +1,72 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query";
+import { getPokemonMoves } from "@/lib/learnsets";
 import {
   gens,
-  getAllSpecies,
-  getAllMoves,
+  getAbility,
   getAllAbilities,
   getAllItems,
+  getAllMoves,
+  getAllSpecies,
   getAllTypes,
-  getTypeMatchups,
-  getSpecies,
-  getMove,
-  getAbility,
-  getItem,
-  getType,
-  formatStatName,
   getGenerationName,
+  getItem,
+  getMove,
+  getType,
+  getTypeMatchups,
   toID,
-} from "@/lib/pkmn"
-import { getPokemonMoves, getLearnset } from "@/lib/learnsets"
-import { pokemonSpriteById } from "@/lib/sprites"
+} from "@/lib/pkmn";
+import { pokemonSprite, pokemonSpriteById } from "@/lib/sprites";
 import type {
-  Pokemon,
-  PokemonSpecies,
-  PokemonMove,
   EvolutionChainLink,
-  MoveListItem,
-  FullMoveDetail,
   FullAbilityDetail,
-  TypeDetail,
+  FullItemDetail,
+  FullMoveDetail,
   FullTypeDetail,
   ItemListItem,
-  FullItemDetail,
+  MoveListItem,
+  Pokemon,
+  PokemonMove,
+  PokemonSpecies,
   PokemonType,
-  TypeEffectiveness,
   TypeDamageRelations,
-} from "@/types/pokemon"
+  TypeDetail,
+  TypeEffectiveness,
+} from "@/types/pokemon";
 
 function findSpeciesByNumOrName(nameOrId: string | number) {
-  const gen = gens.get(9)
+  const gen = gens.get(9);
   if (typeof nameOrId === "number") {
     // Find by dex number
-    return Array.from(gen.species).find((s) => s.num === nameOrId && s.exists)
+    return (
+      Array.from(gen.species).find(
+        (s) => s.num === nameOrId && s.exists && !s.forme,
+      ) ?? Array.from(gen.species).find((s) => s.num === nameOrId && s.exists)
+    );
   }
   // Try to get by name/id first
-  const byName = gen.species.get(nameOrId)
-  if (byName) return byName
+  const byName = gen.species.get(nameOrId);
+  if (byName) return byName;
   // Try parsing as number
-  const asNum = Number.parseInt(nameOrId, 10)
+  const asNum = Number.parseInt(nameOrId, 10);
   if (!Number.isNaN(asNum)) {
-    return Array.from(gen.species).find((s) => s.num === asNum && s.exists)
+    return (
+      Array.from(gen.species).find(
+        (s) => s.num === asNum && s.exists && !s.forme,
+      ) ?? Array.from(gen.species).find((s) => s.num === asNum && s.exists)
+    );
   }
-  return undefined
+  return undefined;
 }
 
 export function usePokemon(nameOrId: string | number | null) {
   return useQuery<Pokemon>({
     queryKey: ["pokemon", nameOrId],
     queryFn: () => {
-      const species = findSpeciesByNumOrName(nameOrId!)
-      if (!species) throw new Error("Species not found")
+      if (nameOrId === null) throw new Error("Pokemon id is required");
+      const species = findSpeciesByNumOrName(nameOrId);
+      if (!species) throw new Error("Species not found");
 
       const stats = [
         { name: "HP", value: species.baseStats.hp },
@@ -69,78 +75,89 @@ export function usePokemon(nameOrId: string | number | null) {
         { name: "Sp. Atk", value: species.baseStats.spa },
         { name: "Sp. Def", value: species.baseStats.spd },
         { name: "Speed", value: species.baseStats.spe },
-      ]
+      ];
 
-      const abilities = Object.entries(species.abilities).map(([slot, name]) => ({
-        name: name as string,
-        isHidden: slot === "H",
-      })).filter(a => a.name)
+      const abilities = Object.entries(species.abilities)
+        .map(([slot, name]) => ({
+          name: name as string,
+          isHidden: slot === "H",
+        }))
+        .filter((a) => a.name);
 
       return {
         id: species.num,
         name: species.name,
         types: species.types as PokemonType[],
-        sprite: pokemonSpriteById(species.num),
-        spriteShiny: pokemonSpriteById(species.num, { shiny: true }),
+        sprite: pokemonSprite(species.name) || pokemonSpriteById(species.num),
+        spriteShiny:
+          pokemonSprite(species.name, { shiny: true }) ||
+          pokemonSpriteById(species.num, { shiny: true }),
         height: 0, // Height not available in @pkmn/dex
         weight: species.weightkg * 10, // Convert kg to decigrams (API format)
         stats,
         abilities,
-      }
+      };
     },
     enabled: nameOrId !== null,
-  })
+  });
 }
 
 export function usePokemonSpecies(nameOrId: string | number | null) {
   return useQuery<PokemonSpecies>({
     queryKey: ["pokemon-species", nameOrId],
     queryFn: () => {
-      const species = findSpeciesByNumOrName(nameOrId!)
-      if (!species) throw new Error("Species not found")
+      if (nameOrId === null) throw new Error("Pokemon id is required");
+      const species = findSpeciesByNumOrName(nameOrId);
+      if (!species) throw new Error("Species not found");
 
       return {
         id: species.num,
         name: species.name,
         description: species.desc || "",
         genus: species.forme ? `${species.baseForme || "Base"} Forme` : "",
-        evolutionChainUrl: species.prevo ? `evo-${species.prevo}` : null,
+        // Use the species id so base-stage Pokémon still build a chain.
+        // (The chain builder walks backwards via `prevo` to find the root.)
+        evolutionChainUrl: `evo-${species.id}`,
         generation: getGenerationName(species.gen),
-        genderRate: species.genderRatio?.F !== undefined
-          ? Math.round(species.genderRatio.F * 8)
-          : species.gender === "N" ? -1 : 4,
+        genderRate:
+          species.genderRatio?.F !== undefined
+            ? Math.round(species.genderRatio.F * 8)
+            : species.gender === "N"
+              ? -1
+              : 4,
         captureRate: 45, // Not available in @pkmn/dex
         baseHappiness: 50, // Not available in @pkmn/dex
         hatchCounter: species.eggGroups?.includes("Undiscovered") ? 120 : 20,
         growthRate: "Medium Fast", // Not available in @pkmn/dex
         eggGroups: species.eggGroups || [],
         evYield: [], // Not available in @pkmn/dex
-      }
+      };
     },
     enabled: nameOrId !== null,
-  })
+  });
 }
 
 export function usePokemonWithSpecies(nameOrId: string | number | null) {
-  const pokemon = usePokemon(nameOrId)
-  const species = usePokemonSpecies(nameOrId)
+  const pokemon = usePokemon(nameOrId);
+  const species = usePokemonSpecies(nameOrId);
 
   return {
     pokemon: pokemon.data,
     species: species.data,
     isLoading: pokemon.isLoading || species.isLoading,
     error: pokemon.error || species.error,
-  }
+  };
 }
 
 export function usePokemonMoves(nameOrId: string | number | null) {
   return useQuery<PokemonMove[]>({
     queryKey: ["pokemon-moves", nameOrId],
     queryFn: async () => {
-      const species = findSpeciesByNumOrName(nameOrId!)
-      if (!species) throw new Error("Species not found")
+      if (nameOrId === null) throw new Error("Pokemon id is required");
+      const species = findSpeciesByNumOrName(nameOrId);
+      if (!species) throw new Error("Species not found");
 
-      const moves = await getPokemonMoves(species.name)
+      const moves = await getPokemonMoves(species.name);
       return moves.map((m) => ({
         name: m.name,
         type: m.type as PokemonType,
@@ -150,31 +167,34 @@ export function usePokemonMoves(nameOrId: string | number | null) {
         damageClass: m.category as "Physical" | "Special" | "Status",
         learnMethod: m.learnMethod,
         levelLearnedAt: m.levelLearnedAt,
-      }))
+      }));
     },
     enabled: nameOrId !== null,
     staleTime: 1000 * 60 * 60,
-  })
+  });
 }
 
 export function useEvolutionChain(evolutionChainUrl: string | null) {
   return useQuery<EvolutionChainLink>({
     queryKey: ["evolution-chain", evolutionChainUrl],
     queryFn: () => {
-      if (!evolutionChainUrl) throw new Error("No evolution chain")
+      if (!evolutionChainUrl) throw new Error("No evolution chain");
 
-      const prevoName = evolutionChainUrl.replace("evo-", "")
-      const prevo = gens.get(9).species.get(prevoName)
-      if (!prevo) throw new Error("Prevo not found")
+      const startId = evolutionChainUrl.replace("evo-", "");
+      const startSpecies = gens.get(9).species.get(startId);
+      if (!startSpecies) throw new Error("Species not found");
 
-      function buildChain(speciesName: string, evolutionDetails: EvolutionChainLink["evolutionDetails"] = []): EvolutionChainLink {
-        const sp = gens.get(9).species.get(speciesName)
-        if (!sp) throw new Error(`Species ${speciesName} not found`)
+      function buildChain(
+        speciesId: string,
+        evolutionDetails: EvolutionChainLink["evolutionDetails"] = [],
+      ): EvolutionChainLink {
+        const sp = gens.get(9).species.get(speciesId);
+        if (!sp) throw new Error(`Species ${speciesId} not found`);
 
-        const evolutions: EvolutionChainLink[] = []
-        for (const otherSpecies of getAllSpecies()) {
-          if (otherSpecies.prevo === sp.id) {
-            const evoDetails: EvolutionChainLink["evolutionDetails"] = []
+        const evolutions: EvolutionChainLink[] = [];
+        for (const otherSpecies of getAllSpecies(9, { includeFormes: true })) {
+          if (otherSpecies.prevo && toID(otherSpecies.prevo) === sp.id) {
+            const evoDetails: EvolutionChainLink["evolutionDetails"] = [];
 
             if (otherSpecies.evoLevel) {
               evoDetails.push({
@@ -187,7 +207,7 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
                 knownMove: null,
                 location: null,
                 otherRequirement: null,
-              })
+              });
             } else if (otherSpecies.evoItem) {
               evoDetails.push({
                 trigger: "Use Item",
@@ -199,7 +219,7 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
                 knownMove: null,
                 location: null,
                 otherRequirement: null,
-              })
+              });
             } else if (otherSpecies.evoMove) {
               evoDetails.push({
                 trigger: "Level Up",
@@ -211,7 +231,7 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
                 knownMove: otherSpecies.evoMove,
                 location: null,
                 otherRequirement: null,
-              })
+              });
             } else if (otherSpecies.evoCondition) {
               evoDetails.push({
                 trigger: otherSpecies.evoCondition,
@@ -223,7 +243,7 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
                 knownMove: null,
                 location: null,
                 otherRequirement: otherSpecies.evoCondition,
-              })
+              });
             } else {
               evoDetails.push({
                 trigger: "Trade",
@@ -235,34 +255,36 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
                 knownMove: null,
                 location: null,
                 otherRequirement: null,
-              })
+              });
             }
 
-            evolutions.push(buildChain(otherSpecies.name, evoDetails))
+            evolutions.push(buildChain(otherSpecies.id, evoDetails));
           }
         }
 
         return {
           id: sp.num,
           name: sp.name,
-          sprite: pokemonSpriteById(sp.num),
+          sprite: pokemonSprite(sp.name) || pokemonSpriteById(sp.num),
           evolvesTo: evolutions,
           evolutionDetails,
-        }
+        };
       }
 
-      let baseSpecies = prevo
+      let baseSpecies = startSpecies;
       while (baseSpecies.prevo) {
-        const prev = gens.get(9).species.get(baseSpecies.prevo)
-        if (prev) baseSpecies = prev
-        else break
+        const prev =
+          gens.get(9).species.get(toID(baseSpecies.prevo)) ??
+          gens.get(9).species.get(baseSpecies.prevo);
+        if (prev) baseSpecies = prev;
+        else break;
       }
 
-      return buildChain(baseSpecies.name)
+      return buildChain(baseSpecies.id);
     },
     enabled: evolutionChainUrl !== null,
     staleTime: 1000 * 60 * 60,
-  })
+  });
 }
 
 export function useAllPokemonNames() {
@@ -273,10 +295,10 @@ export function useAllPokemonNames() {
         name: s.name,
         id: s.num,
         sprite: pokemonSpriteById(s.num),
-      }))
+      }));
     },
     staleTime: 1000 * 60 * 60 * 24,
-  })
+  });
 }
 
 export function useAllMoveNames() {
@@ -286,10 +308,10 @@ export function useAllMoveNames() {
       return getAllMoves().map((m) => ({
         name: m.name,
         id: m.num,
-      }))
+      }));
     },
     staleTime: 1000 * 60 * 60 * 24,
-  })
+  });
 }
 
 export function useAllAbilityNames() {
@@ -299,10 +321,10 @@ export function useAllAbilityNames() {
       return getAllAbilities().map((a) => ({
         name: a.name,
         id: a.num,
-      }))
+      }));
     },
     staleTime: 1000 * 60 * 60 * 24,
-  })
+  });
 }
 
 export function useAllItemNames() {
@@ -313,47 +335,50 @@ export function useAllItemNames() {
         name: i.name,
         id: i.num,
         sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
-      }))
+      }));
     },
     staleTime: 1000 * 60 * 60 * 24,
-  })
+  });
 }
 
 export function useMoveList() {
   return useQuery({
     queryKey: ["move-list"],
     queryFn: () => {
-      const moves = getAllMoves().map((m): MoveListItem => ({
-        id: m.num,
-        name: m.name,
-        type: m.type as PokemonType,
-        damageClass: m.category as "Physical" | "Special" | "Status",
-        power: m.basePower || null,
-        accuracy: m.accuracy === true ? null : m.accuracy,
-        pp: m.pp,
-        generation: getGenerationName(m.gen),
-      }))
-      return { moves, count: moves.length }
+      const moves = getAllMoves().map(
+        (m): MoveListItem => ({
+          id: m.num,
+          name: m.name,
+          type: m.type as PokemonType,
+          damageClass: m.category as "Physical" | "Special" | "Status",
+          power: m.basePower || null,
+          accuracy: m.accuracy === true ? null : m.accuracy,
+          pp: m.pp,
+          generation: getGenerationName(m.gen),
+        }),
+      );
+      return { moves, count: moves.length };
     },
     staleTime: 1000 * 60 * 60,
-  })
+  });
 }
 
 export function useFullMoveDetail(name: string | null) {
   return useQuery<FullMoveDetail>({
     queryKey: ["move-detail", name],
     queryFn: () => {
-      const move = getMove(name!)
-      if (!move) throw new Error("Move not found")
+      if (!name) throw new Error("Move name is required");
+      const move = getMove(name);
+      if (!move) throw new Error("Move not found");
 
-      const pokemon: FullMoveDetail["pokemon"] = []
+      const pokemon: FullMoveDetail["pokemon"] = [];
       for (const species of getAllSpecies()) {
         pokemon.push({
           id: species.num,
           name: species.name,
           sprite: pokemonSpriteById(species.num),
           learnMethods: [],
-        })
+        });
       }
 
       return {
@@ -370,23 +395,24 @@ export function useFullMoveDetail(name: string | null) {
         target: move.target,
         generation: getGenerationName(move.gen),
         pokemon: pokemon.slice(0, 50),
-      }
+      };
     },
     enabled: name !== null,
     staleTime: 1000 * 60 * 60,
-  })
+  });
 }
 
 export function useFullAbilityDetail(name: string | null) {
   return useQuery<FullAbilityDetail>({
     queryKey: ["ability-detail", name],
     queryFn: () => {
-      const ability = getAbility(name!)
-      if (!ability) throw new Error("Ability not found")
+      if (!name) throw new Error("Ability name is required");
+      const ability = getAbility(name);
+      if (!ability) throw new Error("Ability not found");
 
-      const pokemon: FullAbilityDetail["pokemon"] = []
+      const pokemon: FullAbilityDetail["pokemon"] = [];
       for (const species of getAllSpecies()) {
-        const abilities = Object.entries(species.abilities)
+        const abilities = Object.entries(species.abilities);
         for (const [slot, abilityName] of abilities) {
           if (toID(abilityName as string) === ability.id) {
             pokemon.push({
@@ -394,8 +420,8 @@ export function useFullAbilityDetail(name: string | null) {
               name: species.name,
               sprite: pokemonSpriteById(species.num),
               isHidden: slot === "H",
-            })
-            break
+            });
+            break;
           }
         }
       }
@@ -408,18 +434,18 @@ export function useFullAbilityDetail(name: string | null) {
         generation: getGenerationName(ability.gen),
         isMainSeries: true,
         pokemon,
-      }
+      };
     },
     enabled: name !== null,
     staleTime: 1000 * 60 * 60,
-  })
+  });
 }
 
 export function useAllTypes() {
   return useQuery<TypeDetail[]>({
     queryKey: ["all-types"],
     queryFn: () => {
-      const gen = gens.get(9)
+      const gen = gens.get(9);
       return getAllTypes().map((type, idx) => {
         const damageRelations: TypeDamageRelations = {
           doubleDamageTo: [],
@@ -428,19 +454,29 @@ export function useAllTypes() {
           doubleDamageFrom: [],
           halfDamageFrom: [],
           noDamageFrom: [],
-        }
+        };
 
         for (const otherType of getAllTypes()) {
-          const effOffense = gen.types.get(type.name)?.totalEffectiveness(otherType.name) ?? 1
-          const effDefense = gen.types.get(otherType.name)?.totalEffectiveness(type.name) ?? 1
+          const effOffense =
+            gen.types.get(type.name)?.totalEffectiveness(otherType.name) ?? 1;
+          const effDefense =
+            gen.types.get(otherType.name)?.totalEffectiveness(type.name) ?? 1;
 
-          if (effOffense > 1) damageRelations.doubleDamageTo.push(otherType.name as PokemonType)
-          else if (effOffense > 0 && effOffense < 1) damageRelations.halfDamageTo.push(otherType.name as PokemonType)
-          else if (effOffense === 0) damageRelations.noDamageTo.push(otherType.name as PokemonType)
+          if (effOffense > 1)
+            damageRelations.doubleDamageTo.push(otherType.name as PokemonType);
+          else if (effOffense > 0 && effOffense < 1)
+            damageRelations.halfDamageTo.push(otherType.name as PokemonType);
+          else if (effOffense === 0)
+            damageRelations.noDamageTo.push(otherType.name as PokemonType);
 
-          if (effDefense > 1) damageRelations.doubleDamageFrom.push(otherType.name as PokemonType)
-          else if (effDefense > 0 && effDefense < 1) damageRelations.halfDamageFrom.push(otherType.name as PokemonType)
-          else if (effDefense === 0) damageRelations.noDamageFrom.push(otherType.name as PokemonType)
+          if (effDefense > 1)
+            damageRelations.doubleDamageFrom.push(
+              otherType.name as PokemonType,
+            );
+          else if (effDefense > 0 && effDefense < 1)
+            damageRelations.halfDamageFrom.push(otherType.name as PokemonType);
+          else if (effDefense === 0)
+            damageRelations.noDamageFrom.push(otherType.name as PokemonType);
         }
 
         return {
@@ -448,21 +484,22 @@ export function useAllTypes() {
           name: type.name as PokemonType,
           damageRelations,
           generation: "Gen I",
-        }
-      })
+        };
+      });
     },
     staleTime: 1000 * 60 * 60 * 24,
-  })
+  });
 }
 
 export function useFullTypeDetail(name: string | null) {
   return useQuery<FullTypeDetail>({
     queryKey: ["type-detail", name],
     queryFn: () => {
-      const type = getType(name!)
-      if (!type) throw new Error("Type not found")
+      if (!name) throw new Error("Type name is required");
+      const type = getType(name);
+      if (!type) throw new Error("Type not found");
 
-      const gen = gens.get(9)
+      const gen = gens.get(9);
       const damageRelations: TypeDamageRelations = {
         doubleDamageTo: [],
         halfDamageTo: [],
@@ -470,31 +507,38 @@ export function useFullTypeDetail(name: string | null) {
         doubleDamageFrom: [],
         halfDamageFrom: [],
         noDamageFrom: [],
-      }
+      };
 
       for (const otherType of getAllTypes()) {
-        const effOffense = type.totalEffectiveness(otherType.name)
-        const effDefense = gen.types.get(otherType.name)?.totalEffectiveness(type.name) ?? 1
+        const effOffense = type.totalEffectiveness(otherType.name);
+        const effDefense =
+          gen.types.get(otherType.name)?.totalEffectiveness(type.name) ?? 1;
 
-        if (effOffense > 1) damageRelations.doubleDamageTo.push(otherType.name as PokemonType)
-        else if (effOffense > 0 && effOffense < 1) damageRelations.halfDamageTo.push(otherType.name as PokemonType)
-        else if (effOffense === 0) damageRelations.noDamageTo.push(otherType.name as PokemonType)
+        if (effOffense > 1)
+          damageRelations.doubleDamageTo.push(otherType.name as PokemonType);
+        else if (effOffense > 0 && effOffense < 1)
+          damageRelations.halfDamageTo.push(otherType.name as PokemonType);
+        else if (effOffense === 0)
+          damageRelations.noDamageTo.push(otherType.name as PokemonType);
 
-        if (effDefense > 1) damageRelations.doubleDamageFrom.push(otherType.name as PokemonType)
-        else if (effDefense > 0 && effDefense < 1) damageRelations.halfDamageFrom.push(otherType.name as PokemonType)
-        else if (effDefense === 0) damageRelations.noDamageFrom.push(otherType.name as PokemonType)
+        if (effDefense > 1)
+          damageRelations.doubleDamageFrom.push(otherType.name as PokemonType);
+        else if (effDefense > 0 && effDefense < 1)
+          damageRelations.halfDamageFrom.push(otherType.name as PokemonType);
+        else if (effDefense === 0)
+          damageRelations.noDamageFrom.push(otherType.name as PokemonType);
       }
 
-      const pokemon: FullTypeDetail["pokemon"] = []
+      const pokemon: FullTypeDetail["pokemon"] = [];
       for (const species of getAllSpecies()) {
-        const typeIndex = species.types.indexOf(type.name)
+        const typeIndex = species.types.indexOf(type.name);
         if (typeIndex !== -1) {
           pokemon.push({
             id: species.num,
             name: species.name,
             sprite: pokemonSpriteById(species.num),
             slot: (typeIndex + 1) as 1 | 2,
-          })
+          });
         }
       }
 
@@ -504,37 +548,40 @@ export function useFullTypeDetail(name: string | null) {
         damageRelations,
         generation: "Gen I",
         pokemon: pokemon.sort((a, b) => a.id - b.id),
-      }
+      };
     },
     enabled: name !== null,
     staleTime: 1000 * 60 * 60 * 24,
-  })
+  });
 }
 
 export function useItemList() {
   return useQuery({
     queryKey: ["item-list"],
     queryFn: () => {
-      const items = getAllItems().map((i): ItemListItem => ({
-        id: i.num,
-        name: i.name,
-        sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
-        category: i.fling?.basePower ? "Fling" : "General",
-        pocket: "misc",
-        cost: 0,
-      }))
-      return { items, count: items.length }
+      const items = getAllItems().map(
+        (i): ItemListItem => ({
+          id: i.num,
+          name: i.name,
+          sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
+          category: i.fling?.basePower ? "Fling" : "General",
+          pocket: "misc",
+          cost: 0,
+        }),
+      );
+      return { items, count: items.length };
     },
     staleTime: 1000 * 60 * 60,
-  })
+  });
 }
 
 export function useFullItemDetail(name: string | null) {
   return useQuery<FullItemDetail>({
     queryKey: ["item-detail", name],
     queryFn: () => {
-      const item = getItem(name!)
-      if (!item) throw new Error("Item not found")
+      if (!name) throw new Error("Item name is required");
+      const item = getItem(name);
+      if (!item) throw new Error("Item not found");
 
       return {
         id: item.num,
@@ -550,11 +597,11 @@ export function useFullItemDetail(name: string | null) {
         attributes: [],
         heldByPokemon: [],
         gameIndices: [],
-      }
+      };
     },
     enabled: name !== null,
     staleTime: 1000 * 60 * 60,
-  })
+  });
 }
 
 export function useItemCategories() {
@@ -569,22 +616,30 @@ export function useItemCategories() {
         { id: "berries", name: "Berries", pocket: "berries" as const },
         { id: "battle", name: "Battle Items", pocket: "battle" as const },
         { id: "key", name: "Key Items", pocket: "key" as const },
-      ]
+      ];
     },
     staleTime: 1000 * 60 * 60 * 24,
-  })
+  });
 }
 
-export function calculateTypeEffectiveness(types: PokemonType[]): TypeEffectiveness {
-  const matchups = getTypeMatchups(types)
+export function calculateTypeEffectiveness(
+  types: PokemonType[],
+): TypeEffectiveness {
+  const matchups = getTypeMatchups(types);
   return {
-    weaknesses: matchups.weaknesses.map((w) => ({ type: w.type as PokemonType, multiplier: w.multiplier })),
-    resistances: matchups.resistances.map((r) => ({ type: r.type as PokemonType, multiplier: r.multiplier })),
+    weaknesses: matchups.weaknesses.map((w) => ({
+      type: w.type as PokemonType,
+      multiplier: w.multiplier,
+    })),
+    resistances: matchups.resistances.map((r) => ({
+      type: r.type as PokemonType,
+      multiplier: r.multiplier,
+    })),
     immunities: matchups.immunities as PokemonType[],
-  }
+  };
 }
 
 export function getPokemonIdFromUrl(url: string): number {
-  const match = url.match(/\/pokemon\/(\d+)\//)
-  return match ? Number.parseInt(match[1], 10) : 0
+  const match = url.match(/\/pokemon\/(\d+)\//);
+  return match ? Number.parseInt(match[1], 10) : 0;
 }

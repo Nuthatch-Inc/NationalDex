@@ -6,6 +6,7 @@ import { Heart, GitCompareArrows } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { toID } from "@/lib/pkmn"
 import { usePokemon } from "@/hooks/use-pokemon"
 import { useFavorites } from "@/hooks/use-favorites"
 import { useComparison } from "@/hooks/use-comparison"
@@ -39,6 +40,9 @@ interface PokemonCardWithNameProps extends BasePokemonCardProps {
 }
 
 export type PokemonCardProps = PokemonCardWithDataProps | PokemonCardWithNameProps
+
+const DETAIL_STAT_SKELETON_KEYS = Array.from({ length: 6 }, (_, i) => `detail-stat-${i}`)
+const DETAIL_BADGE_SKELETON_KEYS = Array.from({ length: 3 }, (_, i) => `detail-badge-${i}`)
 
 // =============================================================================
 // Main Component
@@ -88,6 +92,7 @@ function PokemonCardFetcher({
   showFavorite: boolean
   className?: string
 }) {
+  void id
   const { data: pokemon, isLoading } = usePokemon(name)
 
   if (isLoading || !pokemon) {
@@ -122,10 +127,7 @@ function PokemonCardContent({
   const { isFavorite, toggleFavorite } = useFavorites()
   const { isInComparison, toggleComparison, canAddMore } = useComparison()
 
-  const typeEffectiveness = useMemo(() => {
-    if (variant !== "detail") return null
-    return calculateTypeEffectiveness(pokemon.types)
-  }, [pokemon.types, variant])
+  const typeEffectiveness = useMemo(() => calculateTypeEffectiveness(pokemon.types), [pokemon.types])
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -152,7 +154,7 @@ function PokemonCardContent({
     return (
       <DetailCard
         pokemon={pokemon}
-        typeEffectiveness={typeEffectiveness!}
+        typeEffectiveness={typeEffectiveness}
         showFavorite={showFavorite}
         isFavorite={isFavorite(pokemon.id)}
         onFavoriteClick={handleFavoriteClick}
@@ -190,8 +192,9 @@ function CompactCard({
   pokemon: Pokemon
   className?: string
 }) {
+  const href = `/pokemon/${toID(pokemon.name)}`
   return (
-    <Link href={`/pokemon/${pokemon.id}`} className={cn("block", className)}>
+    <Link href={href} className={cn("block", className)}>
       <Card className="p-2 hover:bg-muted/50 transition-colors">
         <div className="flex items-center gap-2">
           <img
@@ -237,9 +240,10 @@ function DefaultCard({
   canAddMore: boolean
   className?: string
 }) {
+  const href = `/pokemon/${toID(pokemon.name)}`
   return (
     <Card className={cn("group relative p-0 hover:bg-muted/50 transition-colors", className)}>
-      <Link href={`/pokemon/${pokemon.id}`} className="block p-3 md:p-4">
+      <Link href={href} className="block p-3 md:p-4">
         <div className="flex items-start justify-between">
           <span className="text-xs text-muted-foreground tabular-nums">
             #{pokemon.id.toString().padStart(3, "0")}
@@ -326,6 +330,7 @@ function DetailCard({
   canAddMore: boolean
   className?: string
 }) {
+  const href = `/pokemon/${toID(pokemon.name)}`
   return (
     <Card className={cn("p-4 md:p-6", className)}>
       {/* Header */}
@@ -370,7 +375,7 @@ function DetailCard({
       </div>
 
       {/* Pokemon Image & Name */}
-      <Link href={`/pokemon/${pokemon.id}`} className="block">
+      <Link href={href} className="block">
         <div className="flex flex-col items-center mb-4">
           <img
             src={pokemon.sprite}
@@ -496,8 +501,8 @@ export function PokemonCardSkeleton({
         </div>
         <div className="mb-4">
           <Skeleton className="h-3 w-16 mb-2" />
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-3 w-full mb-1" />
+          {DETAIL_STAT_SKELETON_KEYS.map((key) => (
+            <Skeleton key={key} className="h-3 w-full mb-1" />
           ))}
         </div>
         <div className="mb-4">
@@ -511,16 +516,16 @@ export function PokemonCardSkeleton({
           <div>
             <Skeleton className="h-3 w-16 mb-2" />
             <div className="flex flex-wrap gap-1">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-4 w-12" />
+              {DETAIL_BADGE_SKELETON_KEYS.map((key) => (
+                <Skeleton key={key} className="h-4 w-12" />
               ))}
             </div>
           </div>
           <div>
             <Skeleton className="h-3 w-16 mb-2" />
             <div className="flex flex-wrap gap-1">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-4 w-12" />
+              {DETAIL_BADGE_SKELETON_KEYS.map((key) => (
+                <Skeleton key={key} className="h-4 w-12" />
               ))}
             </div>
           </div>

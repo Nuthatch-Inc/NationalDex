@@ -1,125 +1,127 @@
-"use client"
+"use client";
 
-import { useState, useCallback, useEffect, useRef } from "react"
-import { usePokemon } from "@/hooks/use-pokemon"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Check, X, SkipForward, Trophy, Flame } from "lucide-react"
-import Link from "next/link"
+import { Check, Flame, SkipForward, Trophy, X } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { usePokemon } from "@/hooks/use-pokemon";
+import { cn } from "@/lib/utils";
 
-const MAX_POKEMON_ID = 1025 // Main series Pokemon
+const MAX_POKEMON_ID = 1025; // Main series Pokemon
 
 function getRandomPokemonId(): number {
-  return Math.floor(Math.random() * MAX_POKEMON_ID) + 1
+  return Math.floor(Math.random() * MAX_POKEMON_ID) + 1;
 }
 
 function normalizeGuess(guess: string): string {
   return guess
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]/g, "") // Remove special characters
+    .replace(/[^a-z0-9]/g, ""); // Remove special characters
 }
 
 function normalizePokemonName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "") // Remove special characters like spaces, hyphens
+  return name.toLowerCase().replace(/[^a-z0-9]/g, ""); // Remove special characters like spaces, hyphens
 }
 
 export default function WhosThatPokemonPage() {
-  const [pokemonId, setPokemonId] = useState<number>(() => getRandomPokemonId())
-  const [guess, setGuess] = useState("")
-  const [revealed, setRevealed] = useState(false)
-  const [isCorrect, setIsCorrect] = useState(false)
-  const [honorSystem, setHonorSystem] = useState(false) // Revealed without guessing
-  const [score, setScore] = useState(0)
-  const [streak, setStreak] = useState(0)
-  const [bestStreak, setBestStreak] = useState(0)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [pokemonId, setPokemonId] = useState<number>(() =>
+    getRandomPokemonId(),
+  );
+  const [guess, setGuess] = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [honorSystem, setHonorSystem] = useState(false); // Revealed without guessing
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: pokemon, isLoading } = usePokemon(pokemonId)
+  const { data: pokemon, isLoading } = usePokemon(pokemonId);
 
   // Load best streak from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("whos-that-pokemon-best-streak")
+    const saved = localStorage.getItem("whos-that-pokemon-best-streak");
     if (saved) {
-      setBestStreak(Number.parseInt(saved, 10))
+      setBestStreak(Number.parseInt(saved, 10));
     }
-  }, [])
+  }, []);
 
   // Save best streak to localStorage
   useEffect(() => {
     if (streak > bestStreak) {
-      setBestStreak(streak)
-      localStorage.setItem("whos-that-pokemon-best-streak", streak.toString())
+      setBestStreak(streak);
+      localStorage.setItem("whos-that-pokemon-best-streak", streak.toString());
     }
-  }, [streak, bestStreak])
+  }, [streak, bestStreak]);
 
   const checkGuess = useCallback(() => {
-    if (!pokemon || revealed) return
+    if (!pokemon || revealed) return;
 
-    const normalizedGuess = normalizeGuess(guess)
-    const normalizedName = normalizePokemonName(pokemon.name)
+    const normalizedGuess = normalizeGuess(guess);
+    const normalizedName = normalizePokemonName(pokemon.name);
 
     if (normalizedGuess === normalizedName) {
-      setRevealed(true)
-      setIsCorrect(true)
-      setScore((s) => s + 1)
-      setStreak((s) => s + 1)
+      setRevealed(true);
+      setIsCorrect(true);
+      setScore((s) => s + 1);
+      setStreak((s) => s + 1);
     }
-  }, [guess, pokemon, revealed])
+  }, [guess, pokemon, revealed]);
 
   const handleGiveUp = useCallback(() => {
-    setRevealed(true)
-    setIsCorrect(false)
-    setStreak(0)
-  }, [])
+    setRevealed(true);
+    setIsCorrect(false);
+    setStreak(0);
+  }, []);
 
   const handleRevealAnswer = useCallback(() => {
-    setRevealed(true)
-    setHonorSystem(true)
-  }, [])
+    setRevealed(true);
+    setHonorSystem(true);
+  }, []);
 
   const handleHonorCorrect = useCallback(() => {
-    setIsCorrect(true)
-    setHonorSystem(false)
-    setScore((s) => s + 1)
-    setStreak((s) => s + 1)
-  }, [])
+    setIsCorrect(true);
+    setHonorSystem(false);
+    setScore((s) => s + 1);
+    setStreak((s) => s + 1);
+  }, []);
 
   const handleHonorIncorrect = useCallback(() => {
-    setIsCorrect(false)
-    setHonorSystem(false)
-    setStreak(0)
-  }, [])
+    setIsCorrect(false);
+    setHonorSystem(false);
+    setStreak(0);
+  }, []);
 
   const handleNext = useCallback(() => {
-    setPokemonId(getRandomPokemonId())
-    setGuess("")
-    setRevealed(false)
-    setIsCorrect(false)
-    setHonorSystem(false)
+    setPokemonId(getRandomPokemonId());
+    setGuess("");
+    setRevealed(false);
+    setIsCorrect(false);
+    setHonorSystem(false);
     // Focus input after state update
-    setTimeout(() => inputRef.current?.focus(), 100)
-  }, [])
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
         if (revealed) {
-          handleNext()
+          handleNext();
         } else {
-          checkGuess()
+          checkGuess();
         }
       }
     },
-    [revealed, handleNext, checkGuess]
-  )
+    [revealed, handleNext, checkGuess],
+  );
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-center">Who&apos;s That Pokemon?</h1>
+    <div className="p-4 md:p-6">
+      <h1 className="text-2xl font-bold mb-6 text-center">
+        Who&apos;s That Pokemon?
+      </h1>
 
       {/* Score Display */}
       <div className="flex justify-center gap-6 mb-6">
@@ -147,7 +149,7 @@ export default function WhosThatPokemonPage() {
               alt={revealed ? pokemon.name : "Mystery Pokemon"}
               className={cn(
                 "size-48 md:size-64 transition-all duration-500 pixelated",
-                !revealed && "brightness-0"
+                !revealed && "brightness-0",
               )}
             />
             {revealed && !honorSystem && (
@@ -156,7 +158,7 @@ export default function WhosThatPokemonPage() {
                   "absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-sm font-medium",
                   isCorrect
                     ? "bg-green-500/20 text-green-600 dark:text-green-400"
-                    : "bg-red-500/20 text-red-600 dark:text-red-400"
+                    : "bg-red-500/20 text-red-600 dark:text-red-400",
                 )}
               >
                 {isCorrect ? "Correct!" : "Better luck next time!"}
@@ -180,7 +182,9 @@ export default function WhosThatPokemonPage() {
           >
             {pokemon.name}
           </Link>
-          <p className="text-sm text-muted-foreground">#{pokemon.id.toString().padStart(4, "0")}</p>
+          <p className="text-sm text-muted-foreground">
+            #{pokemon.id.toString().padStart(4, "0")}
+          </p>
         </div>
       )}
 
@@ -199,11 +203,19 @@ export default function WhosThatPokemonPage() {
               className="text-center text-lg"
             />
             <div className="flex gap-2">
-              <Button onClick={checkGuess} className="flex-1" disabled={!guess.trim()}>
+              <Button
+                onClick={checkGuess}
+                className="flex-1"
+                disabled={!guess.trim()}
+              >
                 <Check className="size-4 mr-2" />
                 Guess
               </Button>
-              <Button onClick={handleRevealAnswer} variant="secondary" className="flex-1">
+              <Button
+                onClick={handleRevealAnswer}
+                variant="secondary"
+                className="flex-1"
+              >
                 <SkipForward className="size-4 mr-2" />
                 Reveal
               </Button>
@@ -211,13 +223,18 @@ export default function WhosThatPokemonPage() {
           </>
         ) : honorSystem ? (
           <div className="flex gap-2">
-            <Button onClick={handleHonorCorrect} className="flex-1 bg-green-600 hover:bg-green-700">
-              <Check className="size-4 mr-2" />
-              I Got It!
+            <Button
+              onClick={handleHonorCorrect}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
+              <Check className="size-4 mr-2" />I Got It!
             </Button>
-            <Button onClick={handleHonorIncorrect} variant="destructive" className="flex-1">
-              <X className="size-4 mr-2" />
-              I Didn&apos;t Get It
+            <Button
+              onClick={handleHonorIncorrect}
+              variant="destructive"
+              className="flex-1"
+            >
+              <X className="size-4 mr-2" />I Didn&apos;t Get It
             </Button>
           </div>
         ) : (
@@ -234,5 +251,5 @@ export default function WhosThatPokemonPage() {
         <p>Type your guess or use Reveal for honor system mode.</p>
       </div>
     </div>
-  )
+  );
 }

@@ -1,23 +1,36 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Grid3X3, Heart, MoreHorizontal, Search, Users, Settings, MapPin, Package, Info, GitCompareArrows, CircleHelp, ListPlus } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { useNav } from "./navigation/nav-provider"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+  CircleHelp,
+  GitCompareArrows,
+  Grid3X3,
+  Heart,
+  Info,
+  ListPlus,
+  MapPin,
+  MoreHorizontal,
+  Package,
+  Search,
+  Settings,
+  Users,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { useNav } from "./navigation/nav-provider";
 
 const navItems = [
   { href: "/", icon: Grid3X3, label: "dex" },
@@ -25,70 +38,80 @@ const navItems = [
   { href: "#search", icon: Search, label: "search", action: true },
   { href: "/favorites", icon: Heart, label: "favs" },
   { href: "#more", icon: MoreHorizontal, label: "more", action: true },
-]
+];
 
 const moreMenuItems = [
   { href: "/lists", icon: ListPlus, label: "Lists" },
-  { href: "/whos-that-pokemon", icon: CircleHelp, label: "Who's That Pokemon?" },
+  {
+    href: "/whos-that-pokemon",
+    icon: CircleHelp,
+    label: "Who's That Pokemon?",
+  },
   { href: "/comparison", icon: GitCompareArrows, label: "Comparison" },
   { href: "/settings", icon: Settings, label: "Settings" },
   { href: "/locations", icon: MapPin, label: "Locations" },
   { href: "/items", icon: Package, label: "Items" },
   { href: "/about", icon: Info, label: "About" },
-]
+];
 
 interface AppShellProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const pathname = usePathname()
-  const { toggleSearch, moreOpen, setMoreOpen } = useNav()
-  const isPopStateNav = useRef(false)
+  const pathname = usePathname();
+  const { toggleSearch, moreOpen, setMoreOpen } = useNav();
+  const isPopStateNav = useRef(false);
 
   // Track back/forward navigation via popstate
   useEffect(() => {
     const handlePopState = () => {
-      isPopStateNav.current = true
-    }
+      isPopStateNav.current = true;
+    };
 
-    window.addEventListener("popstate", handlePopState)
-    return () => window.removeEventListener("popstate", handlePopState)
-  }, [])
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Reset scroll position on forward navigation, preserve on back/forward
   useEffect(() => {
+    void pathname;
     if (isPopStateNav.current) {
-      isPopStateNav.current = false
+      isPopStateNav.current = false;
     } else {
-      window.scrollTo(0, 0)
+      window.scrollTo(0, 0);
     }
-  }, [pathname])
+  }, [pathname]);
 
-  const handleAction = (item: typeof navItems[0]) => {
+  const handleAction = (item: (typeof navItems)[0]) => {
     if (item.label === "search") {
-      toggleSearch()
+      toggleSearch();
     } else if (item.label === "more") {
-      setMoreOpen(true)
+      setMoreOpen(true);
     }
-  }
+  };
 
   const isMoreActive = moreMenuItems.some((item) =>
-    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
-  )
+    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href),
+  );
 
-  const renderNavItem = (item: typeof navItems[0], variant: "mobile" | "desktop") => {
+  const renderNavItem = (
+    item: (typeof navItems)[0],
+    variant: "mobile" | "desktop",
+  ) => {
     const isActive =
       !item.action &&
-      (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href))
+      (item.href === "/" ? pathname === "/" : pathname.startsWith(item.href));
 
-    const mobileClasses = "flex flex-col items-center justify-center gap-0.5 px-4 py-2"
-    const desktopClasses = "flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-muted"
+    const mobileClasses =
+      "flex flex-col items-center justify-center gap-0.5 px-4 py-2";
+    const desktopClasses =
+      "flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-muted";
 
     if (item.action) {
       // On desktop, don't show the "more" button - we show the items directly
       if (item.label === "more" && variant === "desktop") {
-        return null
+        return null;
       }
 
       return (
@@ -99,15 +122,21 @@ export function AppShell({ children }: AppShellProps) {
           className={cn(
             variant === "mobile" ? mobileClasses : desktopClasses,
             "text-muted-foreground hover:text-foreground transition-colors",
-            item.label === "more" && isMoreActive && "text-foreground"
+            item.label === "more" && isMoreActive && "text-foreground",
           )}
         >
           <item.icon className="size-4" strokeWidth={1.5} />
-          <span className={variant === "mobile" ? "text-[9px] uppercase tracking-wider" : "text-xs"}>
+          <span
+            className={
+              variant === "mobile"
+                ? "text-[9px] uppercase tracking-wider"
+                : "text-xs"
+            }
+          >
             {item.label}
           </span>
         </button>
-      )
+      );
     }
 
     return (
@@ -119,19 +148,26 @@ export function AppShell({ children }: AppShellProps) {
           "transition-colors",
           isActive
             ? "text-foreground"
-            : "text-muted-foreground hover:text-foreground"
+            : "text-muted-foreground hover:text-foreground",
         )}
       >
         <item.icon className="size-4" strokeWidth={1.5} />
-        <span className={variant === "mobile" ? "text-[9px] uppercase tracking-wider" : "text-xs"}>
+        <span
+          className={
+            variant === "mobile"
+              ? "text-[9px] uppercase tracking-wider"
+              : "text-xs"
+          }
+        >
           {item.label}
         </span>
       </Link>
-    )
-  }
+    );
+  };
 
-  const renderMoreMenuItem = (item: typeof moreMenuItems[0]) => {
-    const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+  const renderMoreMenuItem = (item: (typeof moreMenuItems)[0]) => {
+    const isActive =
+      item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
     return (
       <Link
         key={item.href}
@@ -139,20 +175,22 @@ export function AppShell({ children }: AppShellProps) {
         onClick={() => setMoreOpen(false)}
         className={cn(
           "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-          isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          isActive
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground",
         )}
       >
         <item.icon className="size-5" strokeWidth={1.5} />
         <span className="text-sm">{item.label}</span>
       </Link>
-    )
-  }
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Desktop Header */}
       <header className="hidden lg:flex fixed top-0 left-0 right-0 z-50 h-14 items-center border-b bg-background px-6 fixed-bottom-stable">
-        <div className="flex w-full max-w-7xl mx-auto items-center justify-between">
+        <div className="flex w-full items-center justify-between">
           <Link href="/" className="text-lg font-medium">
             nationaldex
           </Link>
@@ -163,7 +201,9 @@ export function AppShell({ children }: AppShellProps) {
               <DropdownMenuTrigger
                 className={cn(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-muted transition-colors",
-                  isMoreActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  isMoreActive
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <MoreHorizontal className="size-4" strokeWidth={1.5} />
@@ -171,21 +211,24 @@ export function AppShell({ children }: AppShellProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {moreMenuItems.map((item) => {
-                  const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+                  const isActive =
+                    item.href === "/"
+                      ? pathname === "/"
+                      : pathname.startsWith(item.href);
                   return (
                     <DropdownMenuItem key={item.href} asChild>
                       <Link
                         href={item.href}
                         className={cn(
                           "flex items-center gap-2 cursor-pointer",
-                          isActive && "bg-muted"
+                          isActive && "bg-muted",
                         )}
                       >
                         <item.icon className="size-4" strokeWidth={1.5} />
                         <span>{item.label}</span>
                       </Link>
                     </DropdownMenuItem>
-                  )
+                  );
                 })}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -194,7 +237,7 @@ export function AppShell({ children }: AppShellProps) {
       </header>
 
       <main className="flex-1 pb-nav lg:pb-0 lg:pt-14 pwa-pt-safe">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full">
           {children}
         </div>
       </main>
@@ -218,5 +261,5 @@ export function AppShell({ children }: AppShellProps) {
         </SheetContent>
       </Sheet>
     </div>
-  )
+  );
 }

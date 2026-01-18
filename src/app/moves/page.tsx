@@ -1,24 +1,30 @@
-"use client"
+"use client";
 
-import { useMemo, useState, useEffect, useRef, useCallback } from "react"
-import Link from "next/link"
-import { Search, X, Filter } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { getAllMoves, ALL_TYPES, GENERATIONS, DAMAGE_CLASSES, toID, getGenerationName } from "@/lib/pkmn"
-import { TYPE_COLORS } from "@/types/pokemon"
-import type { PokemonType, MoveListItem } from "@/types/pokemon"
+import { Filter, Search, X } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ALL_TYPES,
+  DAMAGE_CLASSES,
+  GENERATIONS,
+  getAllMoves,
+  getGenerationName,
+  toID,
+} from "@/lib/pkmn";
+import { cn } from "@/lib/utils";
+import type { MoveListItem, PokemonType } from "@/types/pokemon";
+import { TYPE_COLORS } from "@/types/pokemon";
 
-type DamageClass = "Physical" | "Special" | "Status"
+type DamageClass = "Physical" | "Special" | "Status";
 
 interface Filters {
-  search: string
-  types: PokemonType[]
-  damageClasses: DamageClass[]
-  generations: string[]
+  search: string;
+  types: PokemonType[];
+  damageClasses: DamageClass[];
+  generations: string[];
 }
 
-const ITEMS_PER_PAGE = 100
+const ITEMS_PER_PAGE = 100;
 
 export default function MovesPage() {
   const [filters, setFilters] = useState<Filters>({
@@ -26,88 +32,113 @@ export default function MovesPage() {
     types: [],
     damageClasses: [],
     generations: [],
-  })
-  const [showFilters, setShowFilters] = useState(false)
-  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE)
-  const loadMoreRef = useRef<HTMLDivElement>(null)
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Get all moves synchronously
   const allMoves = useMemo(() => {
-    return getAllMoves().map((m): MoveListItem => ({
-      id: m.num,
-      name: m.name,
-      type: m.type as PokemonType,
-      damageClass: m.category as DamageClass,
-      power: m.basePower || null,
-      accuracy: m.accuracy === true ? null : m.accuracy,
-      pp: m.pp,
-      generation: getGenerationName(m.gen),
-    }))
-  }, [])
-
-  const handleObserver = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const [entry] = entries
-      if (entry.isIntersecting && displayCount < filteredMoves.length) {
-        setDisplayCount((prev) => Math.min(prev + ITEMS_PER_PAGE, filteredMoves.length))
-      }
-    },
-    [displayCount]
-  )
-
-  useEffect(() => {
-    const element = loadMoreRef.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(handleObserver, {
-      threshold: 0,
-      rootMargin: "200px",
-    })
-    observer.observe(element)
-
-    return () => observer.disconnect()
-  }, [handleObserver])
+    return getAllMoves().map(
+      (m): MoveListItem => ({
+        id: m.num,
+        name: m.name,
+        type: m.type as PokemonType,
+        damageClass: m.category as DamageClass,
+        power: m.basePower || null,
+        accuracy: m.accuracy === true ? null : m.accuracy,
+        pp: m.pp,
+        generation: getGenerationName(m.gen),
+      }),
+    );
+  }, []);
 
   // Apply filters client-side
   const filteredMoves = useMemo(() => {
     return allMoves.filter((move) => {
       // Search filter
       if (filters.search) {
-        const searchLower = filters.search.toLowerCase()
+        const searchLower = filters.search.toLowerCase();
         if (!move.name.toLowerCase().includes(searchLower)) {
-          return false
+          return false;
         }
       }
 
       // Type filter
       if (filters.types.length > 0 && !filters.types.includes(move.type)) {
-        return false
+        return false;
       }
 
       // Damage class filter
-      if (filters.damageClasses.length > 0 && !filters.damageClasses.includes(move.damageClass)) {
-        return false
+      if (
+        filters.damageClasses.length > 0 &&
+        !filters.damageClasses.includes(move.damageClass)
+      ) {
+        return false;
       }
 
       // Generation filter
       if (filters.generations.length > 0) {
-        const moveGen = move.generation.toLowerCase().replace(/\s+/g, "-")
+        const moveGen = move.generation.toLowerCase().replace(/\s+/g, "-");
         if (!filters.generations.includes(moveGen)) {
-          return false
+          return false;
         }
       }
 
-      return true
-    })
-  }, [allMoves, filters])
+      return true;
+    });
+  }, [
+    allMoves,
+    filters.damageClasses,
+    filters.generations,
+    filters.search,
+    filters.types,
+  ]);
+
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && displayCount < filteredMoves.length) {
+        setDisplayCount((prev) =>
+          Math.min(prev + ITEMS_PER_PAGE, filteredMoves.length),
+        );
+      }
+    },
+    [displayCount, filteredMoves.length],
+  );
+
+  useEffect(() => {
+    const element = loadMoreRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      threshold: 0,
+      rootMargin: "200px",
+    });
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [handleObserver]);
+
+  const filtersKey = useMemo(() => {
+    return [
+      filters.search,
+      filters.types.join(","),
+      filters.damageClasses.join(","),
+      filters.generations.join(","),
+    ].join("|");
+  }, [filters.damageClasses, filters.generations, filters.search, filters.types]);
 
   // Reset display count when filters change
   useEffect(() => {
-    setDisplayCount(ITEMS_PER_PAGE)
-  }, [filters])
+    void filtersKey;
+    setDisplayCount(ITEMS_PER_PAGE);
+  }, [filtersKey]);
 
   const activeFilterCount =
-    filters.types.length + filters.damageClasses.length + filters.generations.length
+    filters.types.length +
+    filters.damageClasses.length +
+    filters.generations.length;
 
   const toggleType = (type: PokemonType) => {
     setFilters((prev) => ({
@@ -115,8 +146,8 @@ export default function MovesPage() {
       types: prev.types.includes(type)
         ? prev.types.filter((t) => t !== type)
         : [...prev.types, type],
-    }))
-  }
+    }));
+  };
 
   const toggleDamageClass = (dc: DamageClass) => {
     setFilters((prev) => ({
@@ -124,8 +155,8 @@ export default function MovesPage() {
       damageClasses: prev.damageClasses.includes(dc)
         ? prev.damageClasses.filter((d) => d !== dc)
         : [...prev.damageClasses, dc],
-    }))
-  }
+    }));
+  };
 
   const toggleGeneration = (gen: string) => {
     setFilters((prev) => ({
@@ -133,17 +164,17 @@ export default function MovesPage() {
       generations: prev.generations.includes(gen)
         ? prev.generations.filter((g) => g !== gen)
         : [...prev.generations, gen],
-    }))
-  }
+    }));
+  };
 
   const clearFilters = () => {
-    setFilters({ search: "", types: [], damageClasses: [], generations: [] })
-  }
+    setFilters({ search: "", types: [], damageClasses: [], generations: [] });
+  };
 
   return (
     <div className="min-h-screen p-4 md:p-6">
       {/* Search & Filter Controls */}
-      <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto mb-6 space-y-4">
+      <div className="mb-6 space-y-4">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -151,7 +182,9 @@ export default function MovesPage() {
               type="text"
               placeholder="Search moves..."
               value={filters.search}
-              onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, search: e.target.value }))
+              }
               className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
             />
             {filters.search && (
@@ -169,7 +202,7 @@ export default function MovesPage() {
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
               "flex items-center gap-2 px-4 py-2 text-sm border rounded-lg hover:bg-muted transition-colors",
-              showFilters && "bg-muted"
+              showFilters && "bg-muted",
             )}
           >
             <Filter className="size-4" />
@@ -192,7 +225,9 @@ export default function MovesPage() {
                 {filters.types.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setFilters((prev) => ({ ...prev, types: [] }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, types: [] }))
+                    }
                     className="text-xs text-muted-foreground hover:text-foreground"
                   >
                     Clear
@@ -218,7 +253,9 @@ export default function MovesPage() {
                 {filters.damageClasses.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setFilters((prev) => ({ ...prev, damageClasses: [] }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, damageClasses: [] }))
+                    }
                     className="text-xs text-muted-foreground hover:text-foreground"
                   >
                     Clear
@@ -235,7 +272,7 @@ export default function MovesPage() {
                       "px-3 py-1 text-xs border rounded-full capitalize transition-colors",
                       filters.damageClasses.includes(dc)
                         ? "bg-foreground text-background border-foreground"
-                        : "hover:bg-muted"
+                        : "hover:bg-muted",
                     )}
                   >
                     {dc}
@@ -251,7 +288,9 @@ export default function MovesPage() {
                 {filters.generations.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setFilters((prev) => ({ ...prev, generations: [] }))}
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, generations: [] }))
+                    }
                     className="text-xs text-muted-foreground hover:text-foreground"
                   >
                     Clear
@@ -268,7 +307,7 @@ export default function MovesPage() {
                       "px-3 py-1 text-xs border rounded-full transition-colors",
                       filters.generations.includes(gen.id)
                         ? "bg-foreground text-background border-foreground"
-                        : "hover:bg-muted"
+                        : "hover:bg-muted",
                     )}
                   >
                     {gen.name}
@@ -291,14 +330,15 @@ export default function MovesPage() {
       </div>
 
       {/* Results Count */}
-      <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto mb-4">
+      <div className="mb-4">
         <p className="text-xs text-muted-foreground">
-          Showing {Math.min(displayCount, filteredMoves.length)} of {filteredMoves.length} moves
+          Showing {Math.min(displayCount, filteredMoves.length)} of{" "}
+          {filteredMoves.length} moves
         </p>
       </div>
 
       {/* Moves List */}
-      <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
+      <div>
         <div className="border rounded-lg overflow-hidden">
           {/* Header */}
           <div className="grid grid-cols-[1fr,80px,70px,70px,50px,100px] gap-2 px-4 py-2 bg-muted text-xs text-muted-foreground font-medium">
@@ -325,12 +365,14 @@ export default function MovesPage() {
         {/* Infinite scroll trigger */}
         {displayCount < filteredMoves.length && (
           <div ref={loadMoreRef} className="py-4 flex justify-center">
-            <span className="text-xs text-muted-foreground">Loading more...</span>
+            <span className="text-xs text-muted-foreground">
+              Loading more...
+            </span>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================================
@@ -342,7 +384,7 @@ function Label({ children }: { children: React.ReactNode }) {
     <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
       {children}
     </span>
-  )
+  );
 }
 
 function TypeFilterButton({
@@ -350,18 +392,20 @@ function TypeFilterButton({
   selected,
   onClick,
 }: {
-  type: PokemonType
-  selected: boolean
-  onClick: () => void
+  type: PokemonType;
+  selected: boolean;
+  onClick: () => void;
 }) {
-  const color = TYPE_COLORS[type]
+  const color = TYPE_COLORS[type];
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
         "text-[10px] px-2 py-0.5 uppercase tracking-wider rounded transition-all",
-        selected ? "ring-2 ring-offset-1 ring-offset-background" : "opacity-60 hover:opacity-100"
+        selected
+          ? "ring-2 ring-offset-1 ring-offset-background"
+          : "opacity-60 hover:opacity-100",
       )}
       style={{
         backgroundColor: `${color}20`,
@@ -372,12 +416,12 @@ function TypeFilterButton({
     >
       {type}
     </button>
-  )
+  );
 }
 
 function MoveRow({ move }: { move: MoveListItem }) {
-  const color = TYPE_COLORS[move.type]
-  const slug = toID(move.name)
+  const color = TYPE_COLORS[move.type];
+  const slug = toID(move.name);
 
   return (
     <Link
@@ -397,10 +441,12 @@ function MoveRow({ move }: { move: MoveListItem }) {
       <span className="text-right tabular-nums text-muted-foreground">
         {move.accuracy ? `${move.accuracy}%` : "—"}
       </span>
-      <span className="text-right tabular-nums text-muted-foreground">{move.pp}</span>
+      <span className="text-right tabular-nums text-muted-foreground">
+        {move.pp}
+      </span>
       <span className="text-center text-xs text-muted-foreground capitalize">
         {move.damageClass}
       </span>
     </Link>
-  )
+  );
 }

@@ -265,7 +265,7 @@ function ComparisonCardSkeleton() {
       </div>
       <div className="space-y-2">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-3 w-full" />
+          <Skeleton key={`row-skeleton-${i}`} className="h-3 w-full" />
         ))}
       </div>
     </Card>

@@ -6,8 +6,18 @@ export const currentGen = gens.get(9)
 
 export const toID = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "")
 
-export function getAllSpecies(genNum = 9) {
-  return Array.from(gens.get(genNum).species).filter((s) => s.exists && s.num > 0)
+export function getAllSpecies(
+  genNum = 9,
+  options?: {
+    includeFormes?: boolean
+  }
+) {
+  const includeFormes = options?.includeFormes ?? false
+  return Array.from(gens.get(genNum).species).filter((s) => {
+    if (!s.exists || s.num <= 0) return false
+    if (!includeFormes && s.forme) return false
+    return true
+  })
 }
 
 export function getAllMoves(genNum = 9) {
@@ -58,7 +68,7 @@ export function getTypeMatchups(types: string[], genNum = 9) {
 
   for (const type of gen.types) {
     if (!type.exists) continue
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: library typing for totalEffectiveness is too strict here
     const eff = gen.types.totalEffectiveness(type.name, types as any)
     if (eff > 1) weaknesses.push({ type: type.name, multiplier: eff })
     else if (eff < 1 && eff > 0) resistances.push({ type: type.name, multiplier: eff })

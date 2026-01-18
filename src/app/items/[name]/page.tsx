@@ -1,44 +1,44 @@
-"use client"
+"use client";
 
-import { use, useState, useMemo } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Search, X } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import { useFullItemDetail } from "@/hooks/use-pokemon"
-import { ITEM_POCKET_COLORS, ITEM_POCKET_LABELS } from "@/types/pokemon"
-import { AddToListDialog } from "@/components/add-to-list-dialog"
-import { GEN_RANGES, getGenerationByPokemonId } from "@/lib/pkmn"
-import type { ItemHeldByPokemon } from "@/types/pokemon"
+import { Search, X } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { use, useMemo, useState } from "react";
+import { AddToListDialog } from "@/components/add-to-list-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useFullItemDetail } from "@/hooks/use-pokemon";
+import { GEN_RANGES, getGenerationByPokemonId } from "@/lib/pkmn";
+import { cn } from "@/lib/utils";
+import type { ItemHeldByPokemon } from "@/types/pokemon";
+import { ITEM_POCKET_COLORS, ITEM_POCKET_LABELS } from "@/types/pokemon";
 
 interface PageProps {
-  params: Promise<{ name: string }>
+  params: Promise<{ name: string }>;
 }
 
 export default function ItemDetailPage({ params }: PageProps) {
-  const { name } = use(params)
-  const { data: item, isLoading, error } = useFullItemDetail(name)
+  const { name } = use(params);
+  const { data: item, isLoading, error } = useFullItemDetail(name);
 
   if (isLoading) {
-    return <ItemDetailSkeleton />
+    return <ItemDetailSkeleton />;
   }
 
   if (error || !item) {
     return (
       <div className="min-h-screen p-4 md:p-6">
-        <div className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto text-center py-12">
+        <div className="text-center py-12">
           <p className="text-muted-foreground">Item not found</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const pocketColor = ITEM_POCKET_COLORS[item.pocket]
+  const pocketColor = ITEM_POCKET_COLORS[item.pocket];
 
   return (
     <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <section className="space-y-3">
           <div className="flex items-center gap-4">
@@ -66,11 +66,16 @@ export default function ItemDetailPage({ params }: PageProps) {
               <div className="flex items-center gap-2 mt-1">
                 <span
                   className="text-[10px] px-2 py-0.5 uppercase tracking-wider rounded"
-                  style={{ backgroundColor: `${pocketColor}20`, color: pocketColor }}
+                  style={{
+                    backgroundColor: `${pocketColor}20`,
+                    color: pocketColor,
+                  }}
                 >
                   {ITEM_POCKET_LABELS[item.pocket]}
                 </span>
-                <span className="text-xs text-muted-foreground">{item.category}</span>
+                <span className="text-xs text-muted-foreground">
+                  {item.category}
+                </span>
               </div>
             </div>
           </div>
@@ -90,12 +95,19 @@ export default function ItemDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <StatCard
               label="Cost"
-              value={item.cost > 0 ? `₽${item.cost.toLocaleString()}` : "Not for sale"}
+              value={
+                item.cost > 0
+                  ? `₽${item.cost.toLocaleString()}`
+                  : "Not for sale"
+              }
             />
             <StatCard label="Category" value={item.category} />
             <StatCard label="Pocket" value={ITEM_POCKET_LABELS[item.pocket]} />
             {item.flingPower && (
-              <StatCard label="Fling Power" value={item.flingPower.toString()} />
+              <StatCard
+                label="Fling Power"
+                value={item.flingPower.toString()}
+              />
             )}
           </div>
         </section>
@@ -135,14 +147,16 @@ export default function ItemDetailPage({ params }: PageProps) {
           <section className="space-y-3">
             <Label>available in</Label>
             <div className="flex flex-wrap gap-2">
-              {[...new Set(item.gameIndices.map((g) => g.generation))].map((gen) => (
-                <span
-                  key={gen}
-                  className="px-2 py-1 text-xs bg-muted rounded"
-                >
-                  {gen}
-                </span>
-              ))}
+              {[...new Set(item.gameIndices.map((g) => g.generation))].map(
+                (gen) => (
+                  <span
+                    key={gen}
+                    className="px-2 py-1 text-xs bg-muted rounded"
+                  >
+                    {gen}
+                  </span>
+                ),
+              )}
             </div>
           </section>
         )}
@@ -153,7 +167,7 @@ export default function ItemDetailPage({ params }: PageProps) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // ============================================================================
@@ -165,7 +179,7 @@ function Label({ children }: { children: React.ReactNode }) {
     <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
       {children}
     </span>
-  )
+  );
 }
 
 function StatCard({
@@ -173,9 +187,9 @@ function StatCard({
   value,
   className,
 }: {
-  label: string
-  value: string
-  className?: string
+  label: string;
+  value: string;
+  className?: string;
 }) {
   return (
     <div className="p-3 border rounded-lg">
@@ -184,59 +198,59 @@ function StatCard({
       </span>
       <span className={cn("text-lg font-medium", className)}>{value}</span>
     </div>
-  )
+  );
 }
 
 function PokemonSection({
   pokemon,
   itemName,
 }: {
-  pokemon: ItemHeldByPokemon[]
-  itemName: string
+  pokemon: ItemHeldByPokemon[];
+  itemName: string;
 }) {
-  const [search, setSearch] = useState("")
-  const [selectedGens, setSelectedGens] = useState<string[]>([])
+  const [search, setSearch] = useState("");
+  const [selectedGens, setSelectedGens] = useState<string[]>([]);
 
   const filteredPokemon = useMemo(() => {
     return pokemon.filter((poke) => {
       // Search filter
       if (search) {
-        const searchLower = search.toLowerCase()
-        const matchesName = poke.name.toLowerCase().includes(searchLower)
-        const matchesId = poke.id.toString().includes(search)
+        const searchLower = search.toLowerCase();
+        const matchesName = poke.name.toLowerCase().includes(searchLower);
+        const matchesId = poke.id.toString().includes(search);
         if (!matchesName && !matchesId) {
-          return false
+          return false;
         }
       }
 
       // Generation filter
       if (selectedGens.length > 0) {
-        const pokeGen = getGenerationByPokemonId(poke.id)
+        const pokeGen = getGenerationByPokemonId(poke.id);
         if (!pokeGen || !selectedGens.includes(pokeGen)) {
-          return false
+          return false;
         }
       }
 
-      return true
-    })
-  }, [pokemon, search, selectedGens])
+      return true;
+    });
+  }, [pokemon, search, selectedGens]);
 
   const sortedPokemon = useMemo(() => {
-    return [...filteredPokemon].sort((a, b) => a.id - b.id)
-  }, [filteredPokemon])
+    return [...filteredPokemon].sort((a, b) => a.id - b.id);
+  }, [filteredPokemon]);
 
   const toggleGen = (genId: string) => {
     setSelectedGens((prev) =>
-      prev.includes(genId) ? prev.filter((g) => g !== genId) : [...prev, genId]
-    )
-  }
+      prev.includes(genId) ? prev.filter((g) => g !== genId) : [...prev, genId],
+    );
+  };
 
   const clearFilters = () => {
-    setSearch("")
-    setSelectedGens([])
-  }
+    setSearch("");
+    setSelectedGens([]);
+  };
 
-  const hasFilters = search || selectedGens.length > 0
+  const hasFilters = search || selectedGens.length > 0;
 
   return (
     <section className="space-y-4">
@@ -276,7 +290,7 @@ function PokemonSection({
                 "px-2 py-1 text-[10px] border rounded transition-colors",
                 selectedGens.includes(gen.id)
                   ? "bg-foreground text-background border-foreground"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted",
               )}
             >
               {gen.name}
@@ -314,11 +328,14 @@ function PokemonSection({
               href={`/pokemon/${poke.id}`}
               className="flex flex-col items-center p-2 md:p-3 rounded hover:bg-muted transition-colors group"
             >
-              <img
+              <Image
                 src={poke.sprite}
                 alt={poke.name}
+                width={80}
+                height={80}
                 className="size-12 md:size-16 lg:size-20 pixelated group-hover:scale-110 transition-transform"
                 loading="lazy"
+                unoptimized
               />
               <span className="text-[10px] md:text-xs text-muted-foreground truncate max-w-full">
                 #{poke.id.toString().padStart(3, "0")}
@@ -337,13 +354,13 @@ function PokemonSection({
         </p>
       ) : null}
     </section>
-  )
+  );
 }
 
 function ItemDetailSkeleton() {
   return (
     <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto space-y-6">
+      <div className="space-y-6">
         <section className="space-y-3">
           <div className="flex items-center gap-4">
             <Skeleton className="size-16 rounded" />
@@ -363,7 +380,7 @@ function ItemDetailSkeleton() {
           <Skeleton className="h-3 w-12" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full" />
+              <Skeleton key={`stats-skeleton-${i}`} className="h-20 w-full" />
             ))}
           </div>
         </section>
@@ -372,11 +389,11 @@ function ItemDetailSkeleton() {
           <Skeleton className="h-3 w-24" />
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-3">
             {Array.from({ length: 12 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 md:h-24 lg:h-28 w-full" />
+              <Skeleton key={`pokemon-skeleton-${i}`} className="h-20 md:h-24 lg:h-28 w-full" />
             ))}
           </div>
         </section>
       </div>
     </div>
-  )
+  );
 }
