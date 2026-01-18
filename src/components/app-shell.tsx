@@ -94,8 +94,6 @@ export function AppShell({ children }: AppShellProps) {
   const isPopStateNav = useRef(false);
   const [secondaryToolbar, setSecondaryToolbar] =
     useState<SecondaryToolbarState | null>(null);
-  const isPokemonPage = pathname.startsWith("/pokemon/");
-
   const setSecondaryToolbarStable = useCallback(
     (next: SecondaryToolbarState | null) => {
       setSecondaryToolbar(next);
@@ -310,9 +308,7 @@ export function AppShell({ children }: AppShellProps) {
             // Keep content constrained between fixed toolbars.
             // Height = viewport minus bottom nav (and safe-area bottom).
             "flex-1 min-h-0 pwa-pt-safe",
-            isPokemonPage
-              ? "overflow-hidden overscroll-none"
-              : "overflow-y-auto overflow-x-hidden overscroll-contain",
+            "overflow-y-auto overflow-x-hidden overscroll-contain",
             "h-[calc(100dvh-var(--app-bottom-offset)-env(safe-area-inset-bottom,0px))]",
             "max-h-[calc(100dvh-var(--app-bottom-offset)-env(safe-area-inset-bottom,0px))]",
             // offset content by top chrome (css var set on .app-shell)

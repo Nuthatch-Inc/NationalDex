@@ -345,10 +345,10 @@ export default function PokemonPage({ params }: PageProps) {
   const currentSlug = toID(pokemon.name);
 
   return (
-    <div className="min-h-screen p-4 md:p-6 xl:h-[calc(100dvh-var(--app-top-offset))] xl:overflow-hidden">
-      <div className="space-y-6 xl:space-y-0 xl:grid xl:grid-cols-12 xl:gap-8 xl:h-full">
+    <div className="p-4 md:p-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
         {/* Summary rail (static on desktop) */}
-        <div className="space-y-6 xl:col-span-5 2xl:col-span-4 xl:self-start">
+        <div className="space-y-6 md:col-span-5 lg:col-span-5 xl:col-span-5 2xl:col-span-4 md:self-start">
           {/* Core Header */}
           <section className="space-y-4">
             {/* Hero */}
@@ -530,7 +530,7 @@ export default function PokemonPage({ params }: PageProps) {
         </div>
 
         {/* Main content column */}
-        <div className="space-y-6 xl:col-span-7 2xl:col-span-8 xl:h-full xl:overflow-y-auto xl:pr-2">
+        <div className="space-y-6 md:col-span-7 lg:col-span-7 xl:col-span-7 2xl:col-span-8">
           {/* Moves */}
           <MovesSection moves={moves} isLoading={movesLoading} />
         </div>
@@ -941,10 +941,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 function PokemonPageSkeleton() {
   return (
-    <div className="min-h-screen p-4 md:p-6">
-      <div>
-        <div className="space-y-6 xl:space-y-0 xl:grid xl:grid-cols-12 xl:gap-8">
-          <div className="space-y-6 xl:col-span-5 2xl:col-span-4 xl:sticky xl:top-6 xl:self-start">
+    <div className="p-4 md:p-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
+          <div className="space-y-6 md:col-span-5 lg:col-span-5 xl:col-span-5 2xl:col-span-4 md:self-start">
             <section className="space-y-4">
               <div className="flex justify-between items-center">
                 <Skeleton className="size-7" />
@@ -1008,12 +1007,11 @@ function PokemonPageSkeleton() {
             <Skeleton className="h-10 w-full" />
           </div>
 
-          <div className="space-y-6 xl:col-span-7 2xl:col-span-8">
+          <div className="space-y-6 md:col-span-7 lg:col-span-7 xl:col-span-7 2xl:col-span-8">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
         </div>
-      </div>
     </div>
   );
 }
