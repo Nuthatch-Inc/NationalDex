@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@pkmn/data": "^0.10.5",
+    "@pkmn/dex": "^0.10.5",
+    "@pkmn/img": "^0.3.3",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -48,7 +51,6 @@
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "next-themes": "^0.4.6",
-    "pokedex-promise-v2": "^4.2.1",
     "react": "19.2.3",
     "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",

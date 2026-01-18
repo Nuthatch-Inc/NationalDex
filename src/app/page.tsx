@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, Suspense, useState } from "react"
+import { useEffect, Suspense, useState, useMemo } from "react"
 import { useInView } from "react-intersection-observer"
 import Link from "next/link"
 import { PokemonCard, PokemonCardSkeleton } from "@/components/pokemon/pokemon-card"
 import { DexFilter, useFilteredPokemon, useFilteredMoves, useFilteredAbilities, useFilteredItems, type DexFilterState } from "@/components/pokemon/dex-filter"
-import { usePokemonList, getPokemonIdFromUrl } from "@/hooks/use-pokemon"
+import { getAllSpecies, toID } from "@/lib/pkmn"
+import { pokemonSpriteById } from "@/lib/sprites"
 
 const ITEMS_PER_PAGE = 50
 
@@ -15,17 +16,17 @@ function HomeContent() {
   const { ref: abilitiesRef, inView: abilitiesInView } = useInView()
   const { ref: itemsRef, inView: itemsInView } = useInView()
   const [filter, setFilter] = useState<DexFilterState>({ search: "", types: [], category: "pokemon" })
+  const [pokemonDisplayCount, setPokemonDisplayCount] = useState(ITEMS_PER_PAGE)
   const [movesDisplayCount, setMovesDisplayCount] = useState(ITEMS_PER_PAGE)
   const [abilitiesDisplayCount, setAbilitiesDisplayCount] = useState(ITEMS_PER_PAGE)
   const [itemsDisplayCount, setItemsDisplayCount] = useState(ITEMS_PER_PAGE)
 
-  const {
-    data,
-    isLoading: isPokemonLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = usePokemonList()
+  const allPokemon = useMemo(() => {
+    return getAllSpecies().map((s) => ({
+      name: s.name,
+      id: s.num,
+    }))
+  }, [])
 
   const { filteredPokemon, hasActiveFilters: hasPokemonFilters } = useFilteredPokemon(filter)
   const { filteredMoves, isLoading: isMovesLoading } = useFilteredMoves(filter)
@@ -34,10 +35,10 @@ function HomeContent() {
 
   // Pokemon infinite scroll
   useEffect(() => {
-    if (pokemonInView && hasNextPage && !isFetchingNextPage && !hasPokemonFilters && filter.category === "pokemon") {
-      fetchNextPage()
+    if (pokemonInView && !hasPokemonFilters && filter.category === "pokemon" && pokemonDisplayCount < allPokemon.length) {
+      setPokemonDisplayCount((prev) => Math.min(prev + ITEMS_PER_PAGE, allPokemon.length))
     }
-  }, [pokemonInView, hasNextPage, isFetchingNextPage, fetchNextPage, hasPokemonFilters, filter.category])
+  }, [pokemonInView, hasPokemonFilters, filter.category, allPokemon.length, pokemonDisplayCount])
 
   // Moves infinite scroll
   useEffect(() => {
@@ -62,12 +63,15 @@ function HomeContent() {
 
   // Reset display counts when filter changes
   useEffect(() => {
+    setPokemonDisplayCount(ITEMS_PER_PAGE)
     setMovesDisplayCount(ITEMS_PER_PAGE)
     setAbilitiesDisplayCount(ITEMS_PER_PAGE)
     setItemsDisplayCount(ITEMS_PER_PAGE)
   }, [filter.search, filter.category])
 
-  const allPokemon = data?.pages.flatMap((page) => page.results) ?? []
+  const displayedPokemon = hasPokemonFilters
+    ? filteredPokemon
+    : allPokemon.slice(0, pokemonDisplayCount)
 
   return (
     <div className="p-4 md:p-6">
@@ -80,43 +84,28 @@ function HomeContent() {
       {filter.category === "pokemon" && (
         <>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
-            {isPokemonLoading && !hasPokemonFilters
-              ? Array.from({ length: 20 }).map((_, i) => (
-                  <PokemonCardSkeleton key={i} />
-                ))
-              : hasPokemonFilters
-                ? filteredPokemon?.map((pokemon) => (
-                    <PokemonCard
-                      key={pokemon.id}
-                      name={pokemon.name}
-                      id={pokemon.id}
-                    />
-                  ))
-                : allPokemon.map((pokemon) => {
-                    const id = getPokemonIdFromUrl(pokemon.url)
-                    return (
-                      <PokemonCard
-                        key={pokemon.name}
-                        name={pokemon.name}
-                        id={id}
-                      />
-                    )
-                  })}
+            {displayedPokemon?.map((pokemon) => (
+              <PokemonCard
+                key={pokemon.id}
+                name={pokemon.name}
+                id={pokemon.id}
+              />
+            ))}
           </div>
 
           {/* Filtered Results Count */}
           {hasPokemonFilters && filteredPokemon && (
             <div className="mt-4 text-center text-sm text-muted-foreground">
-              {filteredPokemon.length} Pokémon found
+              {filteredPokemon.length} Pokemon found
             </div>
           )}
 
           {/* Infinite Scroll Trigger */}
-          {hasNextPage && !hasPokemonFilters && (
+          {!hasPokemonFilters && pokemonDisplayCount < allPokemon.length && (
             <div ref={pokemonRef} className="flex justify-center py-6">
-              {isFetchingNextPage && (
-                <span className="text-xs text-muted-foreground">loading...</span>
-              )}
+              <span className="text-xs text-muted-foreground">
+                Showing {pokemonDisplayCount} of {allPokemon.length}
+              </span>
             </div>
           )}
         </>
@@ -143,7 +132,7 @@ function HomeContent() {
                   {filteredMoves?.slice(0, movesDisplayCount).map((move, index) => (
                     <Link
                       key={move.id}
-                      href={`/moves/${move.name.toLowerCase().replace(/\s+/g, "-")}`}
+                      href={`/moves/${toID(move.name)}`}
                       className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
                     >
                       <span className="text-muted-foreground tabular-nums">{index + 1}</span>
@@ -191,7 +180,7 @@ function HomeContent() {
                   {filteredAbilities?.slice(0, abilitiesDisplayCount).map((ability, index) => (
                     <Link
                       key={ability.id}
-                      href={`/abilities/${ability.name.toLowerCase().replace(/\s+/g, "-")}`}
+                      href={`/abilities/${toID(ability.name)}`}
                       className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
                     >
                       <span className="text-muted-foreground tabular-nums">{index + 1}</span>
@@ -239,7 +228,7 @@ function HomeContent() {
                   {filteredItems?.slice(0, itemsDisplayCount).map((item, index) => (
                     <Link
                       key={item.id}
-                      href={`/items/${item.name.toLowerCase().replace(/\s+/g, "-")}`}
+                      href={`/items/${toID(item.name)}`}
                       className="grid grid-cols-[60px_1fr] items-center px-3 py-2 text-sm transition-colors hover:bg-accent sm:grid-cols-[60px_1fr_100px]"
                     >
                       <span className="text-muted-foreground tabular-nums">{index + 1}</span>

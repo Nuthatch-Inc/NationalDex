@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { TypeBadge } from "@/components/pokemon/type-badge"
 import { useComparison } from "@/hooks/use-comparison"
 import { usePokemon } from "@/hooks/use-pokemon"
-import { calculateTypeEffectiveness } from "@/lib/pokeapi"
+import { calculateTypeEffectiveness } from "@/hooks/use-pokemon"
 import { cn } from "@/lib/utils"
 import type { Pokemon, PokemonStat, TypeEffectiveness } from "@/types/pokemon"
 

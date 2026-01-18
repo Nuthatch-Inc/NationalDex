@@ -6,38 +6,57 @@ import Image from "next/image"
 import { Search, X, Filter } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import { useItemList, useItemCategories } from "@/hooks/use-pokemon"
-import { ALL_ITEM_POCKETS } from "@/lib/pokeapi"
+import { getAllItems, toID } from "@/lib/pkmn"
 import { ITEM_POCKET_COLORS, ITEM_POCKET_LABELS } from "@/types/pokemon"
 import type { ItemPocket, ItemListItem } from "@/types/pokemon"
 
 interface Filters {
   search: string
   pockets: ItemPocket[]
-  categories: string[]
 }
 
+const ITEMS_PER_PAGE = 100
+
+const ALL_ITEM_POCKETS: ItemPocket[] = [
+  "medicine",
+  "pokeballs",
+  "machines",
+  "berries",
+  "battle",
+  "key",
+  "mail",
+  "misc",
+]
+
 export default function ItemsPage() {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useItemList()
-  const { data: categories } = useItemCategories()
   const [filters, setFilters] = useState<Filters>({
     search: "",
     pockets: [],
-    categories: [],
   })
   const [showFilters, setShowFilters] = useState(false)
-
-  // Infinite scroll observer
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE)
   const loadMoreRef = useRef<HTMLDivElement>(null)
+
+  // Get all items synchronously
+  const allItems = useMemo(() => {
+    return getAllItems().map((i): ItemListItem => ({
+      id: i.num,
+      name: i.name,
+      sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
+      category: i.desc?.split(".")[0] || "Item",
+      pocket: "misc" as ItemPocket,
+      cost: 0,
+    }))
+  }, [])
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries
-      if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage()
+      if (entry.isIntersecting && displayCount < filteredItems.length) {
+        setDisplayCount((prev) => Math.min(prev + ITEMS_PER_PAGE, filteredItems.length))
       }
     },
-    [fetchNextPage, hasNextPage, isFetchingNextPage]
+    [displayCount]
   )
 
   useEffect(() => {
@@ -52,19 +71,6 @@ export default function ItemsPage() {
 
     return () => observer.disconnect()
   }, [handleObserver])
-
-  // Flatten all items from pages
-  const allItems = useMemo(() => {
-    if (!data) return []
-    return data.pages.flatMap((page) => page.items)
-  }, [data])
-
-  // Get categories filtered by selected pockets
-  const availableCategories = useMemo(() => {
-    if (!categories) return []
-    if (filters.pockets.length === 0) return categories
-    return categories.filter((c) => filters.pockets.includes(c.pocket))
-  }, [categories, filters.pockets])
 
   // Apply filters client-side
   const filteredItems = useMemo(() => {
@@ -82,19 +88,16 @@ export default function ItemsPage() {
         return false
       }
 
-      // Category filter
-      if (filters.categories.length > 0) {
-        const itemCat = item.category.toLowerCase().replace(/\s+/g, "-")
-        if (!filters.categories.includes(itemCat)) {
-          return false
-        }
-      }
-
       return true
     })
   }, [allItems, filters])
 
-  const activeFilterCount = filters.pockets.length + filters.categories.length
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(ITEMS_PER_PAGE)
+  }, [filters])
+
+  const activeFilterCount = filters.pockets.length
 
   const togglePocket = (pocket: ItemPocket) => {
     setFilters((prev) => ({
@@ -102,22 +105,11 @@ export default function ItemsPage() {
       pockets: prev.pockets.includes(pocket)
         ? prev.pockets.filter((p) => p !== pocket)
         : [...prev.pockets, pocket],
-      // Clear category filters when pocket changes
-      categories: [],
-    }))
-  }
-
-  const toggleCategory = (categoryId: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(categoryId)
-        ? prev.categories.filter((c) => c !== categoryId)
-        : [...prev.categories, categoryId],
     }))
   }
 
   const clearFilters = () => {
-    setFilters({ search: "", pockets: [], categories: [] })
+    setFilters({ search: "", pockets: [] })
   }
 
   return (
@@ -172,7 +164,7 @@ export default function ItemsPage() {
                 {filters.pockets.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setFilters((prev) => ({ ...prev, pockets: [], categories: [] }))}
+                    onClick={() => setFilters((prev) => ({ ...prev, pockets: [] }))}
                     className="text-xs text-muted-foreground hover:text-foreground"
                   >
                     Clear
@@ -188,44 +180,6 @@ export default function ItemsPage() {
                     onClick={() => togglePocket(pocket)}
                   />
                 ))}
-              </div>
-            </div>
-
-            {/* Categories */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Category</Label>
-                {filters.categories.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setFilters((prev) => ({ ...prev, categories: [] }))}
-                    className="text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {availableCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => toggleCategory(cat.id)}
-                    className={cn(
-                      "px-3 py-1 text-xs border rounded-full transition-colors",
-                      filters.categories.includes(cat.id)
-                        ? "bg-foreground text-background border-foreground"
-                        : "hover:bg-muted"
-                    )}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-                {availableCategories.length === 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    {categories ? "Select a pocket to see categories" : "Loading categories..."}
-                  </span>
-                )}
               </div>
             </div>
 
@@ -245,56 +199,37 @@ export default function ItemsPage() {
       {/* Results Count */}
       <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto mb-4">
         <p className="text-xs text-muted-foreground">
-          {isLoading ? (
-            "Loading items..."
-          ) : (
-            <>
-              Showing {filteredItems.length} items
-              {data && allItems.length < data.pages[0].count && (
-                <> (loaded {allItems.length} of {data.pages[0].count})</>
-              )}
-            </>
-          )}
+          Showing {Math.min(displayCount, filteredItems.length)} of {filteredItems.length} items
         </p>
       </div>
 
       {/* Items List */}
       <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
-        {isLoading ? (
-          <ItemsListSkeleton />
-        ) : (
-          <>
-            <div className="border rounded-lg overflow-hidden">
-              {/* Header */}
-              <div className="grid grid-cols-[40px,1fr,100px,120px,80px] gap-2 px-4 py-2 bg-muted text-xs text-muted-foreground font-medium">
-                <span />
-                <span>Name</span>
-                <span>Pocket</span>
-                <span>Category</span>
-                <span className="text-right">Cost</span>
-              </div>
+        <div className="border rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="grid grid-cols-[40px,1fr,120px] gap-2 px-4 py-2 bg-muted text-xs text-muted-foreground font-medium">
+            <span />
+            <span>Name</span>
+            <span>Category</span>
+          </div>
 
-              {/* Rows */}
-              {filteredItems.map((item) => (
-                <ItemRow key={item.id} item={item} />
-              ))}
+          {/* Rows */}
+          {filteredItems.slice(0, displayCount).map((item) => (
+            <ItemRow key={item.id} item={item} />
+          ))}
 
-              {filteredItems.length === 0 && !isLoading && (
-                <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  No items found matching your filters
-                </div>
-              )}
+          {filteredItems.length === 0 && (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              No items found matching your filters
             </div>
+          )}
+        </div>
 
-            {/* Infinite scroll trigger */}
-            <div ref={loadMoreRef} className="py-4">
-              {isFetchingNextPage && (
-                <div className="flex justify-center">
-                  <div className="animate-spin size-5 border-2 border-muted border-t-foreground rounded-full" />
-                </div>
-              )}
-            </div>
-          </>
+        {/* Infinite scroll trigger */}
+        {displayCount < filteredItems.length && (
+          <div ref={loadMoreRef} className="py-4 flex justify-center">
+            <span className="text-xs text-muted-foreground">Loading more...</span>
+          </div>
         )}
       </div>
     </div>
@@ -344,13 +279,12 @@ function PocketFilterButton({
 }
 
 function ItemRow({ item }: { item: ItemListItem }) {
-  const color = ITEM_POCKET_COLORS[item.pocket]
-  const slug = item.name.toLowerCase().replace(/\s+/g, "-")
+  const slug = toID(item.name)
 
   return (
     <Link
       href={`/items/${slug}`}
-      className="grid grid-cols-[40px,1fr,100px,120px,80px] gap-2 px-4 py-2 text-sm border-t hover:bg-muted/50 transition-colors items-center"
+      className="grid grid-cols-[40px,1fr,120px] gap-2 px-4 py-2 text-sm border-t hover:bg-muted/50 transition-colors items-center"
     >
       <div className="size-8 relative">
         {item.sprite ? (
@@ -366,40 +300,7 @@ function ItemRow({ item }: { item: ItemListItem }) {
         )}
       </div>
       <span className="font-medium truncate">{item.name}</span>
-      <span
-        className="text-[10px] px-1.5 py-0.5 uppercase tracking-wider rounded self-center w-fit"
-        style={{ backgroundColor: `${color}20`, color }}
-      >
-        {ITEM_POCKET_LABELS[item.pocket]}
-      </span>
       <span className="text-xs text-muted-foreground truncate">{item.category}</span>
-      <span className="text-right tabular-nums text-muted-foreground">
-        {item.cost > 0 ? `₽${item.cost.toLocaleString()}` : "—"}
-      </span>
     </Link>
-  )
-}
-
-function ItemsListSkeleton() {
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="grid grid-cols-[40px,1fr,100px,120px,80px] gap-2 px-4 py-2 bg-muted">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-4 w-full" />
-        ))}
-      </div>
-      {Array.from({ length: 20 }).map((_, i) => (
-        <div
-          key={i}
-          className="grid grid-cols-[40px,1fr,100px,120px,80px] gap-2 px-4 py-2 border-t items-center"
-        >
-          <Skeleton className="size-8 rounded" />
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-5 w-16" />
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-5 w-12 ml-auto" />
-        </div>
-      ))}
-    </div>
   )
 }

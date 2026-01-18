@@ -9,29 +9,8 @@ import { cn } from "@/lib/utils"
 import { useFullItemDetail } from "@/hooks/use-pokemon"
 import { ITEM_POCKET_COLORS, ITEM_POCKET_LABELS } from "@/types/pokemon"
 import { AddToListDialog } from "@/components/add-to-list-dialog"
+import { GEN_RANGES, getGenerationByPokemonId } from "@/lib/pkmn"
 import type { ItemHeldByPokemon } from "@/types/pokemon"
-
-// Pokemon ID ranges by generation
-const GEN_RANGES = [
-  { id: "gen-1", name: "Gen I", min: 1, max: 151 },
-  { id: "gen-2", name: "Gen II", min: 152, max: 251 },
-  { id: "gen-3", name: "Gen III", min: 252, max: 386 },
-  { id: "gen-4", name: "Gen IV", min: 387, max: 493 },
-  { id: "gen-5", name: "Gen V", min: 494, max: 649 },
-  { id: "gen-6", name: "Gen VI", min: 650, max: 721 },
-  { id: "gen-7", name: "Gen VII", min: 722, max: 809 },
-  { id: "gen-8", name: "Gen VIII", min: 810, max: 905 },
-  { id: "gen-9", name: "Gen IX", min: 906, max: 1025 },
-] as const
-
-function getGeneration(pokemonId: number): string | null {
-  for (const gen of GEN_RANGES) {
-    if (pokemonId >= gen.min && pokemonId <= gen.max) {
-      return gen.id
-    }
-  }
-  return null
-}
 
 interface PageProps {
   params: Promise<{ name: string }>
@@ -232,7 +211,7 @@ function PokemonSection({
 
       // Generation filter
       if (selectedGens.length > 0) {
-        const pokeGen = getGeneration(poke.id)
+        const pokeGen = getGenerationByPokemonId(poke.id)
         if (!pokeGen || !selectedGens.includes(pokeGen)) {
           return false
         }

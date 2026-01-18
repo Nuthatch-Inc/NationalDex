@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { getSpriteUrl } from "@/lib/pokeapi"
+import { pokemonSpriteById } from "@/lib/sprites"
 
 export default function TeamsPage() {
   const { teams, isLoaded, createTeam, deleteTeam } = useTeams()
@@ -158,7 +158,7 @@ export default function TeamsPage() {
                           className="size-10 rounded-md bg-muted flex items-center justify-center"
                         >
                           <img
-                            src={getSpriteUrl(member.id)}
+                            src={pokemonSpriteById(member.id)}
                             alt={member.name}
                             className="size-8 pixelated"
                           />

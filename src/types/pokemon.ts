@@ -1,34 +1,22 @@
 export type PokemonType =
-  | "normal"
-  | "fire"
-  | "water"
-  | "electric"
-  | "grass"
-  | "ice"
-  | "fighting"
-  | "poison"
-  | "ground"
-  | "flying"
-  | "psychic"
-  | "bug"
-  | "rock"
-  | "ghost"
-  | "dragon"
-  | "dark"
-  | "steel"
-  | "fairy"
-
-export interface PokemonListItem {
-  name: string
-  url: string
-}
-
-export interface PokemonListResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: PokemonListItem[]
-}
+  | "Normal"
+  | "Fire"
+  | "Water"
+  | "Electric"
+  | "Grass"
+  | "Ice"
+  | "Fighting"
+  | "Poison"
+  | "Ground"
+  | "Flying"
+  | "Psychic"
+  | "Bug"
+  | "Rock"
+  | "Ghost"
+  | "Dragon"
+  | "Dark"
+  | "Steel"
+  | "Fairy"
 
 export interface PokemonStat {
   name: string
@@ -46,8 +34,8 @@ export interface Pokemon {
   types: PokemonType[]
   sprite: string
   spriteShiny: string | null
-  height: number // in decimeters
-  weight: number // in hectograms
+  height: number
+  weight: number
   stats: PokemonStat[]
   abilities: PokemonAbility[]
 }
@@ -59,8 +47,7 @@ export interface PokemonSpecies {
   genus: string
   evolutionChainUrl: string | null
   generation: string
-  // Extended data
-  genderRate: number // -1 = genderless, 0-8 = female eighths
+  genderRate: number
   captureRate: number
   baseHappiness: number
   hatchCounter: number
@@ -75,7 +62,7 @@ export interface PokemonMove {
   power: number | null
   accuracy: number | null
   pp: number
-  damageClass: "physical" | "special" | "status"
+  damageClass: "Physical" | "Special" | "Status"
   learnMethod: "level-up" | "machine" | "egg" | "tutor" | "other"
   levelLearnedAt: number
 }
@@ -110,7 +97,7 @@ export interface MoveDetail {
   id: number
   name: string
   type: PokemonType
-  damageClass: "physical" | "special" | "status"
+  damageClass: "Physical" | "Special" | "Status"
   power: number | null
   accuracy: number | null
   pp: number
@@ -130,23 +117,15 @@ export interface AbilityDetail {
   isMainSeries: boolean
 }
 
-// Extended types for dedicated pages
 export interface MoveListItem {
   id: number
   name: string
   type: PokemonType
-  damageClass: "physical" | "special" | "status"
+  damageClass: "Physical" | "Special" | "Status"
   power: number | null
   accuracy: number | null
   pp: number
   generation: string
-}
-
-export interface MoveListResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: { name: string; url: string }[]
 }
 
 export interface MovePokemon {
@@ -174,7 +153,6 @@ export interface FullAbilityDetail extends AbilityDetail {
   pokemon: AbilityPokemon[]
 }
 
-// Type detail types
 export interface TypeDamageRelations {
   doubleDamageTo: PokemonType[]
   halfDamageTo: PokemonType[]
@@ -188,7 +166,7 @@ export interface TypePokemon {
   id: number
   name: string
   sprite: string
-  slot: 1 | 2 // Primary or secondary type
+  slot: 1 | 2
 }
 
 export interface TypeDetail {
@@ -203,51 +181,46 @@ export interface FullTypeDetail extends TypeDetail {
 }
 
 export const TYPE_COLORS: Record<PokemonType, string> = {
-  normal: "#A8A77A",
-  fire: "#EE8130",
-  water: "#6390F0",
-  electric: "#F7D02C",
-  grass: "#7AC74C",
-  ice: "#96D9D6",
-  fighting: "#C22E28",
-  poison: "#A33EA1",
-  ground: "#E2BF65",
-  flying: "#A98FF3",
-  psychic: "#F95587",
-  bug: "#A6B91A",
-  rock: "#B6A136",
-  ghost: "#735797",
-  dragon: "#6F35FC",
-  dark: "#705746",
-  steel: "#B7B7CE",
-  fairy: "#D685AD",
+  Normal: "#A8A77A",
+  Fire: "#EE8130",
+  Water: "#6390F0",
+  Electric: "#F7D02C",
+  Grass: "#7AC74C",
+  Ice: "#96D9D6",
+  Fighting: "#C22E28",
+  Poison: "#A33EA1",
+  Ground: "#E2BF65",
+  Flying: "#A98FF3",
+  Psychic: "#F95587",
+  Bug: "#A6B91A",
+  Rock: "#B6A136",
+  Ghost: "#735797",
+  Dragon: "#6F35FC",
+  Dark: "#705746",
+  Steel: "#B7B7CE",
+  Fairy: "#D685AD",
 }
 
-// Darker text colors for light mode contrast (WCAG AA compliant)
 export const TYPE_TEXT_COLORS: Record<PokemonType, string> = {
-  normal: "#6D6C54",
-  fire: "#B85F1C",
-  water: "#3A6BC7",
-  electric: "#9A7D00",
-  grass: "#4A8A2C",
-  ice: "#4A8A8A",
-  fighting: "#C22E28",
-  poison: "#A33EA1",
-  ground: "#9A7830",
-  flying: "#6A5AB0",
-  psychic: "#C13A68",
-  bug: "#6A7A10",
-  rock: "#7A6A20",
-  ghost: "#735797",
-  dragon: "#6F35FC",
-  dark: "#705746",
-  steel: "#6A6A8A",
-  fairy: "#A8558A",
+  Normal: "#6D6C54",
+  Fire: "#B85F1C",
+  Water: "#3A6BC7",
+  Electric: "#9A7D00",
+  Grass: "#4A8A2C",
+  Ice: "#4A8A8A",
+  Fighting: "#C22E28",
+  Poison: "#A33EA1",
+  Ground: "#9A7830",
+  Flying: "#6A5AB0",
+  Psychic: "#C13A68",
+  Bug: "#6A7A10",
+  Rock: "#7A6A20",
+  Ghost: "#735797",
+  Dragon: "#6F35FC",
+  Dark: "#705746",
+  Steel: "#6A6A8A",
+  Fairy: "#A8558A",
 }
-
-// ============================================================================
-// Item Types
-// ============================================================================
 
 export type ItemPocket =
   | "misc"
@@ -266,13 +239,6 @@ export interface ItemListItem {
   category: string
   pocket: ItemPocket
   cost: number
-}
-
-export interface ItemListResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: { name: string; url: string }[]
 }
 
 export interface ItemFlingEffect {
@@ -317,7 +283,7 @@ export const ITEM_POCKET_COLORS: Record<ItemPocket, string> = {
 export const ITEM_POCKET_LABELS: Record<ItemPocket, string> = {
   misc: "Misc",
   medicine: "Medicine",
-  pokeballs: "Poké Balls",
+  pokeballs: "Poke Balls",
   machines: "TMs & HMs",
   berries: "Berries",
   mail: "Mail",

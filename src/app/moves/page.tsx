@@ -5,12 +5,11 @@ import Link from "next/link"
 import { Search, X, Filter } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import { useMoveList } from "@/hooks/use-pokemon"
-import { ALL_TYPES, GENERATIONS, DAMAGE_CLASSES } from "@/lib/pokeapi"
+import { getAllMoves, ALL_TYPES, GENERATIONS, DAMAGE_CLASSES, toID, getGenerationName } from "@/lib/pkmn"
 import { TYPE_COLORS } from "@/types/pokemon"
 import type { PokemonType, MoveListItem } from "@/types/pokemon"
 
-type DamageClass = "physical" | "special" | "status"
+type DamageClass = "Physical" | "Special" | "Status"
 
 interface Filters {
   search: string
@@ -19,8 +18,9 @@ interface Filters {
   generations: string[]
 }
 
+const ITEMS_PER_PAGE = 100
+
 export default function MovesPage() {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useMoveList()
   const [filters, setFilters] = useState<Filters>({
     search: "",
     types: [],
@@ -28,18 +28,31 @@ export default function MovesPage() {
     generations: [],
   })
   const [showFilters, setShowFilters] = useState(false)
-
-  // Infinite scroll observer
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE)
   const loadMoreRef = useRef<HTMLDivElement>(null)
+
+  // Get all moves synchronously
+  const allMoves = useMemo(() => {
+    return getAllMoves().map((m): MoveListItem => ({
+      id: m.num,
+      name: m.name,
+      type: m.type as PokemonType,
+      damageClass: m.category as DamageClass,
+      power: m.basePower || null,
+      accuracy: m.accuracy === true ? null : m.accuracy,
+      pp: m.pp,
+      generation: getGenerationName(m.gen),
+    }))
+  }, [])
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
       const [entry] = entries
-      if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
-        fetchNextPage()
+      if (entry.isIntersecting && displayCount < filteredMoves.length) {
+        setDisplayCount((prev) => Math.min(prev + ITEMS_PER_PAGE, filteredMoves.length))
       }
     },
-    [fetchNextPage, hasNextPage, isFetchingNextPage]
+    [displayCount]
   )
 
   useEffect(() => {
@@ -54,12 +67,6 @@ export default function MovesPage() {
 
     return () => observer.disconnect()
   }, [handleObserver])
-
-  // Flatten all moves from pages
-  const allMoves = useMemo(() => {
-    if (!data) return []
-    return data.pages.flatMap((page) => page.moves)
-  }, [data])
 
   // Apply filters client-side
   const filteredMoves = useMemo(() => {
@@ -93,6 +100,11 @@ export default function MovesPage() {
       return true
     })
   }, [allMoves, filters])
+
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(ITEMS_PER_PAGE)
+  }, [filters])
 
   const activeFilterCount =
     filters.types.length + filters.damageClasses.length + filters.generations.length
@@ -191,9 +203,9 @@ export default function MovesPage() {
                 {ALL_TYPES.map((type) => (
                   <TypeFilterButton
                     key={type}
-                    type={type}
-                    selected={filters.types.includes(type)}
-                    onClick={() => toggleType(type)}
+                    type={type as PokemonType}
+                    selected={filters.types.includes(type as PokemonType)}
+                    onClick={() => toggleType(type as PokemonType)}
                   />
                 ))}
               </div>
@@ -281,57 +293,40 @@ export default function MovesPage() {
       {/* Results Count */}
       <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto mb-4">
         <p className="text-xs text-muted-foreground">
-          {isLoading ? (
-            "Loading moves..."
-          ) : (
-            <>
-              Showing {filteredMoves.length} moves
-              {data && allMoves.length < data.pages[0].count && (
-                <> (loaded {allMoves.length} of {data.pages[0].count})</>
-              )}
-            </>
-          )}
+          Showing {Math.min(displayCount, filteredMoves.length)} of {filteredMoves.length} moves
         </p>
       </div>
 
       {/* Moves List */}
       <div className="max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
-        {isLoading ? (
-          <MovesListSkeleton />
-        ) : (
-          <>
-            <div className="border rounded-lg overflow-hidden">
-              {/* Header */}
-              <div className="grid grid-cols-[1fr,80px,70px,70px,50px,100px] gap-2 px-4 py-2 bg-muted text-xs text-muted-foreground font-medium">
-                <span>Name</span>
-                <span>Type</span>
-                <span className="text-right">Power</span>
-                <span className="text-right">Acc</span>
-                <span className="text-right">PP</span>
-                <span className="text-center">Category</span>
-              </div>
+        <div className="border rounded-lg overflow-hidden">
+          {/* Header */}
+          <div className="grid grid-cols-[1fr,80px,70px,70px,50px,100px] gap-2 px-4 py-2 bg-muted text-xs text-muted-foreground font-medium">
+            <span>Name</span>
+            <span>Type</span>
+            <span className="text-right">Power</span>
+            <span className="text-right">Acc</span>
+            <span className="text-right">PP</span>
+            <span className="text-center">Category</span>
+          </div>
 
-              {/* Rows */}
-              {filteredMoves.map((move) => (
-                <MoveRow key={move.id} move={move} />
-              ))}
+          {/* Rows */}
+          {filteredMoves.slice(0, displayCount).map((move) => (
+            <MoveRow key={move.id} move={move} />
+          ))}
 
-              {filteredMoves.length === 0 && !isLoading && (
-                <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  No moves found matching your filters
-                </div>
-              )}
+          {filteredMoves.length === 0 && (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              No moves found matching your filters
             </div>
+          )}
+        </div>
 
-            {/* Infinite scroll trigger */}
-            <div ref={loadMoreRef} className="py-4">
-              {isFetchingNextPage && (
-                <div className="flex justify-center">
-                  <div className="animate-spin size-5 border-2 border-muted border-t-foreground rounded-full" />
-                </div>
-              )}
-            </div>
-          </>
+        {/* Infinite scroll trigger */}
+        {displayCount < filteredMoves.length && (
+          <div ref={loadMoreRef} className="py-4 flex justify-center">
+            <span className="text-xs text-muted-foreground">Loading more...</span>
+          </div>
         )}
       </div>
     </div>
@@ -382,7 +377,7 @@ function TypeFilterButton({
 
 function MoveRow({ move }: { move: MoveListItem }) {
   const color = TYPE_COLORS[move.type]
-  const slug = move.name.toLowerCase().replace(/\s+/g, "-")
+  const slug = toID(move.name)
 
   return (
     <Link
@@ -407,30 +402,5 @@ function MoveRow({ move }: { move: MoveListItem }) {
         {move.damageClass}
       </span>
     </Link>
-  )
-}
-
-function MovesListSkeleton() {
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="grid grid-cols-[1fr,80px,70px,70px,50px,100px] gap-2 px-4 py-2 bg-muted">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-4 w-full" />
-        ))}
-      </div>
-      {Array.from({ length: 20 }).map((_, i) => (
-        <div
-          key={i}
-          className="grid grid-cols-[1fr,80px,70px,70px,50px,100px] gap-2 px-4 py-2 border-t"
-        >
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-5 w-16" />
-          <Skeleton className="h-5 w-8 ml-auto" />
-          <Skeleton className="h-5 w-10 ml-auto" />
-          <Skeleton className="h-5 w-6 ml-auto" />
-          <Skeleton className="h-5 w-16 mx-auto" />
-        </div>
-      ))}
-    </div>
   )
 }

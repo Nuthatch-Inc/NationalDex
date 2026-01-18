@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useMemo, useCallback } from "react"
 import { Search, X } from "lucide-react"
-import { useQuery } from "@tanstack/react-query"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { TypeBadge } from "@/components/pokemon/type-badge"
-import { ALL_TYPES, getAllPokemonNames, getAllMoveNames, getAllAbilityNames, getAllItemNames } from "@/lib/pokeapi"
+import { ALL_TYPES, getAllSpecies, getAllMoves, getAllAbilities, getAllItems, toID } from "@/lib/pkmn"
+import { pokemonSpriteById } from "@/lib/sprites"
 import type { PokemonType } from "@/types/pokemon"
 
 export type DexCategory = "pokemon" | "moves" | "abilities" | "items"
@@ -23,14 +23,14 @@ interface DexFilterProps {
 }
 
 const CATEGORY_LABELS: Record<DexCategory, string> = {
-  pokemon: "Pokémon",
+  pokemon: "Pokemon",
   moves: "Moves",
   abilities: "Abilities",
   items: "Items",
 }
 
 const CATEGORY_PLACEHOLDERS: Record<DexCategory, string> = {
-  pokemon: "Search Pokémon...",
+  pokemon: "Search Pokemon...",
   moves: "Search Moves...",
   abilities: "Search Abilities...",
   items: "Search Items...",
@@ -112,14 +112,14 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
           {ALL_TYPES.map((type) => (
             <button
               key={type}
-              onClick={() => handleTypeToggle(type)}
+              onClick={() => handleTypeToggle(type as PokemonType)}
               className={`transition-opacity ${
-                filter.types.length > 0 && !filter.types.includes(type)
+                filter.types.length > 0 && !filter.types.includes(type as PokemonType)
                   ? "opacity-40 hover:opacity-70"
                   : "opacity-100"
               }`}
             >
-              <TypeBadge type={type} size="sm" />
+              <TypeBadge type={type as PokemonType} size="sm" />
             </button>
           ))}
         </div>
@@ -150,49 +150,58 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
 
 // Hook to get filtered Pokemon based on filter state
 export function useFilteredPokemon(filter: DexFilterState) {
-  const { data: allPokemon, isLoading } = useQuery({
-    queryKey: ["all-pokemon-names"],
-    queryFn: getAllPokemonNames,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
-  })
+  const allPokemon = useMemo(
+    () =>
+      getAllSpecies().map((s) => ({
+        name: s.name,
+        id: s.num,
+        sprite: pokemonSpriteById(s.num),
+        types: s.types as PokemonType[],
+      })),
+    []
+  )
 
   const hasActiveFilters = filter.search.length > 0 || filter.types.length > 0
 
   const filteredPokemon = useMemo(() => {
-    if (!allPokemon || !hasActiveFilters) return null
+    if (!hasActiveFilters) return null
 
     const searchLower = filter.search.toLowerCase()
 
     return allPokemon.filter((pokemon) => {
-      // Filter by name
       if (searchLower && !pokemon.name.toLowerCase().includes(searchLower)) {
         return false
       }
+      if (filter.types.length > 0) {
+        const hasType = filter.types.some((t) => pokemon.types.includes(t))
+        if (!hasType) return false
+      }
       return true
     })
-  }, [allPokemon, filter.search, hasActiveFilters])
+  }, [allPokemon, filter.search, filter.types, hasActiveFilters])
 
   return {
     filteredPokemon,
-    isLoading,
+    isLoading: false,
     hasActiveFilters,
-    totalCount: allPokemon?.length ?? 0,
+    totalCount: allPokemon.length,
   }
 }
 
 // Hook to get filtered Moves based on filter state
 export function useFilteredMoves(filter: DexFilterState) {
-  const { data: allMoves, isLoading } = useQuery({
-    queryKey: ["all-move-names"],
-    queryFn: getAllMoveNames,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
-  })
+  const allMoves = useMemo(
+    () =>
+      getAllMoves().map((m) => ({
+        name: m.name,
+        id: m.num,
+      })),
+    []
+  )
 
   const hasActiveFilters = filter.search.length > 0
 
   const filteredMoves = useMemo(() => {
-    if (!allMoves) return allMoves
-
     if (!hasActiveFilters) return allMoves
 
     const searchLower = filter.search.toLowerCase()
@@ -207,25 +216,26 @@ export function useFilteredMoves(filter: DexFilterState) {
 
   return {
     filteredMoves,
-    isLoading,
+    isLoading: false,
     hasActiveFilters,
-    totalCount: allMoves?.length ?? 0,
+    totalCount: allMoves.length,
   }
 }
 
 // Hook to get filtered Abilities based on filter state
 export function useFilteredAbilities(filter: DexFilterState) {
-  const { data: allAbilities, isLoading } = useQuery({
-    queryKey: ["all-ability-names"],
-    queryFn: getAllAbilityNames,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
-  })
+  const allAbilities = useMemo(
+    () =>
+      getAllAbilities().map((a) => ({
+        name: a.name,
+        id: a.num,
+      })),
+    []
+  )
 
   const hasActiveFilters = filter.search.length > 0
 
   const filteredAbilities = useMemo(() => {
-    if (!allAbilities) return allAbilities
-
     if (!hasActiveFilters) return allAbilities
 
     const searchLower = filter.search.toLowerCase()
@@ -240,25 +250,27 @@ export function useFilteredAbilities(filter: DexFilterState) {
 
   return {
     filteredAbilities,
-    isLoading,
+    isLoading: false,
     hasActiveFilters,
-    totalCount: allAbilities?.length ?? 0,
+    totalCount: allAbilities.length,
   }
 }
 
 // Hook to get filtered Items based on filter state
 export function useFilteredItems(filter: DexFilterState) {
-  const { data: allItems, isLoading } = useQuery({
-    queryKey: ["all-item-names"],
-    queryFn: getAllItemNames,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
-  })
+  const allItems = useMemo(
+    () =>
+      getAllItems().map((i) => ({
+        name: i.name,
+        id: i.num,
+        sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
+      })),
+    []
+  )
 
   const hasActiveFilters = filter.search.length > 0
 
   const filteredItems = useMemo(() => {
-    if (!allItems) return allItems
-
     if (!hasActiveFilters) return allItems
 
     const searchLower = filter.search.toLowerCase()
@@ -273,8 +285,8 @@ export function useFilteredItems(filter: DexFilterState) {
 
   return {
     filteredItems,
-    isLoading,
+    isLoading: false,
     hasActiveFilters,
-    totalCount: allItems?.length ?? 0,
+    totalCount: allItems.length,
   }
 }

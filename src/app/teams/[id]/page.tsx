@@ -16,7 +16,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { getSpriteUrl, getPokemon } from "@/lib/pokeapi"
+import { pokemonSpriteById } from "@/lib/sprites"
+import { getSpecies, toID } from "@/lib/pkmn"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function TeamDetailPage() {
@@ -28,7 +29,6 @@ export default function TeamDetailPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isEditingName, setIsEditingName] = useState(false)
   const [editedName, setEditedName] = useState("")
-  const [isAddingPokemon, setIsAddingPokemon] = useState(false)
 
   const team = useMemo(() => getTeam(teamId), [getTeam, teamId, teams])
 
@@ -77,25 +77,18 @@ export default function TeamDetailPage() {
     ? availablePokemonIds.filter((id) => id.toString().includes(searchQuery.trim()))
     : availablePokemonIds
 
-  const handleAddPokemon = async (id: number) => {
-    if (isAddingPokemon) return
-    setIsAddingPokemon(true)
+  const handleAddPokemon = (id: number) => {
+    const species = getSpecies(toID(id.toString()))
+    if (!species) return
 
-    try {
-      const pokemon = await getPokemon(id)
-      const member: TeamMember = {
-        id: pokemon.id,
-        name: pokemon.name,
-        sprite: pokemon.sprite,
-      }
-      addMember(teamId, member)
-      setIsAddOpen(false)
-      setSearchQuery("")
-    } catch (error) {
-      console.error("Failed to fetch Pokemon:", error)
-    } finally {
-      setIsAddingPokemon(false)
+    const member: TeamMember = {
+      id: species.num,
+      name: species.name,
+      sprite: pokemonSpriteById(species.num),
     }
+    addMember(teamId, member)
+    setIsAddOpen(false)
+    setSearchQuery("")
   }
 
   const handleSaveName = () => {
@@ -198,7 +191,6 @@ export default function TeamDetailPage() {
                       key={id}
                       id={id}
                       onSelect={handleAddPokemon}
-                      disabled={isAddingPokemon}
                     />
                   ))}
                 </div>
@@ -232,21 +224,18 @@ export default function TeamDetailPage() {
 function PokemonPickerButton({
   id,
   onSelect,
-  disabled
 }: {
   id: number
   onSelect: (id: number) => void
-  disabled: boolean
 }) {
   return (
     <button
       type="button"
       onClick={() => onSelect(id)}
-      disabled={disabled}
-      className="flex flex-col items-center p-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
+      className="flex flex-col items-center p-2 rounded-lg hover:bg-muted transition-colors"
     >
       <img
-        src={getSpriteUrl(id)}
+        src={pokemonSpriteById(id)}
         alt={`Pokemon #${id}`}
         className="size-10 pixelated"
       />

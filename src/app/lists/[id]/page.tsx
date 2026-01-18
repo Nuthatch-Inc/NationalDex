@@ -11,7 +11,7 @@ import type { ListItem, ListItemType } from "@/types/list"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { getSpriteUrl } from "@/lib/pokeapi"
+import { pokemonSpriteById } from "@/lib/sprites"
 import { cn } from "@/lib/utils"
 
 interface PageProps {
@@ -96,7 +96,7 @@ export default function ListDetailPage({ params }: PageProps) {
     if (item.type === "pokemon") {
       const numId = Number.parseInt(item.id, 10)
       if (!Number.isNaN(numId)) {
-        return getSpriteUrl(numId)
+        return pokemonSpriteById(numId)
       }
     }
     return null

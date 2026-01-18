@@ -53,7 +53,7 @@ export function TypeBadge({
 
   if (linkable) {
     return (
-      <Link href={`/types/${type}`} className={badgeClasses} style={badgeStyle}>
+      <Link href={`/types/${type.toLowerCase()}`} className={badgeClasses} style={badgeStyle}>
         {content}
       </Link>
     )

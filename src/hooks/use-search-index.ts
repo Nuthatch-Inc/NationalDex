@@ -1,15 +1,16 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
-import Fuse, { type IFuseOptions } from "fuse.js"
 import { useMemo } from "react"
+import Fuse, { type IFuseOptions } from "fuse.js"
 import {
-  getAllPokemonNames,
-  getAllMoveNames,
-  getAllAbilityNames,
-  getAllItemNames,
+  getAllSpecies,
+  getAllMoves,
+  getAllAbilities,
+  getAllItems,
   ALL_TYPES,
-} from "@/lib/pokeapi"
+  toID,
+} from "@/lib/pkmn"
+import { pokemonSpriteById } from "@/lib/sprites"
 import type {
   SearchResult,
   PokemonSearchResult,
@@ -20,12 +21,9 @@ import type {
 } from "@/types/search"
 import type { PokemonType } from "@/types/pokemon"
 
-// Fuse.js configuration for optimal fuzzy matching
 const FUSE_OPTIONS: IFuseOptions<SearchResult> = {
-  keys: [
-    { name: "name", weight: 1 },
-  ],
-  threshold: 0.3, // Lower = stricter matching
+  keys: [{ name: "name", weight: 1 }],
+  threshold: 0.3,
   distance: 100,
   includeScore: true,
   shouldSort: true,
@@ -33,119 +31,71 @@ const FUSE_OPTIONS: IFuseOptions<SearchResult> = {
 }
 
 export function useSearchIndex() {
-  // Fetch all data in parallel
-  const pokemonQuery = useQuery({
-    queryKey: ["search-index-pokemon"],
-    queryFn: getAllPokemonNames,
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
-  })
-
-  const movesQuery = useQuery({
-    queryKey: ["search-index-moves"],
-    queryFn: getAllMoveNames,
-    staleTime: 1000 * 60 * 60 * 24,
-  })
-
-  const abilitiesQuery = useQuery({
-    queryKey: ["search-index-abilities"],
-    queryFn: getAllAbilityNames,
-    staleTime: 1000 * 60 * 60 * 24,
-  })
-
-  const itemsQuery = useQuery({
-    queryKey: ["search-index-items"],
-    queryFn: getAllItemNames,
-    staleTime: 1000 * 60 * 60 * 24,
-  })
-
-  // Build the search index
   const { index, allItems } = useMemo(() => {
     const items: SearchResult[] = []
 
     // Add Pokemon
-    if (pokemonQuery.data) {
-      for (const p of pokemonQuery.data) {
-        items.push({
-          id: `pokemon-${p.id}`,
-          name: p.name,
-          type: "pokemon",
-          url: `/pokemon/${p.id}`,
-          pokemonId: p.id,
-          sprite: p.sprite,
-        } as PokemonSearchResult)
-      }
+    for (const s of getAllSpecies()) {
+      items.push({
+        id: `pokemon-${s.num}`,
+        name: s.name,
+        type: "pokemon",
+        url: `/pokemon/${s.num}`,
+        pokemonId: s.num,
+        sprite: pokemonSpriteById(s.num),
+      } as PokemonSearchResult)
     }
 
     // Add Moves
-    if (movesQuery.data) {
-      for (const m of movesQuery.data) {
-        items.push({
-          id: `move-${m.id}`,
-          name: m.name,
-          type: "move",
-          url: `/moves/${m.name.toLowerCase().replace(/\s+/g, "-")}`,
-        } as MoveSearchResult)
-      }
+    for (const m of getAllMoves()) {
+      items.push({
+        id: `move-${m.num}`,
+        name: m.name,
+        type: "move",
+        url: `/moves/${toID(m.name)}`,
+      } as MoveSearchResult)
     }
 
     // Add Abilities
-    if (abilitiesQuery.data) {
-      for (const a of abilitiesQuery.data) {
-        items.push({
-          id: `ability-${a.id}`,
-          name: a.name,
-          type: "ability",
-          url: `/abilities/${a.name.toLowerCase().replace(/\s+/g, "-")}`,
-        } as AbilitySearchResult)
-      }
+    for (const a of getAllAbilities()) {
+      items.push({
+        id: `ability-${a.num}`,
+        name: a.name,
+        type: "ability",
+        url: `/abilities/${toID(a.name)}`,
+      } as AbilitySearchResult)
     }
 
-    // Add Types (static list)
+    // Add Types
     for (const t of ALL_TYPES) {
-      const formatted = t.charAt(0).toUpperCase() + t.slice(1)
       items.push({
-        id: `type-${t}`,
-        name: formatted,
+        id: `type-${t.toLowerCase()}`,
+        name: t,
         type: "type",
-        url: `/types/${t}`,
+        url: `/types/${t.toLowerCase()}`,
         pokemonType: t as PokemonType,
       } as TypeSearchResult)
     }
 
     // Add Items
-    if (itemsQuery.data) {
-      for (const i of itemsQuery.data) {
-        items.push({
-          id: `item-${i.id}`,
-          name: i.name,
-          type: "item",
-          url: `/items/${i.name.toLowerCase().replace(/\s+/g, "-")}`,
-          sprite: i.sprite,
-        } as ItemSearchResult)
-      }
+    for (const i of getAllItems()) {
+      items.push({
+        id: `item-${i.num}`,
+        name: i.name,
+        type: "item",
+        url: `/items/${toID(i.name)}`,
+        sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
+      } as ItemSearchResult)
     }
 
     return {
       index: new Fuse(items, FUSE_OPTIONS),
       allItems: items,
     }
-  }, [pokemonQuery.data, movesQuery.data, abilitiesQuery.data, itemsQuery.data])
-
-  const isLoading =
-    pokemonQuery.isLoading ||
-    movesQuery.isLoading ||
-    abilitiesQuery.isLoading ||
-    itemsQuery.isLoading
-
-  const isReady =
-    pokemonQuery.isSuccess &&
-    movesQuery.isSuccess &&
-    abilitiesQuery.isSuccess &&
-    itemsQuery.isSuccess
+  }, [])
 
   const search = (query: string, limit = 20): SearchResult[] => {
     if (!query.trim()) {
-      // Return recent/popular items when no query
       return allItems.slice(0, limit)
     }
 
@@ -155,14 +105,14 @@ export function useSearchIndex() {
 
   return {
     search,
-    isLoading,
-    isReady,
+    isLoading: false,
+    isReady: true,
     progress: {
-      pokemon: pokemonQuery.isSuccess,
-      moves: movesQuery.isSuccess,
-      abilities: abilitiesQuery.isSuccess,
-      types: true, // Always ready (static)
-      items: itemsQuery.isSuccess,
+      pokemon: true,
+      moves: true,
+      abilities: true,
+      types: true,
+      items: true,
     },
     totalItems: allItems.length,
   }
