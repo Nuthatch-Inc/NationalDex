@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import Fuse, { type IFuseOptions } from "fuse.js"
+import Fuse, { type IFuseOptions } from "fuse.js";
+import { useMemo } from "react";
+import { getDexPokemonList } from "@/lib/dex-pokemon";
 import {
-  getAllMoves,
+  ALL_TYPES,
   getAllAbilities,
   getAllItems,
-  ALL_TYPES,
+  getAllMoves,
   toID,
-} from "@/lib/pkmn"
-import { getDexPokemonList } from "@/lib/dex-pokemon"
-import { pokemonSprite, pokemonSpriteById } from "@/lib/sprites"
+} from "@/lib/pkmn";
+import { pokemonSprite, pokemonSpriteById } from "@/lib/sprites";
+import type { PokemonType } from "@/types/pokemon";
 import type {
-  SearchResult,
-  PokemonSearchResult,
-  MoveSearchResult,
   AbilitySearchResult,
-  TypeSearchResult,
   ItemSearchResult,
-} from "@/types/search"
-import type { PokemonType } from "@/types/pokemon"
+  MoveSearchResult,
+  PokemonSearchResult,
+  SearchResult,
+  TypeSearchResult,
+} from "@/types/search";
 
 const FUSE_OPTIONS: IFuseOptions<SearchResult> = {
   keys: [{ name: "name", weight: 1 }],
@@ -28,11 +28,11 @@ const FUSE_OPTIONS: IFuseOptions<SearchResult> = {
   includeScore: true,
   shouldSort: true,
   minMatchCharLength: 1,
-}
+};
 
 export function useSearchIndex() {
   const { index, allItems } = useMemo(() => {
-    const items: SearchResult[] = []
+    const items: SearchResult[] = [];
 
     // Add Pokemon
     for (const p of getDexPokemonList(9, { forms: "distinct-sprites" })) {
@@ -43,7 +43,7 @@ export function useSearchIndex() {
         url: `/pokemon/${p.slug}`,
         pokemonId: p.id,
         sprite: pokemonSprite(p.name) || pokemonSpriteById(p.id),
-      } as PokemonSearchResult)
+      } as PokemonSearchResult);
     }
 
     // Add Moves
@@ -53,7 +53,7 @@ export function useSearchIndex() {
         name: m.name,
         type: "move",
         url: `/moves/${toID(m.name)}`,
-      } as MoveSearchResult)
+      } as MoveSearchResult);
     }
 
     // Add Abilities
@@ -63,7 +63,7 @@ export function useSearchIndex() {
         name: a.name,
         type: "ability",
         url: `/abilities/${toID(a.name)}`,
-      } as AbilitySearchResult)
+      } as AbilitySearchResult);
     }
 
     // Add Types
@@ -74,7 +74,7 @@ export function useSearchIndex() {
         type: "type",
         url: `/types/${t.toLowerCase()}`,
         pokemonType: t as PokemonType,
-      } as TypeSearchResult)
+      } as TypeSearchResult);
     }
 
     // Add Items
@@ -85,23 +85,23 @@ export function useSearchIndex() {
         type: "item",
         url: `/items/${toID(i.name)}`,
         sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
-      } as ItemSearchResult)
+      } as ItemSearchResult);
     }
 
     return {
       index: new Fuse(items, FUSE_OPTIONS),
       allItems: items,
-    }
-  }, [])
+    };
+  }, []);
 
   const search = (query: string, limit = 20): SearchResult[] => {
     if (!query.trim()) {
-      return allItems.slice(0, limit)
+      return allItems.slice(0, limit);
     }
 
-    const results = index.search(query, { limit })
-    return results.map((r) => r.item)
-  }
+    const results = index.search(query, { limit });
+    return results.map((r) => r.item);
+  };
 
   return {
     search,
@@ -115,5 +115,5 @@ export function useSearchIndex() {
       items: true,
     },
     totalItems: allItems.length,
-  }
+  };
 }

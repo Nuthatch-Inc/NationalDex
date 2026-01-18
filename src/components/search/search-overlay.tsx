@@ -1,8 +1,16 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
-import { Search, Loader2, Sparkles, Swords, Zap, FlaskConical } from "lucide-react"
+import {
+  FlaskConical,
+  Loader2,
+  Search,
+  Sparkles,
+  Swords,
+  Zap,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useNav } from "@/components/navigation/nav-provider";
 import {
   CommandDialog,
   CommandEmpty,
@@ -10,11 +18,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
-import { useNav } from "@/components/navigation/nav-provider"
-import { useSearchIndex } from "@/hooks/use-search-index"
-import type { SearchResult, SearchResultType } from "@/types/search"
-import { TYPE_COLORS } from "@/types/pokemon"
+} from "@/components/ui/command";
+import { useSearchIndex } from "@/hooks/use-search-index";
+import { TYPE_COLORS } from "@/types/pokemon";
+import type { SearchResult, SearchResultType } from "@/types/search";
 
 const TYPE_LABELS: Record<SearchResultType, string> = {
   pokemon: "Pokémon",
@@ -22,7 +29,7 @@ const TYPE_LABELS: Record<SearchResultType, string> = {
   ability: "Abilities",
   type: "Types",
   item: "Items",
-}
+};
 
 const TYPE_ICONS: Record<SearchResultType, React.ReactNode> = {
   pokemon: null, // Use sprite instead
@@ -30,31 +37,31 @@ const TYPE_ICONS: Record<SearchResultType, React.ReactNode> = {
   ability: <Sparkles className="size-4" />,
   type: <Zap className="size-4" />,
   item: null, // Use sprite instead
-}
+};
 
 export function SearchOverlay() {
-  const { searchOpen, setSearchOpen } = useNav()
-  const router = useRouter()
-  const [query, setQuery] = useState("")
-  const { search, isLoading, isReady, totalItems } = useSearchIndex()
+  const { searchOpen, setSearchOpen } = useNav();
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const { search, isLoading, isReady, totalItems } = useSearchIndex();
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setSearchOpen(!searchOpen)
+        e.preventDefault();
+        setSearchOpen(!searchOpen);
       }
-    }
+    };
 
-    document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
-  }, [searchOpen, setSearchOpen])
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [searchOpen, setSearchOpen]);
 
   // Search results
   const results = useMemo(() => {
-    if (!isReady) return []
-    return search(query, 50)
-  }, [query, isReady, search])
+    if (!isReady) return [];
+    return search(query, 50);
+  }, [query, isReady, search]);
 
   // Group results by type
   const groupedResults = useMemo(() => {
@@ -64,28 +71,34 @@ export function SearchOverlay() {
       ability: [],
       type: [],
       item: [],
-    }
+    };
 
     for (const result of results) {
-      groups[result.type].push(result)
+      groups[result.type].push(result);
     }
 
     // Return only non-empty groups, in preferred order
-    const order: SearchResultType[] = ["pokemon", "move", "ability", "type", "item"]
+    const order: SearchResultType[] = [
+      "pokemon",
+      "move",
+      "ability",
+      "type",
+      "item",
+    ];
     return order
       .filter((type) => groups[type].length > 0)
       .map((type) => ({
         type,
         label: TYPE_LABELS[type],
         results: groups[type].slice(0, 10), // Limit per category
-      }))
-  }, [results])
+      }));
+  }, [results]);
 
   const handleSelect = (result: SearchResult) => {
-    setSearchOpen(false)
-    setQuery("")
-    router.push(result.url)
-  }
+    setSearchOpen(false);
+    setQuery("");
+    router.push(result.url);
+  };
 
   return (
     <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
@@ -126,7 +139,7 @@ export function SearchOverlay() {
         ))}
       </CommandList>
     </CommandDialog>
-  )
+  );
 }
 
 function ResultIcon({ result }: { result: SearchResult }) {
@@ -138,7 +151,7 @@ function ResultIcon({ result }: { result: SearchResult }) {
           alt={result.name}
           className="size-6 pixelated"
         />
-      )
+      );
     case "item":
       return result.sprite ? (
         <img
@@ -146,25 +159,23 @@ function ResultIcon({ result }: { result: SearchResult }) {
           alt={result.name}
           className="size-6 pixelated"
           onError={(e) => {
-            e.currentTarget.style.display = "none"
+            e.currentTarget.style.display = "none";
           }}
         />
       ) : (
         <FlaskConical className="size-4 text-muted-foreground" />
-      )
+      );
     case "type":
       return (
         <div
           className="size-4 rounded-full"
           style={{ backgroundColor: TYPE_COLORS[result.pokemonType] }}
         />
-      )
+      );
     default:
       return (
-        <span className="text-muted-foreground">
-          {TYPE_ICONS[result.type]}
-        </span>
-      )
+        <span className="text-muted-foreground">{TYPE_ICONS[result.type]}</span>
+      );
   }
 }
 
@@ -175,7 +186,7 @@ function ResultMeta({ result }: { result: SearchResult }) {
         <span className="ml-auto text-xs text-muted-foreground tabular-nums">
           #{result.pokemonId.toString().padStart(3, "0")}
         </span>
-      )
+      );
     case "type":
       return (
         <span
@@ -184,8 +195,8 @@ function ResultMeta({ result }: { result: SearchResult }) {
         >
           Type
         </span>
-      )
+      );
     default:
-      return null
+      return null;
   }
 }

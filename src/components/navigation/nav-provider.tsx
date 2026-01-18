@@ -1,41 +1,50 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useCallback } from "react"
+import { createContext, useCallback, useContext, useState } from "react";
 
 interface NavContextValue {
-  searchOpen: boolean
-  setSearchOpen: (open: boolean) => void
-  toggleSearch: () => void
-  moreOpen: boolean
-  setMoreOpen: (open: boolean) => void
-  toggleMore: () => void
+  searchOpen: boolean;
+  setSearchOpen: (open: boolean) => void;
+  toggleSearch: () => void;
+  moreOpen: boolean;
+  setMoreOpen: (open: boolean) => void;
+  toggleMore: () => void;
 }
 
-const NavContext = createContext<NavContextValue | null>(null)
+const NavContext = createContext<NavContextValue | null>(null);
 
 export function NavProvider({ children }: { children: React.ReactNode }) {
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const toggleSearch = useCallback(() => {
-    setSearchOpen((prev) => !prev)
-  }, [])
+    setSearchOpen((prev) => !prev);
+  }, []);
 
   const toggleMore = useCallback(() => {
-    setMoreOpen((prev) => !prev)
-  }, [])
+    setMoreOpen((prev) => !prev);
+  }, []);
 
   return (
-    <NavContext.Provider value={{ searchOpen, setSearchOpen, toggleSearch, moreOpen, setMoreOpen, toggleMore }}>
+    <NavContext.Provider
+      value={{
+        searchOpen,
+        setSearchOpen,
+        toggleSearch,
+        moreOpen,
+        setMoreOpen,
+        toggleMore,
+      }}
+    >
       {children}
     </NavContext.Provider>
-  )
+  );
 }
 
 export function useNav() {
-  const context = useContext(NavContext)
+  const context = useContext(NavContext);
   if (!context) {
-    throw new Error("useNav must be used within NavProvider")
+    throw new Error("useNav must be used within NavProvider");
   }
-  return context
+  return context;
 }

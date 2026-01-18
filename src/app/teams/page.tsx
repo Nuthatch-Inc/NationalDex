@@ -1,12 +1,9 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Plus, Trash2, Users } from "lucide-react"
-import { useTeams } from "@/hooks/use-teams"
-import { GENERATION_INFO, GENERATIONS_LIST } from "@/types/team"
-import type { Generation } from "@/types/team"
-import { Button } from "@/components/ui/button"
+import { Plus, Trash2, Users } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,30 +12,34 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { pokemonSpriteById } from "@/lib/sprites"
+} from "@/components/ui/select";
+import { useTeams } from "@/hooks/use-teams";
+import { pokemonSpriteById } from "@/lib/sprites";
+import type { Generation } from "@/types/team";
+import { GENERATION_INFO, GENERATIONS_LIST } from "@/types/team";
 
 export default function TeamsPage() {
-  const { teams, isLoaded, createTeam, deleteTeam } = useTeams()
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [newTeamName, setNewTeamName] = useState("")
-  const [newTeamGeneration, setNewTeamGeneration] = useState<Generation>("generation-i")
+  const { teams, isLoaded, createTeam, deleteTeam } = useTeams();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamGeneration, setNewTeamGeneration] =
+    useState<Generation>("generation-i");
 
   const handleCreate = () => {
-    if (!newTeamName.trim()) return
-    createTeam(newTeamName.trim(), newTeamGeneration)
-    setNewTeamName("")
-    setNewTeamGeneration("generation-i")
-    setIsCreateOpen(false)
-  }
+    if (!newTeamName.trim()) return;
+    createTeam(newTeamName.trim(), newTeamGeneration);
+    setNewTeamName("");
+    setNewTeamGeneration("generation-i");
+    setIsCreateOpen(false);
+  };
 
   return (
     <div className="p-4 md:p-6">
@@ -54,7 +55,8 @@ export default function TeamsPage() {
             <DialogHeader>
               <DialogTitle>create new team</DialogTitle>
               <DialogDescription>
-                Choose a name and generation for your team. Pokemon will be limited to that generation.
+                Choose a name and generation for your team. Pokemon will be
+                limited to that generation.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -65,7 +67,7 @@ export default function TeamsPage() {
                   value={newTeamName}
                   onChange={(e) => setNewTeamName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") handleCreate()
+                    if (e.key === "Enter") handleCreate();
                   }}
                 />
               </div>
@@ -73,19 +75,21 @@ export default function TeamsPage() {
                 <label className="text-sm font-medium">generation</label>
                 <Select
                   value={newTeamGeneration}
-                  onValueChange={(value) => setNewTeamGeneration(value as Generation)}
+                  onValueChange={(value) =>
+                    setNewTeamGeneration(value as Generation)
+                  }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {GENERATIONS_LIST.map((gen) => {
-                      const info = GENERATION_INFO[gen]
+                      const info = GENERATION_INFO[gen];
                       return (
                         <SelectItem key={gen} value={gen}>
                           {info.name} - {info.label}
                         </SelectItem>
-                      )
+                      );
                     })}
                   </SelectContent>
                 </Select>
@@ -106,7 +110,10 @@ export default function TeamsPage() {
       {!isLoaded ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-lg border bg-muted/50 animate-pulse" />
+            <div
+              key={i}
+              className="h-24 rounded-lg border bg-muted/50 animate-pulse"
+            />
           ))}
         </div>
       ) : teams.length === 0 ? (
@@ -122,7 +129,7 @@ export default function TeamsPage() {
           {teams
             .sort((a, b) => b.updatedAt - a.updatedAt)
             .map((team) => {
-              const genInfo = GENERATION_INFO[team.generation]
+              const genInfo = GENERATION_INFO[team.generation];
               return (
                 <Link
                   key={team.id}
@@ -139,10 +146,10 @@ export default function TeamsPage() {
                     <button
                       type="button"
                       onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (confirm("Delete this team?")) {
-                          deleteTeam(team.id)
+                          deleteTeam(team.id);
                         }
                       }}
                       className="text-muted-foreground hover:text-destructive transition-colors p-1"
@@ -164,19 +171,21 @@ export default function TeamsPage() {
                           />
                         </div>
                       ))}
-                      {Array.from({ length: 6 - team.members.length }).map((_, i) => (
-                        <div
-                          key={`empty-${i}`}
-                          className="size-10 rounded-md border border-dashed border-muted-foreground/30"
-                        />
-                      ))}
+                      {Array.from({ length: 6 - team.members.length }).map(
+                        (_, i) => (
+                          <div
+                            key={`empty-${i}`}
+                            className="size-10 rounded-md border border-dashed border-muted-foreground/30"
+                          />
+                        ),
+                      )}
                     </div>
                   )}
                 </Link>
-              )
+              );
             })}
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,10 +1,13 @@
-"use client"
+"use client";
 
-import { PokemonCard, PokemonCardSkeleton } from "@/components/pokemon/pokemon-card"
-import { useFavorites } from "@/hooks/use-favorites"
+import {
+  PokemonCard,
+  PokemonCardSkeleton,
+} from "@/components/pokemon/pokemon-card";
+import { useFavorites } from "@/hooks/use-favorites";
 
 export default function FavoritesPage() {
-  const { favorites, isLoaded } = useFavorites()
+  const { favorites, isLoaded } = useFavorites();
 
   return (
     <div className="p-4 md:p-6">
@@ -29,5 +32,5 @@ export default function FavoritesPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

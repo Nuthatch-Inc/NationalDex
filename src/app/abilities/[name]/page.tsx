@@ -1,10 +1,12 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import { AddToListDialog } from "@/components/add-to-list-dialog";
+import {
+  PokemonCard,
+  PokemonCardSkeleton,
+} from "@/components/pokemon/pokemon-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFullAbilityDetail } from "@/hooks/use-pokemon";
 import { GEN_RANGES, getGenerationByPokemonId } from "@/lib/pkmn";
@@ -283,30 +285,17 @@ function PokemonSection({
 
       {/* Pokemon grid */}
       {sortedPokemon.length > 0 ? (
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
           {sortedPokemon.map((poke) => (
-            <Link
+            <PokemonCard
               key={poke.id}
-              href={`/pokemon/${poke.id}`}
               className={cn(
-                "flex flex-col items-center p-2 rounded hover:bg-muted transition-colors group",
                 poke.isHidden &&
                   "border border-dashed border-muted-foreground/30",
               )}
-            >
-              <Image
-                src={poke.sprite}
-                alt={poke.name}
-                width={48}
-                height={48}
-                className="size-12 pixelated group-hover:scale-110 transition-transform"
-                loading="lazy"
-                unoptimized
-              />
-              <span className="text-[10px] text-muted-foreground truncate max-w-full">
-                #{poke.id.toString().padStart(3, "0")}
-              </span>
-            </Link>
+              id={poke.id}
+              name={poke.name}
+            />
           ))}
         </div>
       ) : hasFilters ? (
@@ -323,6 +312,10 @@ function PokemonSection({
 }
 
 function AbilityDetailSkeleton() {
+  const pokemonSkeletonKeys = Array.from(
+    { length: 24 },
+    (_, i) => `pokemon-skeleton-${i}`,
+  );
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="space-y-6">
@@ -341,9 +334,9 @@ function AbilityDetailSkeleton() {
 
         <section className="space-y-3">
           <Skeleton className="h-3 w-24" />
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <Skeleton key={`pokemon-skeleton-${i}`} className="h-16 w-full" />
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
+            {pokemonSkeletonKeys.map((key) => (
+              <PokemonCardSkeleton key={key} />
             ))}
           </div>
         </section>

@@ -1,13 +1,10 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useMemo } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
-import { Plus, X, Search } from "lucide-react"
-import { useTeams } from "@/hooks/use-teams"
-import { GENERATION_INFO } from "@/types/team"
-import type { TeamMember } from "@/types/team"
-import { Input } from "@/components/ui/input"
+import { Plus, Search, X } from "lucide-react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { PokemonCard } from "@/components/pokemon/pokemon-card";
 import {
   Dialog,
   DialogContent,
@@ -15,88 +12,101 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { pokemonSpriteById } from "@/lib/sprites"
-import { getSpecies, toID } from "@/lib/pkmn"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTeams } from "@/hooks/use-teams";
+import { getSpecies, toID } from "@/lib/pkmn";
+import { pokemonSpriteById } from "@/lib/sprites";
+import type { TeamMember } from "@/types/team";
+import { GENERATION_INFO } from "@/types/team";
 
 export default function TeamDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const teamId = params.id as string
-  const { teams, isLoaded, getTeam, addMember, removeMember, updateTeam } = useTeams()
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isEditingName, setIsEditingName] = useState(false)
-  const [editedName, setEditedName] = useState("")
+  const params = useParams();
+  const router = useRouter();
+  const teamId = params.id as string;
+  const { isLoaded, getTeam, addMember, removeMember, updateTeam } = useTeams();
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
 
-  const team = useMemo(() => getTeam(teamId), [getTeam, teamId, teams])
+  const team = useMemo(() => getTeam(teamId), [getTeam, teamId]);
 
   useEffect(() => {
     if (isLoaded && !team) {
-      router.push("/teams")
+      router.push("/teams");
     }
-  }, [isLoaded, team, router])
+  }, [isLoaded, team, router]);
 
   useEffect(() => {
     if (team) {
-      setEditedName(team.name)
+      setEditedName(team.name);
     }
-  }, [team])
+  }, [team]);
 
   if (!isLoaded) {
+    const skeletonKeys = Array.from(
+      { length: 6 },
+      (_, i) => `team-skeleton-${i}`,
+    );
     return (
       <div className="p-4 md:p-6">
         <div className="h-8 w-32 bg-muted animate-pulse rounded mb-6" />
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-square rounded-lg bg-muted animate-pulse" />
+          {skeletonKeys.map((key) => (
+            <div
+              key={key}
+              className="aspect-square rounded-lg bg-muted animate-pulse"
+            />
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (!team) {
-    return null
+    return null;
   }
 
-  const genInfo = GENERATION_INFO[team.generation]
-  const [startId, endId] = genInfo.pokemonRange
+  const genInfo = GENERATION_INFO[team.generation];
+  const [startId, endId] = genInfo.pokemonRange;
 
   // Generate list of available Pokemon IDs for this generation
-  const availablePokemonIds: number[] = []
+  const availablePokemonIds: number[] = [];
   for (let id = startId; id <= endId; id++) {
     if (!team.members.some((m) => m.id === id)) {
-      availablePokemonIds.push(id)
+      availablePokemonIds.push(id);
     }
   }
 
   // Filter Pokemon based on search (by ID)
   const filteredPokemonIds = searchQuery.trim()
-    ? availablePokemonIds.filter((id) => id.toString().includes(searchQuery.trim()))
-    : availablePokemonIds
+    ? availablePokemonIds.filter((id) =>
+        id.toString().includes(searchQuery.trim()),
+      )
+    : availablePokemonIds;
 
   const handleAddPokemon = (id: number) => {
-    const species = getSpecies(toID(id.toString()))
-    if (!species) return
+    const species = getSpecies(toID(id.toString()));
+    if (!species) return;
 
     const member: TeamMember = {
       id: species.num,
       name: species.name,
       sprite: pokemonSpriteById(species.num),
-    }
-    addMember(teamId, member)
-    setIsAddOpen(false)
-    setSearchQuery("")
-  }
+    };
+    addMember(teamId, member);
+    setIsAddOpen(false);
+    setSearchQuery("");
+  };
 
   const handleSaveName = () => {
     if (editedName.trim() && editedName !== team.name) {
-      updateTeam(teamId, { name: editedName.trim() })
+      updateTeam(teamId, { name: editedName.trim() });
     }
-    setIsEditingName(false)
-  }
+    setIsEditingName(false);
+  };
 
   return (
     <div className="p-4 md:p-6">
@@ -107,10 +117,10 @@ export default function TeamDetailPage() {
               value={editedName}
               onChange={(e) => setEditedName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleSaveName()
+                if (e.key === "Enter") handleSaveName();
                 if (e.key === "Escape") {
-                  setEditedName(team.name)
-                  setIsEditingName(false)
+                  setEditedName(team.name);
+                  setIsEditingName(false);
                 }
               }}
               onBlur={handleSaveName}
@@ -119,13 +129,14 @@ export default function TeamDetailPage() {
             />
           </div>
         ) : (
-          <h1
-            className="text-lg font-medium cursor-pointer hover:text-muted-foreground"
+          <button
+            type="button"
+            className="text-lg font-medium hover:text-muted-foreground text-left"
             onClick={() => setIsEditingName(true)}
             title="Click to edit name"
           >
             {team.name}
-          </h1>
+          </button>
         )}
         <p className="text-xs text-muted-foreground">
           {genInfo.name} ({genInfo.label}) • {team.members.length}/6 pokemon
@@ -134,10 +145,7 @@ export default function TeamDetailPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {team.members.map((member) => (
-          <div
-            key={member.id}
-            className="relative aspect-square rounded-lg border bg-muted/30 flex flex-col items-center justify-center p-2 group"
-          >
+          <div key={member.id} className="relative group">
             <button
               type="button"
               onClick={() => removeMember(teamId, member.id)}
@@ -145,15 +153,7 @@ export default function TeamDetailPage() {
             >
               <X className="size-3 text-destructive" />
             </button>
-            <Link href={`/pokemon/${member.id}`} className="flex flex-col items-center">
-              <img
-                src={member.sprite}
-                alt={member.name}
-                className="size-16 sm:size-20 pixelated"
-              />
-              <span className="text-xs text-center mt-1">{member.name}</span>
-              <span className="text-[10px] text-muted-foreground">#{member.id}</span>
-            </Link>
+            <PokemonCard id={member.id} name={member.name} />
           </div>
         ))}
 
@@ -165,14 +165,17 @@ export default function TeamDetailPage() {
                 className="aspect-square rounded-lg border border-dashed border-muted-foreground/30 flex flex-col items-center justify-center hover:border-muted-foreground/50 hover:bg-muted/30 transition-colors"
               >
                 <Plus className="size-8 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground mt-1">add pokemon</span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  add pokemon
+                </span>
               </button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>add pokemon</DialogTitle>
                 <DialogDescription>
-                  Select a {genInfo.name} pokemon (#{startId}-{endId}) to add to your team
+                  Select a {genInfo.name} pokemon (#{startId}-{endId}) to add to
+                  your team
                 </DialogDescription>
               </DialogHeader>
               <div className="relative">
@@ -201,7 +204,9 @@ export default function TeamDetailPage() {
                 )}
                 {filteredPokemonIds.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    {searchQuery ? `No pokemon found matching "${searchQuery}"` : "All pokemon from this generation are in your team!"}
+                    {searchQuery
+                      ? `No pokemon found matching "${searchQuery}"`
+                      : "All pokemon from this generation are in your team!"}
                   </p>
                 )}
               </ScrollArea>
@@ -210,23 +215,26 @@ export default function TeamDetailPage() {
         )}
 
         {/* Empty slots */}
-        {Array.from({ length: Math.max(0, 5 - team.members.length) }).map((_, i) => (
+        {Array.from(
+          { length: Math.max(0, 5 - team.members.length) },
+          (_, i) => `empty-${teamId}-${team.members.length}-${i}`,
+        ).map((key) => (
           <div
-            key={`empty-${i}`}
+            key={key}
             className="aspect-square rounded-lg border border-dashed border-muted-foreground/20"
           />
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function PokemonPickerButton({
   id,
   onSelect,
 }: {
-  id: number
-  onSelect: (id: number) => void
+  id: number;
+  onSelect: (id: number) => void;
 }) {
   return (
     <button
@@ -234,12 +242,15 @@ function PokemonPickerButton({
       onClick={() => onSelect(id)}
       className="flex flex-col items-center p-2 rounded-lg hover:bg-muted transition-colors"
     >
-      <img
+      <Image
         src={pokemonSpriteById(id)}
         alt={`Pokemon #${id}`}
+        width={40}
+        height={40}
         className="size-10 pixelated"
+        unoptimized
       />
       <span className="text-[10px] text-muted-foreground">#{id}</span>
     </button>
-  )
+  );
 }

@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import Link from "next/link"
-import { X, Plus, ArrowLeft } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { TypeBadge } from "@/components/pokemon/type-badge"
-import { useComparison } from "@/hooks/use-comparison"
-import { usePokemon } from "@/hooks/use-pokemon"
-import { calculateTypeEffectiveness } from "@/hooks/use-pokemon"
-import { cn } from "@/lib/utils"
-import type { Pokemon, PokemonStat, TypeEffectiveness } from "@/types/pokemon"
+import { ArrowLeft, Plus, X } from "lucide-react";
+import Link from "next/link";
+import { useMemo } from "react";
+import { TypeBadge } from "@/components/pokemon/type-badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useComparison } from "@/hooks/use-comparison";
+import { calculateTypeEffectiveness, usePokemon } from "@/hooks/use-pokemon";
+import { cn } from "@/lib/utils";
+import type { Pokemon, PokemonStat, TypeEffectiveness } from "@/types/pokemon";
 
 export default function ComparisonPage() {
-  const { comparison, isLoaded, removeFromComparison, clearComparison } = useComparison()
+  const { comparison, isLoaded, removeFromComparison, clearComparison } =
+    useComparison();
 
   if (!isLoaded) {
     return (
@@ -25,7 +25,7 @@ export default function ComparisonPage() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (comparison.length === 0) {
@@ -44,7 +44,7 @@ export default function ComparisonPage() {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -68,9 +68,7 @@ export default function ComparisonPage() {
               onRemove={() => removeFromComparison(id)}
             />
           ))}
-          {comparison.length < 6 && (
-            <AddMoreCard />
-          )}
+          {comparison.length < 6 && <AddMoreCard />}
         </div>
       </div>
 
@@ -79,28 +77,28 @@ export default function ComparisonPage() {
         <StatsComparisonTable pokemonIds={comparison} />
       )}
     </div>
-  )
+  );
 }
 
 function ComparisonCard({
   pokemonId,
   onRemove,
 }: {
-  pokemonId: number
-  onRemove: () => void
+  pokemonId: number;
+  onRemove: () => void;
 }) {
-  const { data: pokemon, isLoading } = usePokemon(pokemonId.toString())
+  const { data: pokemon, isLoading } = usePokemon(pokemonId.toString());
 
   const typeEffectiveness = useMemo(() => {
-    if (!pokemon) return null
-    return calculateTypeEffectiveness(pokemon.types)
-  }, [pokemon])
+    if (!pokemon) return null;
+    return calculateTypeEffectiveness(pokemon.types);
+  }, [pokemon]);
 
   if (isLoading || !pokemon) {
-    return <ComparisonCardSkeleton />
+    return <ComparisonCardSkeleton />;
   }
 
-  const total = pokemon.stats.reduce((sum, s) => sum + s.value, 0)
+  const total = pokemon.stats.reduce((sum, s) => sum + s.value, 0);
 
   return (
     <Card className="w-64 flex-shrink-0 p-4 relative">
@@ -140,7 +138,9 @@ function ComparisonCard({
         </div>
         <div className="text-center p-2 bg-muted rounded">
           <div className="text-muted-foreground">Weight</div>
-          <div className="font-medium">{(pokemon.weight / 10).toFixed(1)}kg</div>
+          <div className="font-medium">
+            {(pokemon.weight / 10).toFixed(1)}kg
+          </div>
         </div>
       </div>
 
@@ -167,7 +167,7 @@ function ComparisonCard({
               key={ability.name}
               className={cn(
                 "text-[10px] px-1.5 py-0.5 border rounded",
-                ability.isHidden && "text-muted-foreground border-dashed"
+                ability.isHidden && "text-muted-foreground border-dashed",
               )}
             >
               {ability.name}
@@ -185,7 +185,12 @@ function ComparisonCard({
             <div className="flex flex-wrap gap-0.5 mt-1">
               {typeEffectiveness.weaknesses.length > 0 ? (
                 typeEffectiveness.weaknesses.map(({ type, multiplier }) => (
-                  <TypeBadge key={type} type={type} multiplier={multiplier} size="sm" />
+                  <TypeBadge
+                    key={type}
+                    type={type}
+                    multiplier={multiplier}
+                    size="sm"
+                  />
                 ))
               ) : (
                 <span className="text-[10px] text-muted-foreground">None</span>
@@ -195,13 +200,24 @@ function ComparisonCard({
           <div>
             <Label>resists</Label>
             <div className="flex flex-wrap gap-0.5 mt-1">
-              {typeEffectiveness.resistances.length > 0 || typeEffectiveness.immunities.length > 0 ? (
+              {typeEffectiveness.resistances.length > 0 ||
+              typeEffectiveness.immunities.length > 0 ? (
                 <>
                   {typeEffectiveness.resistances.map(({ type, multiplier }) => (
-                    <TypeBadge key={type} type={type} multiplier={multiplier} size="sm" />
+                    <TypeBadge
+                      key={type}
+                      type={type}
+                      multiplier={multiplier}
+                      size="sm"
+                    />
                   ))}
                   {typeEffectiveness.immunities.map((type) => (
-                    <TypeBadge key={type} type={type} multiplier={0} size="sm" />
+                    <TypeBadge
+                      key={type}
+                      type={type}
+                      multiplier={0}
+                      size="sm"
+                    />
                   ))}
                 </>
               ) : (
@@ -212,7 +228,7 @@ function ComparisonCard({
         </div>
       )}
     </Card>
-  )
+  );
 }
 
 function AddMoreCard() {
@@ -223,12 +239,13 @@ function AddMoreCard() {
         <p className="text-sm text-muted-foreground mt-2">add pokemon</p>
       </Card>
     </Link>
-  )
+  );
 }
 
 function StatRow({ stat }: { stat: PokemonStat }) {
-  const percentage = Math.min((stat.value / 255) * 100, 100)
-  const barColor = percentage > 75 ? "#22c55e" : percentage > 50 ? "#eab308" : "#ef4444"
+  const percentage = Math.min((stat.value / 255) * 100, 100);
+  const barColor =
+    percentage > 75 ? "#22c55e" : percentage > 50 ? "#eab308" : "#ef4444";
 
   return (
     <div className="flex items-center gap-2 text-[10px]">
@@ -241,7 +258,7 @@ function StatRow({ stat }: { stat: PokemonStat }) {
         />
       </div>
     </div>
-  )
+  );
 }
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -249,7 +266,7 @@ function Label({ children }: { children: React.ReactNode }) {
     <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
       {children}
     </span>
-  )
+  );
 }
 
 function ComparisonCardSkeleton() {
@@ -269,7 +286,7 @@ function ComparisonCardSkeleton() {
         ))}
       </div>
     </Card>
-  )
+  );
 }
 
 // Stats Comparison Table for side-by-side stat comparison
@@ -280,7 +297,9 @@ function StatsComparisonTable({ pokemonIds }: { pokemonIds: number[] }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b">
-            <th className="text-left py-2 pr-4 text-muted-foreground font-normal">Stat</th>
+            <th className="text-left py-2 pr-4 text-muted-foreground font-normal">
+              Stat
+            </th>
             {pokemonIds.map((id) => (
               <PokemonTableHeader key={id} pokemonId={id} />
             ))}
@@ -291,31 +310,39 @@ function StatsComparisonTable({ pokemonIds }: { pokemonIds: number[] }) {
         </tbody>
       </table>
     </Card>
-  )
+  );
 }
 
 function PokemonTableHeader({ pokemonId }: { pokemonId: number }) {
-  const { data: pokemon } = usePokemon(pokemonId.toString())
+  const { data: pokemon } = usePokemon(pokemonId.toString());
 
   if (!pokemon) {
-    return <th className="text-center py-2 px-2"><Skeleton className="h-4 w-16 mx-auto" /></th>
+    return (
+      <th className="text-center py-2 px-2">
+        <Skeleton className="h-4 w-16 mx-auto" />
+      </th>
+    );
   }
 
   return (
     <th className="text-center py-2 px-2 font-normal">
       <div className="flex flex-col items-center gap-1">
-        <img src={pokemon.sprite} alt={pokemon.name} className="size-8 pixelated" />
+        <img
+          src={pokemon.sprite}
+          alt={pokemon.name}
+          className="size-8 pixelated"
+        />
         <span className="font-medium">{pokemon.name}</span>
       </div>
     </th>
-  )
+  );
 }
 
 function StatsComparisonRows({ pokemonIds }: { pokemonIds: number[] }) {
-  const pokemonQueries = pokemonIds.map(id => usePokemon(id.toString()))
-  const allLoaded = pokemonQueries.every(q => q.data)
+  const pokemonQueries = pokemonIds.map((id) => usePokemon(id.toString()));
+  const allLoaded = pokemonQueries.every((q) => q.data);
 
-  const statNames = ["HP", "Attack", "Defense", "Sp. Atk", "Sp. Def", "Speed"]
+  const statNames = ["HP", "Attack", "Defense", "Sp. Atk", "Sp. Def", "Speed"];
 
   if (!allLoaded) {
     return (
@@ -331,31 +358,33 @@ function StatsComparisonRows({ pokemonIds }: { pokemonIds: number[] }) {
           </tr>
         ))}
       </>
-    )
+    );
   }
 
-  const pokemonData = pokemonQueries.map(q => q.data!)
+  const pokemonData = pokemonQueries.map((q) => q.data!);
 
   // Find highest stat for each row
   const getHighestIndex = (statIndex: number) => {
-    let maxVal = -1
-    let maxIdx = -1
+    let maxVal = -1;
+    let maxIdx = -1;
     pokemonData.forEach((p, i) => {
       if (p.stats[statIndex].value > maxVal) {
-        maxVal = p.stats[statIndex].value
-        maxIdx = i
+        maxVal = p.stats[statIndex].value;
+        maxIdx = i;
       }
-    })
-    return maxIdx
-  }
+    });
+    return maxIdx;
+  };
 
-  const totals = pokemonData.map(p => p.stats.reduce((sum, s) => sum + s.value, 0))
-  const maxTotalIdx = totals.indexOf(Math.max(...totals))
+  const totals = pokemonData.map((p) =>
+    p.stats.reduce((sum, s) => sum + s.value, 0),
+  );
+  const maxTotalIdx = totals.indexOf(Math.max(...totals));
 
   return (
     <>
       {statNames.map((statName, statIndex) => {
-        const highestIdx = getHighestIndex(statIndex)
+        const highestIdx = getHighestIndex(statIndex);
         return (
           <tr key={statName} className="border-b">
             <td className="py-2 pr-4 text-muted-foreground">{statName}</td>
@@ -364,14 +393,15 @@ function StatsComparisonRows({ pokemonIds }: { pokemonIds: number[] }) {
                 key={pokemon.id}
                 className={cn(
                   "text-center py-2 px-2 tabular-nums",
-                  idx === highestIdx && "font-medium text-green-600 dark:text-green-400"
+                  idx === highestIdx &&
+                    "font-medium text-green-600 dark:text-green-400",
                 )}
               >
                 {pokemon.stats[statIndex].value}
               </td>
             ))}
           </tr>
-        )
+        );
       })}
       <tr className="border-t-2">
         <td className="py-2 pr-4 font-medium">Total</td>
@@ -380,7 +410,7 @@ function StatsComparisonRows({ pokemonIds }: { pokemonIds: number[] }) {
             key={pokemon.id}
             className={cn(
               "text-center py-2 px-2 tabular-nums font-medium",
-              idx === maxTotalIdx && "text-green-600 dark:text-green-400"
+              idx === maxTotalIdx && "text-green-600 dark:text-green-400",
             )}
           >
             {totals[idx]}
@@ -388,5 +418,5 @@ function StatsComparisonRows({ pokemonIds }: { pokemonIds: number[] }) {
         ))}
       </tr>
     </>
-  )
+  );
 }

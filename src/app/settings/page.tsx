@@ -1,8 +1,6 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { useFavorites } from "@/hooks/use-favorites";
-import { useSpritePreferences } from "@/hooks/use-sprite-preferences";
 import {
   Select,
   SelectContent,
@@ -10,18 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { useFavorites } from "@/hooks/use-favorites";
+import { useSpritePreferences } from "@/hooks/use-sprite-preferences";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { favorites, clearFavorites } = useFavorites();
-  const {
-    defaultPokemonSpriteGen,
-    showPokemonSpriteVariants,
-    setDefaultPokemonSpriteGen,
-    setShowPokemonSpriteVariants,
-  } = useSpritePreferences();
+  const { defaultPokemonSpriteGen, setDefaultPokemonSpriteGen } =
+    useSpritePreferences();
 
   return (
     <div className="p-4 md:p-6">
@@ -76,19 +71,6 @@ export default function SettingsPage() {
                   <SelectItem value="ani">Animated</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="flex items-center justify-between gap-4 py-2 border-b">
-              <div>
-                <p className="text-sm">pokemon page sprite variants</p>
-                <p className="text-xs text-muted-foreground">
-                  Show controls to switch shiny / back sprites
-                </p>
-              </div>
-              <Switch
-                checked={showPokemonSpriteVariants}
-                onCheckedChange={setShowPokemonSpriteVariants}
-              />
             </div>
           </div>
         </section>

@@ -127,7 +127,12 @@ export default function MovesPage() {
       filters.damageClasses.join(","),
       filters.generations.join(","),
     ].join("|");
-  }, [filters.damageClasses, filters.generations, filters.search, filters.types]);
+  }, [
+    filters.damageClasses,
+    filters.generations,
+    filters.search,
+    filters.types,
+  ]);
 
   // Reset display count when filters change
   useEffect(() => {

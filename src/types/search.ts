@@ -1,40 +1,40 @@
-import type { PokemonType, ItemPocket } from "./pokemon"
+import type { ItemPocket, PokemonType } from "./pokemon";
 
-export type SearchResultType = "pokemon" | "move" | "ability" | "type" | "item"
+export type SearchResultType = "pokemon" | "move" | "ability" | "type" | "item";
 
 export interface SearchResultBase {
-  id: string
-  name: string
-  type: SearchResultType
-  url: string
+  id: string;
+  name: string;
+  type: SearchResultType;
+  url: string;
 }
 
 export interface PokemonSearchResult extends SearchResultBase {
-  type: "pokemon"
-  pokemonId: number
-  sprite: string
-  types?: PokemonType[]
+  type: "pokemon";
+  pokemonId: number;
+  sprite: string;
+  types?: PokemonType[];
 }
 
 export interface MoveSearchResult extends SearchResultBase {
-  type: "move"
-  moveType?: PokemonType
-  damageClass?: "physical" | "special" | "status"
+  type: "move";
+  moveType?: PokemonType;
+  damageClass?: "physical" | "special" | "status";
 }
 
 export interface AbilitySearchResult extends SearchResultBase {
-  type: "ability"
+  type: "ability";
 }
 
 export interface TypeSearchResult extends SearchResultBase {
-  type: "type"
-  pokemonType: PokemonType
+  type: "type";
+  pokemonType: PokemonType;
 }
 
 export interface ItemSearchResult extends SearchResultBase {
-  type: "item"
-  sprite?: string | null
-  pocket?: ItemPocket
+  type: "item";
+  sprite?: string | null;
+  pocket?: ItemPocket;
 }
 
 export type SearchResult =
@@ -42,17 +42,17 @@ export type SearchResult =
   | MoveSearchResult
   | AbilitySearchResult
   | TypeSearchResult
-  | ItemSearchResult
+  | ItemSearchResult;
 
 export interface SearchIndexState {
-  isLoading: boolean
-  isReady: boolean
+  isLoading: boolean;
+  isReady: boolean;
   progress: {
-    pokemon: boolean
-    moves: boolean
-    abilities: boolean
-    types: boolean
-    items: boolean
-  }
-  totalItems: number
+    pokemon: boolean;
+    moves: boolean;
+    abilities: boolean;
+    types: boolean;
+    items: boolean;
+  };
+  totalItems: number;
 }

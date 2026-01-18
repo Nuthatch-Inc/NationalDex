@@ -1,12 +1,9 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Plus, Trash2, ListPlus } from "lucide-react"
-import { useLists } from "@/hooks/use-lists"
-import { LIST_ITEM_TYPE_LABELS, LIST_ITEM_TYPE_COLORS } from "@/types/list"
-import type { ListItemType } from "@/types/list"
-import { Button } from "@/components/ui/button"
+import { ListPlus, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,32 +12,35 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useLists } from "@/hooks/use-lists";
+import type { ListItemType } from "@/types/list";
+import { LIST_ITEM_TYPE_COLORS, LIST_ITEM_TYPE_LABELS } from "@/types/list";
 
 export default function ListsPage() {
-  const { lists, isLoaded, createList, deleteList } = useLists()
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [newListName, setNewListName] = useState("")
-  const [newListDescription, setNewListDescription] = useState("")
+  const { lists, isLoaded, createList, deleteList } = useLists();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [newListDescription, setNewListDescription] = useState("");
 
   const handleCreate = () => {
-    if (!newListName.trim()) return
-    createList(newListName.trim(), newListDescription.trim() || undefined)
-    setNewListName("")
-    setNewListDescription("")
-    setIsCreateOpen(false)
-  }
+    if (!newListName.trim()) return;
+    createList(newListName.trim(), newListDescription.trim() || undefined);
+    setNewListName("");
+    setNewListDescription("");
+    setIsCreateOpen(false);
+  };
 
   // Count items by type for each list
   const getItemTypeCounts = (items: { type: ListItemType }[]) => {
-    const counts: Partial<Record<ListItemType, number>> = {}
+    const counts: Partial<Record<ListItemType, number>> = {};
     for (const item of items) {
-      counts[item.type] = (counts[item.type] || 0) + 1
+      counts[item.type] = (counts[item.type] || 0) + 1;
     }
-    return counts
-  }
+    return counts;
+  };
 
   return (
     <div className="p-4 md:p-6">
@@ -56,7 +56,8 @@ export default function ListsPage() {
             <DialogHeader>
               <DialogTitle>create new list</DialogTitle>
               <DialogDescription>
-                Create a list to organize Pokemon, moves, abilities, items, and types.
+                Create a list to organize Pokemon, moves, abilities, items, and
+                types.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -67,12 +68,14 @@ export default function ListsPage() {
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) handleCreate()
+                    if (e.key === "Enter" && !e.shiftKey) handleCreate();
                   }}
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">description (optional)</label>
+                <label className="text-sm font-medium">
+                  description (optional)
+                </label>
                 <Textarea
                   placeholder="A collection of..."
                   value={newListDescription}
@@ -96,7 +99,10 @@ export default function ListsPage() {
       {!isLoaded ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-lg border bg-muted/50 animate-pulse" />
+            <div
+              key={i}
+              className="h-24 rounded-lg border bg-muted/50 animate-pulse"
+            />
           ))}
         </div>
       ) : lists.length === 0 ? (
@@ -112,7 +118,7 @@ export default function ListsPage() {
           {lists
             .sort((a, b) => b.updatedAt - a.updatedAt)
             .map((list) => {
-              const typeCounts = getItemTypeCounts(list.items)
+              const typeCounts = getItemTypeCounts(list.items);
               return (
                 <Link
                   key={list.id}
@@ -128,16 +134,17 @@ export default function ListsPage() {
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">
-                        {list.items.length} {list.items.length === 1 ? "item" : "items"}
+                        {list.items.length}{" "}
+                        {list.items.length === 1 ? "item" : "items"}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (confirm("Delete this list?")) {
-                          deleteList(list.id)
+                          deleteList(list.id);
                         }
                       }}
                       className="text-muted-foreground hover:text-destructive transition-colors p-1"
@@ -147,27 +154,27 @@ export default function ListsPage() {
                   </div>
                   {list.items.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-3">
-                      {(Object.entries(typeCounts) as [ListItemType, number][]).map(
-                        ([type, count]) => (
-                          <span
-                            key={type}
-                            className="text-[10px] px-1.5 py-0.5 rounded"
-                            style={{
-                              backgroundColor: `${LIST_ITEM_TYPE_COLORS[type]}20`,
-                              color: LIST_ITEM_TYPE_COLORS[type],
-                            }}
-                          >
-                            {count} {LIST_ITEM_TYPE_LABELS[type]}
-                          </span>
-                        )
-                      )}
+                      {(
+                        Object.entries(typeCounts) as [ListItemType, number][]
+                      ).map(([type, count]) => (
+                        <span
+                          key={type}
+                          className="text-[10px] px-1.5 py-0.5 rounded"
+                          style={{
+                            backgroundColor: `${LIST_ITEM_TYPE_COLORS[type]}20`,
+                            color: LIST_ITEM_TYPE_COLORS[type],
+                          }}
+                        >
+                          {count} {LIST_ITEM_TYPE_LABELS[type]}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </Link>
-              )
+              );
             })}
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,46 +1,45 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useMemo } from "react"
-import { use } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { X, Pencil } from "lucide-react"
-import { useLists } from "@/hooks/use-lists"
-import { LIST_ITEM_TYPE_LABELS, LIST_ITEM_TYPE_COLORS } from "@/types/list"
-import type { ListItem, ListItemType } from "@/types/list"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { pokemonSpriteById } from "@/lib/sprites"
-import { cn } from "@/lib/utils"
+import { Pencil, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useLists } from "@/hooks/use-lists";
+import { pokemonSpriteById } from "@/lib/sprites";
+import { cn } from "@/lib/utils";
+import type { ListItem, ListItemType } from "@/types/list";
+import { LIST_ITEM_TYPE_COLORS, LIST_ITEM_TYPE_LABELS } from "@/types/list";
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 export default function ListDetailPage({ params }: PageProps) {
-  const { id: listId } = use(params)
-  const router = useRouter()
-  const { lists, isLoaded, getList, updateList, removeItem } = useLists()
-  const [isEditingName, setIsEditingName] = useState(false)
-  const [isEditingDescription, setIsEditingDescription] = useState(false)
-  const [editedName, setEditedName] = useState("")
-  const [editedDescription, setEditedDescription] = useState("")
+  const { id: listId } = use(params);
+  const router = useRouter();
+  const { lists, isLoaded, getList, updateList, removeItem } = useLists();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
 
-  const list = useMemo(() => getList(listId), [getList, listId, lists])
+  const list = useMemo(() => getList(listId), [getList, listId, lists]);
 
   useEffect(() => {
     if (isLoaded && !list) {
-      router.push("/lists")
+      router.push("/lists");
     }
-  }, [isLoaded, list, router])
+  }, [isLoaded, list, router]);
 
   useEffect(() => {
     if (list) {
-      setEditedName(list.name)
-      setEditedDescription(list.description || "")
+      setEditedName(list.name);
+      setEditedDescription(list.description || "");
     }
-  }, [list])
+  }, [list]);
 
   if (!isLoaded) {
     return (
@@ -52,69 +51,75 @@ export default function ListDetailPage({ params }: PageProps) {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   if (!list) {
-    return null
+    return null;
   }
 
   const handleSaveName = () => {
     if (editedName.trim() && editedName !== list.name) {
-      updateList(listId, { name: editedName.trim() })
+      updateList(listId, { name: editedName.trim() });
     }
-    setIsEditingName(false)
-  }
+    setIsEditingName(false);
+  };
 
   const handleSaveDescription = () => {
-    const newDesc = editedDescription.trim() || undefined
+    const newDesc = editedDescription.trim() || undefined;
     if (newDesc !== list.description) {
-      updateList(listId, { description: newDesc })
+      updateList(listId, { description: newDesc });
     }
-    setIsEditingDescription(false)
-  }
+    setIsEditingDescription(false);
+  };
 
   const getItemLink = (item: ListItem): string => {
     switch (item.type) {
       case "pokemon":
-        return `/pokemon/${item.id}`
+        return `/pokemon/${item.id}`;
       case "move":
-        return `/moves/${item.id}`
+        return `/moves/${item.id}`;
       case "ability":
-        return `/abilities/${item.id}`
+        return `/abilities/${item.id}`;
       case "item":
-        return `/items/${item.id}`
+        return `/items/${item.id}`;
       case "type":
-        return `/types/${item.id}`
+        return `/types/${item.id}`;
       default:
-        return "#"
+        return "#";
     }
-  }
+  };
 
   const getItemSprite = (item: ListItem): string | null => {
-    if (item.sprite) return item.sprite
+    if (item.sprite) return item.sprite;
     if (item.type === "pokemon") {
-      const numId = Number.parseInt(item.id, 10)
+      const numId = Number.parseInt(item.id, 10);
       if (!Number.isNaN(numId)) {
-        return pokemonSpriteById(numId)
+        return pokemonSpriteById(numId);
       }
     }
-    return null
-  }
+    return null;
+  };
 
   // Group items by type
   const groupedItems = useMemo(() => {
-    const groups: Partial<Record<ListItemType, ListItem[]>> = {}
+    const groups: Partial<Record<ListItemType, ListItem[]>> = {};
     for (const item of list.items) {
       if (!groups[item.type]) {
-        groups[item.type] = []
+        groups[item.type] = [];
       }
-      groups[item.type]!.push(item)
+      groups[item.type]!.push(item);
     }
-    return groups
-  }, [list.items])
+    return groups;
+  }, [list.items]);
 
-  const typeOrder: ListItemType[] = ["pokemon", "move", "ability", "item", "type"]
+  const typeOrder: ListItemType[] = [
+    "pokemon",
+    "move",
+    "ability",
+    "item",
+    "type",
+  ];
 
   return (
     <div className="p-4 md:p-6">
@@ -125,10 +130,10 @@ export default function ListDetailPage({ params }: PageProps) {
               value={editedName}
               onChange={(e) => setEditedName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleSaveName()
+                if (e.key === "Enter") handleSaveName();
                 if (e.key === "Escape") {
-                  setEditedName(list.name)
-                  setIsEditingName(false)
+                  setEditedName(list.name);
+                  setIsEditingName(false);
                 }
               }}
               onBlur={handleSaveName}
@@ -154,8 +159,8 @@ export default function ListDetailPage({ params }: PageProps) {
               onChange={(e) => setEditedDescription(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
-                  setEditedDescription(list.description || "")
-                  setIsEditingDescription(false)
+                  setEditedDescription(list.description || "");
+                  setIsEditingDescription(false);
                 }
               }}
               onBlur={handleSaveDescription}
@@ -164,7 +169,12 @@ export default function ListDetailPage({ params }: PageProps) {
               placeholder="Add a description..."
               className="text-sm"
             />
-            <Button size="sm" variant="outline" className="mt-2" onClick={handleSaveDescription}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-2"
+              onClick={handleSaveDescription}
+            >
               Save
             </Button>
           </div>
@@ -193,8 +203,8 @@ export default function ListDetailPage({ params }: PageProps) {
       ) : (
         <div className="space-y-6">
           {typeOrder.map((type) => {
-            const items = groupedItems[type]
-            if (!items || items.length === 0) return null
+            const items = groupedItems[type];
+            if (!items || items.length === 0) return null;
 
             return (
               <div key={type}>
@@ -208,7 +218,7 @@ export default function ListDetailPage({ params }: PageProps) {
                   {items
                     .sort((a, b) => b.addedAt - a.addedAt)
                     .map((item) => {
-                      const sprite = getItemSprite(item)
+                      const sprite = getItemSprite(item);
                       return (
                         <div
                           key={`${item.type}-${item.id}`}
@@ -225,7 +235,7 @@ export default function ListDetailPage({ params }: PageProps) {
                                   alt={item.name}
                                   className={cn(
                                     "size-8",
-                                    item.type === "pokemon" && "pixelated"
+                                    item.type === "pokemon" && "pixelated",
                                   )}
                                 />
                               </div>
@@ -241,7 +251,9 @@ export default function ListDetailPage({ params }: PageProps) {
                               </div>
                             )}
                             <div className="min-w-0">
-                              <p className="text-sm font-medium truncate">{item.name}</p>
+                              <p className="text-sm font-medium truncate">
+                                {item.name}
+                              </p>
                               {item.type === "pokemon" && (
                                 <p className="text-[10px] text-muted-foreground">
                                   #{item.id.padStart(3, "0")}
@@ -251,21 +263,23 @@ export default function ListDetailPage({ params }: PageProps) {
                           </Link>
                           <button
                             type="button"
-                            onClick={() => removeItem(listId, item.type, item.id)}
+                            onClick={() =>
+                              removeItem(listId, item.type, item.id)
+                            }
                             className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-muted-foreground hover:text-destructive"
                             title="Remove from list"
                           >
                             <X className="size-4" />
                           </button>
                         </div>
-                      )
+                      );
                     })}
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       )}
     </div>
-  )
+  );
 }

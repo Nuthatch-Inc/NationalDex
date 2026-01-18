@@ -1,25 +1,31 @@
-"use client"
+"use client";
 
-import { useMemo, useCallback } from "react"
-import { Search, X } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { TypeBadge } from "@/components/pokemon/type-badge"
-import { ALL_TYPES, getAllMoves, getAllAbilities, getAllItems, toID } from "@/lib/pkmn"
-import { getDexPokemonList } from "@/lib/dex-pokemon"
-import type { PokemonType } from "@/types/pokemon"
+import { Search, X } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import { TypeBadge } from "@/components/pokemon/type-badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { getDexPokemonList } from "@/lib/dex-pokemon";
+import {
+  ALL_TYPES,
+  getAllAbilities,
+  getAllItems,
+  getAllMoves,
+  toID,
+} from "@/lib/pkmn";
+import type { PokemonType } from "@/types/pokemon";
 
-export type DexCategory = "pokemon" | "moves" | "abilities" | "items"
+export type DexCategory = "pokemon" | "moves" | "abilities" | "items";
 
 export interface DexFilterState {
-  search: string
-  types: PokemonType[]
-  category: DexCategory
+  search: string;
+  types: PokemonType[];
+  category: DexCategory;
 }
 
 interface DexFilterProps {
-  onFilterChange: (filter: DexFilterState) => void
-  filter: DexFilterState
+  onFilterChange: (filter: DexFilterState) => void;
+  filter: DexFilterState;
 }
 
 const CATEGORY_LABELS: Record<DexCategory, string> = {
@@ -27,45 +33,45 @@ const CATEGORY_LABELS: Record<DexCategory, string> = {
   moves: "Moves",
   abilities: "Abilities",
   items: "Items",
-}
+};
 
 const CATEGORY_PLACEHOLDERS: Record<DexCategory, string> = {
   pokemon: "Search Pokemon...",
   moves: "Search Moves...",
   abilities: "Search Abilities...",
   items: "Search Items...",
-}
+};
 
 export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
   const handleSearchChange = useCallback(
     (value: string) => {
-      onFilterChange({ ...filter, search: value })
+      onFilterChange({ ...filter, search: value });
     },
-    [filter, onFilterChange]
-  )
+    [filter, onFilterChange],
+  );
 
   const handleCategoryChange = useCallback(
     (category: DexCategory) => {
-      onFilterChange({ ...filter, category, search: "", types: [] })
+      onFilterChange({ ...filter, category, search: "", types: [] });
     },
-    [filter, onFilterChange]
-  )
+    [filter, onFilterChange],
+  );
 
   const handleTypeToggle = useCallback(
     (type: PokemonType) => {
       const newTypes = filter.types.includes(type)
         ? filter.types.filter((t) => t !== type)
-        : [...filter.types, type]
-      onFilterChange({ ...filter, types: newTypes })
+        : [...filter.types, type];
+      onFilterChange({ ...filter, types: newTypes });
     },
-    [filter, onFilterChange]
-  )
+    [filter, onFilterChange],
+  );
 
   const handleClearFilters = useCallback(() => {
-    onFilterChange({ ...filter, search: "", types: [] })
-  }, [filter, onFilterChange])
+    onFilterChange({ ...filter, search: "", types: [] });
+  }, [filter, onFilterChange]);
 
-  const hasActiveFilters = filter.search.length > 0 || filter.types.length > 0
+  const hasActiveFilters = filter.search.length > 0 || filter.types.length > 0;
 
   return (
     <div className="space-y-3">
@@ -117,7 +123,8 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
               type="button"
               onClick={() => handleTypeToggle(type as PokemonType)}
               className={`transition-opacity ${
-                filter.types.length > 0 && !filter.types.includes(type as PokemonType)
+                filter.types.length > 0 &&
+                !filter.types.includes(type as PokemonType)
                   ? "opacity-40 hover:opacity-70"
                   : "opacity-100"
               }`}
@@ -142,13 +149,14 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
           </Button>
           {filter.types.length > 0 && (
             <span className="text-xs text-muted-foreground">
-              {filter.types.length} type{filter.types.length > 1 ? "s" : ""} selected
+              {filter.types.length} type{filter.types.length > 1 ? "s" : ""}{" "}
+              selected
             </span>
           )}
         </div>
       )}
     </div>
-  )
+  );
 }
 
 // Hook to get filtered Pokemon based on filter state
@@ -160,34 +168,34 @@ export function useFilteredPokemon(filter: DexFilterState) {
         id: p.id,
         types: p.types,
       })),
-    []
-  )
+    [],
+  );
 
-  const hasActiveFilters = filter.search.length > 0 || filter.types.length > 0
+  const hasActiveFilters = filter.search.length > 0 || filter.types.length > 0;
 
   const filteredPokemon = useMemo(() => {
-    if (!hasActiveFilters) return null
+    if (!hasActiveFilters) return null;
 
-    const searchLower = filter.search.toLowerCase()
+    const searchLower = filter.search.toLowerCase();
 
     return allPokemon.filter((pokemon) => {
       if (searchLower && !pokemon.name.toLowerCase().includes(searchLower)) {
-        return false
+        return false;
       }
       if (filter.types.length > 0) {
-        const hasType = filter.types.some((t) => pokemon.types.includes(t))
-        if (!hasType) return false
+        const hasType = filter.types.some((t) => pokemon.types.includes(t));
+        if (!hasType) return false;
       }
-      return true
-    })
-  }, [allPokemon, filter.search, filter.types, hasActiveFilters])
+      return true;
+    });
+  }, [allPokemon, filter.search, filter.types, hasActiveFilters]);
 
   return {
     filteredPokemon,
     isLoading: false,
     hasActiveFilters,
     totalCount: allPokemon.length,
-  }
+  };
 }
 
 // Hook to get filtered Moves based on filter state
@@ -198,30 +206,30 @@ export function useFilteredMoves(filter: DexFilterState) {
         name: m.name,
         id: m.num,
       })),
-    []
-  )
+    [],
+  );
 
-  const hasActiveFilters = filter.search.length > 0
+  const hasActiveFilters = filter.search.length > 0;
 
   const filteredMoves = useMemo(() => {
-    if (!hasActiveFilters) return allMoves
+    if (!hasActiveFilters) return allMoves;
 
-    const searchLower = filter.search.toLowerCase()
+    const searchLower = filter.search.toLowerCase();
 
     return allMoves.filter((move) => {
       if (searchLower && !move.name.toLowerCase().includes(searchLower)) {
-        return false
+        return false;
       }
-      return true
-    })
-  }, [allMoves, filter.search, hasActiveFilters])
+      return true;
+    });
+  }, [allMoves, filter.search, hasActiveFilters]);
 
   return {
     filteredMoves,
     isLoading: false,
     hasActiveFilters,
     totalCount: allMoves.length,
-  }
+  };
 }
 
 // Hook to get filtered Abilities based on filter state
@@ -232,30 +240,30 @@ export function useFilteredAbilities(filter: DexFilterState) {
         name: a.name,
         id: a.num,
       })),
-    []
-  )
+    [],
+  );
 
-  const hasActiveFilters = filter.search.length > 0
+  const hasActiveFilters = filter.search.length > 0;
 
   const filteredAbilities = useMemo(() => {
-    if (!hasActiveFilters) return allAbilities
+    if (!hasActiveFilters) return allAbilities;
 
-    const searchLower = filter.search.toLowerCase()
+    const searchLower = filter.search.toLowerCase();
 
     return allAbilities.filter((ability) => {
       if (searchLower && !ability.name.toLowerCase().includes(searchLower)) {
-        return false
+        return false;
       }
-      return true
-    })
-  }, [allAbilities, filter.search, hasActiveFilters])
+      return true;
+    });
+  }, [allAbilities, filter.search, hasActiveFilters]);
 
   return {
     filteredAbilities,
     isLoading: false,
     hasActiveFilters,
     totalCount: allAbilities.length,
-  }
+  };
 }
 
 // Hook to get filtered Items based on filter state
@@ -267,28 +275,28 @@ export function useFilteredItems(filter: DexFilterState) {
         id: i.num,
         sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
       })),
-    []
-  )
+    [],
+  );
 
-  const hasActiveFilters = filter.search.length > 0
+  const hasActiveFilters = filter.search.length > 0;
 
   const filteredItems = useMemo(() => {
-    if (!hasActiveFilters) return allItems
+    if (!hasActiveFilters) return allItems;
 
-    const searchLower = filter.search.toLowerCase()
+    const searchLower = filter.search.toLowerCase();
 
     return allItems.filter((item) => {
       if (searchLower && !item.name.toLowerCase().includes(searchLower)) {
-        return false
+        return false;
       }
-      return true
-    })
-  }, [allItems, filter.search, hasActiveFilters])
+      return true;
+    });
+  }, [allItems, filter.search, hasActiveFilters]);
 
   return {
     filteredItems,
     isLoading: false,
     hasActiveFilters,
     totalCount: allItems.length,
-  }
+  };
 }

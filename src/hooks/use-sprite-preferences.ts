@@ -7,12 +7,10 @@ const STORAGE_KEY = "pokedex-sprite-preferences";
 
 type SpritePreferences = {
   defaultPokemonSpriteGen: SpriteGen;
-  showPokemonSpriteVariants: boolean;
 };
 
 const DEFAULT_PREFERENCES: SpritePreferences = {
   defaultPokemonSpriteGen: "ani",
-  showPokemonSpriteVariants: true,
 };
 
 function parsePreferences(value: string | null): SpritePreferences | null {
@@ -21,9 +19,8 @@ function parsePreferences(value: string | null): SpritePreferences | null {
     const parsed = JSON.parse(value) as Partial<SpritePreferences>;
     return {
       defaultPokemonSpriteGen:
-        parsed.defaultPokemonSpriteGen ?? DEFAULT_PREFERENCES.defaultPokemonSpriteGen,
-      showPokemonSpriteVariants:
-        parsed.showPokemonSpriteVariants ?? DEFAULT_PREFERENCES.showPokemonSpriteVariants,
+        parsed.defaultPokemonSpriteGen ??
+        DEFAULT_PREFERENCES.defaultPokemonSpriteGen,
     };
   } catch {
     return null;
@@ -50,10 +47,6 @@ export function useSpritePreferences() {
     setPreferences((prev) => ({ ...prev, defaultPokemonSpriteGen: gen }));
   }, []);
 
-  const setShowPokemonSpriteVariants = useCallback((show: boolean) => {
-    setPreferences((prev) => ({ ...prev, showPokemonSpriteVariants: show }));
-  }, []);
-
   const resetSpritePreferences = useCallback(() => {
     setPreferences(DEFAULT_PREFERENCES);
   }, []);
@@ -63,16 +56,8 @@ export function useSpritePreferences() {
       ...preferences,
       isLoaded,
       setDefaultPokemonSpriteGen,
-      setShowPokemonSpriteVariants,
       resetSpritePreferences,
     }),
-    [
-      preferences,
-      isLoaded,
-      setDefaultPokemonSpriteGen,
-      setShowPokemonSpriteVariants,
-      resetSpritePreferences,
-    ],
+    [preferences, isLoaded, setDefaultPokemonSpriteGen, resetSpritePreferences],
   );
 }
-

@@ -1,84 +1,92 @@
-import { Dex } from "@pkmn/dex"
-import { Generations } from "@pkmn/data"
+import { Generations } from "@pkmn/data";
+import { Dex } from "@pkmn/dex";
 
-export const gens = new Generations(Dex)
-export const currentGen = gens.get(9)
+export const gens = new Generations(Dex);
+export const currentGen = gens.get(9);
 
-export const toID = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "")
+export const toID = (name: string) =>
+  name.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 export function getAllSpecies(
   genNum = 9,
   options?: {
-    includeFormes?: boolean
-  }
+    includeFormes?: boolean;
+  },
 ) {
-  const includeFormes = options?.includeFormes ?? false
+  const includeFormes = options?.includeFormes ?? false;
   return Array.from(gens.get(genNum).species).filter((s) => {
-    if (!s.exists || s.num <= 0) return false
-    if (!includeFormes && s.forme) return false
-    return true
-  })
+    if (!s.exists || s.num <= 0) return false;
+    if (!includeFormes && s.forme) return false;
+    return true;
+  });
 }
 
 export function getAllMoves(genNum = 9) {
-  return Array.from(gens.get(genNum).moves).filter((m) => m.exists && m.num > 0)
+  return Array.from(gens.get(genNum).moves).filter(
+    (m) => m.exists && m.num > 0,
+  );
 }
 
 export function getAllAbilities(genNum = 9) {
-  return Array.from(gens.get(genNum).abilities).filter((a) => a.exists && a.num > 0)
+  return Array.from(gens.get(genNum).abilities).filter(
+    (a) => a.exists && a.num > 0,
+  );
 }
 
 export function getAllItems(genNum = 9) {
-  return Array.from(gens.get(genNum).items).filter((i) => i.exists && i.num > 0)
+  return Array.from(gens.get(genNum).items).filter(
+    (i) => i.exists && i.num > 0,
+  );
 }
 
 export function getAllTypes(genNum = 9) {
-  return Array.from(gens.get(genNum).types).filter((t) => t.exists)
+  return Array.from(gens.get(genNum).types).filter((t) => t.exists);
 }
 
 export function getAllNatures() {
-  return Array.from(currentGen.natures)
+  return Array.from(currentGen.natures);
 }
 
 export function getSpecies(name: string, genNum = 9) {
-  return gens.get(genNum).species.get(name)
+  return gens.get(genNum).species.get(name);
 }
 
 export function getMove(name: string, genNum = 9) {
-  return gens.get(genNum).moves.get(name)
+  return gens.get(genNum).moves.get(name);
 }
 
 export function getAbility(name: string, genNum = 9) {
-  return gens.get(genNum).abilities.get(name)
+  return gens.get(genNum).abilities.get(name);
 }
 
 export function getItem(name: string, genNum = 9) {
-  return gens.get(genNum).items.get(name)
+  return gens.get(genNum).items.get(name);
 }
 
 export function getType(name: string, genNum = 9) {
-  return gens.get(genNum).types.get(name)
+  return gens.get(genNum).types.get(name);
 }
 
 export function getTypeMatchups(types: string[], genNum = 9) {
-  const gen = gens.get(genNum)
-  const weaknesses: { type: string; multiplier: number }[] = []
-  const resistances: { type: string; multiplier: number }[] = []
-  const immunities: string[] = []
+  const gen = gens.get(genNum);
+  const weaknesses: { type: string; multiplier: number }[] = [];
+  const resistances: { type: string; multiplier: number }[] = [];
+  const immunities: string[] = [];
 
   for (const type of gen.types) {
-    if (!type.exists) continue
+    if (!type.exists) continue;
     // biome-ignore lint/suspicious/noExplicitAny: library typing for totalEffectiveness is too strict here
-    const eff = gen.types.totalEffectiveness(type.name, types as any)
-    if (eff > 1) weaknesses.push({ type: type.name, multiplier: eff })
-    else if (eff < 1 && eff > 0) resistances.push({ type: type.name, multiplier: eff })
-    else if (eff === 0) immunities.push(type.name)
+    const eff = gen.types.totalEffectiveness(type.name, types as any);
+    if (eff > 1) weaknesses.push({ type: type.name, multiplier: eff });
+    else if (eff < 1 && eff > 0)
+      resistances.push({ type: type.name, multiplier: eff });
+    else if (eff === 0) immunities.push(type.name);
   }
 
-  weaknesses.sort((a, b) => b.multiplier - a.multiplier)
-  resistances.sort((a, b) => a.multiplier - b.multiplier)
+  weaknesses.sort((a, b) => b.multiplier - a.multiplier);
+  resistances.sort((a, b) => a.multiplier - b.multiplier);
 
-  return { weaknesses, resistances, immunities }
+  return { weaknesses, resistances, immunities };
 }
 
 export function formatStatName(stat: string): string {
@@ -89,15 +97,15 @@ export function formatStatName(stat: string): string {
     spa: "Sp. Atk",
     spd: "Sp. Def",
     spe: "Speed",
-  }
-  return map[stat] ?? stat
+  };
+  return map[stat] ?? stat;
 }
 
 export function formatName(name: string): string {
   return name
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
+    .join(" ");
 }
 
 export const ALL_TYPES = [
@@ -119,9 +127,9 @@ export const ALL_TYPES = [
   "Dark",
   "Steel",
   "Fairy",
-] as const
+] as const;
 
-export const DAMAGE_CLASSES = ["Physical", "Special", "Status"] as const
+export const DAMAGE_CLASSES = ["Physical", "Special", "Status"] as const;
 
 export const GENERATIONS = [
   { id: "generation-i", num: 1, name: "Gen I", label: "Red/Blue" },
@@ -133,7 +141,7 @@ export const GENERATIONS = [
   { id: "generation-vii", num: 7, name: "Gen VII", label: "Sun/Moon" },
   { id: "generation-viii", num: 8, name: "Gen VIII", label: "Sword/Shield" },
   { id: "generation-ix", num: 9, name: "Gen IX", label: "Scarlet/Violet" },
-] as const
+] as const;
 
 export const GEN_RANGES = [
   { id: "gen-1", name: "Gen I", min: 1, max: 151 },
@@ -145,19 +153,19 @@ export const GEN_RANGES = [
   { id: "gen-7", name: "Gen VII", min: 722, max: 809 },
   { id: "gen-8", name: "Gen VIII", min: 810, max: 905 },
   { id: "gen-9", name: "Gen IX", min: 906, max: 1025 },
-] as const
+] as const;
 
 export function getGenerationByPokemonId(pokemonId: number): string | null {
   for (const gen of GEN_RANGES) {
     if (pokemonId >= gen.min && pokemonId <= gen.max) {
-      return gen.id
+      return gen.id;
     }
   }
-  return null
+  return null;
 }
 
 export function getGenerationName(genNum: number): string {
-  return GENERATIONS.find((g) => g.num === genNum)?.name ?? `Gen ${genNum}`
+  return GENERATIONS.find((g) => g.num === genNum)?.name ?? `Gen ${genNum}`;
 }
 
 export const ALL_ITEM_POCKETS = [
@@ -169,4 +177,4 @@ export const ALL_ITEM_POCKETS = [
   "key",
   "mail",
   "misc",
-] as const
+] as const;

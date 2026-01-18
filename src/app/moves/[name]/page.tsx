@@ -1,10 +1,12 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import { AddToListDialog } from "@/components/add-to-list-dialog";
+import {
+  PokemonCard,
+  PokemonCardSkeleton,
+} from "@/components/pokemon/pokemon-card";
 import { TypeBadge } from "@/components/pokemon/type-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFullMoveDetail } from "@/hooks/use-pokemon";
@@ -277,26 +279,9 @@ function PokemonSection({
 
       {/* Pokemon grid */}
       {sortedPokemon.length > 0 ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
           {sortedPokemon.map((poke) => (
-            <Link
-              key={poke.id}
-              href={`/pokemon/${poke.id}`}
-              className="flex flex-col items-center p-2 md:p-3 rounded hover:bg-muted transition-colors group"
-            >
-              <Image
-                src={poke.sprite}
-                alt={poke.name}
-                width={80}
-                height={80}
-                className="size-12 md:size-16 lg:size-20 pixelated group-hover:scale-110 transition-transform"
-                loading="lazy"
-                unoptimized
-              />
-              <span className="text-[10px] md:text-xs text-muted-foreground truncate max-w-full">
-                #{poke.id.toString().padStart(3, "0")}
-              </span>
-            </Link>
+            <PokemonCard key={poke.id} id={poke.id} name={poke.name} />
           ))}
         </div>
       ) : hasFilters ? (
@@ -313,6 +298,14 @@ function PokemonSection({
 }
 
 function MoveDetailSkeleton() {
+  const statSkeletonKeys = Array.from(
+    { length: 6 },
+    (_, i) => `stats-skeleton-${i}`,
+  );
+  const pokemonSkeletonKeys = Array.from(
+    { length: 24 },
+    (_, i) => `pokemon-skeleton-${i}`,
+  );
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="space-y-6">
@@ -328,17 +321,17 @@ function MoveDetailSkeleton() {
         <section className="space-y-3">
           <Skeleton className="h-3 w-12" />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={`stats-skeleton-${i}`} className="h-20 w-full" />
+            {statSkeletonKeys.map((key) => (
+              <Skeleton key={key} className="h-20 w-full" />
             ))}
           </div>
         </section>
 
         <section className="space-y-3">
           <Skeleton className="h-3 w-24" />
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-3">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <Skeleton key={`pokemon-skeleton-${i}`} className="h-20 md:h-24 lg:h-28 w-full" />
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
+            {pokemonSkeletonKeys.map((key) => (
+              <PokemonCardSkeleton key={key} />
             ))}
           </div>
         </section>

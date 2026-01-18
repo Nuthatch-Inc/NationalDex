@@ -1,10 +1,13 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import { AddToListDialog } from "@/components/add-to-list-dialog";
+import {
+  PokemonCard,
+  PokemonCardSkeleton,
+} from "@/components/pokemon/pokemon-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFullTypeDetail } from "@/hooks/use-pokemon";
 import { cn } from "@/lib/utils";
@@ -354,30 +357,17 @@ function PokemonSection({
 
       {/* Pokemon grid */}
       {sortedPokemon.length > 0 ? (
-        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
           {sortedPokemon.map((poke) => (
-            <Link
+            <PokemonCard
               key={poke.id}
-              href={`/pokemon/${poke.id}`}
               className={cn(
-                "flex flex-col items-center p-2 rounded hover:bg-muted transition-colors group",
                 poke.slot === 2 &&
                   "border border-dashed border-muted-foreground/30",
               )}
-            >
-              <Image
-                src={poke.sprite}
-                alt={poke.name}
-                width={48}
-                height={48}
-                className="size-12 pixelated group-hover:scale-110 transition-transform"
-                loading="lazy"
-                unoptimized
-              />
-              <span className="text-[10px] text-muted-foreground truncate max-w-full">
-                #{poke.id.toString().padStart(3, "0")}
-              </span>
-            </Link>
+              id={poke.id}
+              name={poke.name}
+            />
           ))}
         </div>
       ) : hasFilters ? (
@@ -394,6 +384,18 @@ function PokemonSection({
 }
 
 function TypeDetailSkeleton() {
+  const attackSkeletonKeys = Array.from(
+    { length: 3 },
+    (_, i) => `attack-skeleton-${i}`,
+  );
+  const defendSkeletonKeys = Array.from(
+    { length: 3 },
+    (_, i) => `defend-skeleton-${i}`,
+  );
+  const pokemonSkeletonKeys = Array.from(
+    { length: 40 },
+    (_, i) => `pokemon-skeleton-${i}`,
+  );
   return (
     <div className="min-h-screen p-4 md:p-6">
       <div className="space-y-6">
@@ -405,8 +407,8 @@ function TypeDetailSkeleton() {
         <section className="space-y-4">
           <Skeleton className="h-3 w-24" />
           <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={`attack-skeleton-${i}`} className="h-8 w-full" />
+            {attackSkeletonKeys.map((key) => (
+              <Skeleton key={key} className="h-8 w-full" />
             ))}
           </div>
         </section>
@@ -414,17 +416,17 @@ function TypeDetailSkeleton() {
         <section className="space-y-4">
           <Skeleton className="h-3 w-24" />
           <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={`defend-skeleton-${i}`} className="h-8 w-full" />
+            {defendSkeletonKeys.map((key) => (
+              <Skeleton key={key} className="h-8 w-full" />
             ))}
           </div>
         </section>
 
         <section className="space-y-3">
           <Skeleton className="h-3 w-32" />
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
-            {Array.from({ length: 40 }).map((_, i) => (
-              <Skeleton key={`pokemon-skeleton-${i}`} className="h-16 w-full" />
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 md:gap-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
+            {pokemonSkeletonKeys.map((key) => (
+              <PokemonCardSkeleton key={key} />
             ))}
           </div>
         </section>

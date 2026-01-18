@@ -6,6 +6,7 @@ import {
   GitCompareArrows,
   Heart,
   ListPlus,
+  Sparkles,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -16,32 +17,41 @@ import { StatBar } from "@/components/pokemon/stat-bar";
 import { TypeBadge } from "@/components/pokemon/type-badge";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { useComparison } from "@/hooks/use-comparison";
 import { useFavorites } from "@/hooks/use-favorites";
-import { useSpritePreferences } from "@/hooks/use-sprite-preferences";
 import {
   calculateTypeEffectiveness,
   useEvolutionChain,
   usePokemonMoves,
   usePokemonWithSpecies,
 } from "@/hooks/use-pokemon";
+import { useSpritePreferences } from "@/hooks/use-sprite-preferences";
 import { getDexPokemonVariationsByDexNumber } from "@/lib/dex-pokemon";
 import { toID } from "@/lib/pkmn";
-import { pokemonSprite, pokemonSpriteById, type SpriteGen } from "@/lib/sprites";
+import {
+  pokemonSprite,
+  pokemonSpriteById,
+  type SpriteGen,
+} from "@/lib/sprites";
 import { cn } from "@/lib/utils";
 import type {
   EvolutionChainLink,
@@ -89,8 +99,7 @@ export default function PokemonPage({ params }: PageProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isInComparison, toggleComparison, canAddMore } = useComparison();
   const setSecondaryToolbar = useSecondaryToolbar();
-  const { defaultPokemonSpriteGen, showPokemonSpriteVariants } =
-    useSpritePreferences();
+  const { defaultPokemonSpriteGen } = useSpritePreferences();
   const { data: moves, isLoading: movesLoading } = usePokemonMoves(id);
   const { data: evolutionChain, isLoading: evolutionLoading } =
     useEvolutionChain(species?.evolutionChainUrl ?? null);
@@ -135,17 +144,75 @@ export default function PokemonPage({ params }: PageProps) {
           ) : (
             <div className="size-7" />
           )}
-          <div className="flex items-center gap-2 leading-none min-w-0">
-            <span className="text-xs text-muted-foreground tabular-nums shrink-0 leading-none">
-              #{pokemon.id.toString().padStart(3, "0")}
-            </span>
-            <span className="text-sm font-medium truncate leading-none">
-              {pokemon.name}
-            </span>
-          </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 gap-1.5 text-muted-foreground hover:text-foreground"
+                title="Sprite settings"
+              >
+                <Sparkles className="size-4" />
+                <span className="hidden sm:inline text-xs">sprite</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-3">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    sprite
+                  </span>
+                  <Select
+                    value={spriteGenOverride}
+                    onValueChange={(v) =>
+                      setSpriteGenOverride(v as "default" | SpriteGen)
+                    }
+                  >
+                    <SelectTrigger className="h-8 w-44">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="end">
+                      <SelectItem value="default">Default</SelectItem>
+                      <SelectItem value="gen5">Gen 5 (static)</SelectItem>
+                      <SelectItem value="ani">Animated</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="flex items-center justify-between gap-2 rounded border px-2 py-1.5">
+                    <span className="text-xs">Shiny</span>
+                    <Switch
+                      aria-label="Toggle shiny sprite"
+                      checked={spriteShiny}
+                      onCheckedChange={setSpriteShiny}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-2 rounded border px-2 py-1.5">
+                    <span className="text-xs">Back</span>
+                    <Switch
+                      aria-label="Toggle back sprite"
+                      checked={spriteBack}
+                      onCheckedChange={setSpriteBack}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-2 rounded border px-2 py-1.5">
+                    <span className="text-xs">Female</span>
+                    <Switch
+                      aria-label="Toggle female sprite"
+                      checked={spriteFemale}
+                      onCheckedChange={setSpriteFemale}
+                    />
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <Button
             type="button"
             onClick={() => toggleComparison(pokemon.id)}
@@ -239,6 +306,10 @@ export default function PokemonPage({ params }: PageProps) {
     canAddMore,
     isFavorite,
     isInComparison,
+    spriteBack,
+    spriteFemale,
+    spriteGenOverride,
+    spriteShiny,
     toggleComparison,
     toggleFavorite,
   ]);
@@ -258,7 +329,9 @@ export default function PokemonPage({ params }: PageProps) {
   }
 
   const effectiveGen =
-    spriteGenOverride === "default" ? defaultPokemonSpriteGen : spriteGenOverride;
+    spriteGenOverride === "default"
+      ? defaultPokemonSpriteGen
+      : spriteGenOverride;
 
   const currentHeroSprite =
     pokemonSprite(pokemon.name, {
@@ -273,13 +346,13 @@ export default function PokemonPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen p-4 md:p-6 xl:h-[calc(100dvh-var(--app-top-offset))] xl:overflow-hidden">
-        <div className="space-y-6 xl:space-y-0 xl:grid xl:grid-cols-12 xl:gap-8 xl:h-full">
-          {/* Summary rail (static on desktop) */}
-          <div className="space-y-6 xl:col-span-5 2xl:col-span-4 xl:self-start">
-            {/* Core Header */}
-            <section className="space-y-4">
-              {/* Hero */}
-              <div className="flex flex-col items-center gap-3">
+      <div className="space-y-6 xl:space-y-0 xl:grid xl:grid-cols-12 xl:gap-8 xl:h-full">
+        {/* Summary rail (static on desktop) */}
+        <div className="space-y-6 xl:col-span-5 2xl:col-span-4 xl:self-start">
+          {/* Core Header */}
+          <section className="space-y-4">
+            {/* Hero */}
+            <div className="flex flex-col items-center gap-3">
               <Image
                 src={currentHeroSprite}
                 alt={pokemon.name}
@@ -289,104 +362,6 @@ export default function PokemonPage({ params }: PageProps) {
                 unoptimized={isAnimatedSprite(currentHeroSprite)}
                 priority
               />
-
-              {showPokemonSpriteVariants && (
-                <div className="w-full max-w-sm space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                      sprite
-                    </span>
-                    <Select
-                      value={spriteGenOverride}
-                      onValueChange={(v) =>
-                        setSpriteGenOverride(v as "default" | SpriteGen)
-                      }
-                    >
-                      <SelectTrigger className="h-8 w-44">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent align="end">
-                        <SelectItem value="default">Default</SelectItem>
-                        <SelectItem value="gen5">Gen 5 (static)</SelectItem>
-                        <SelectItem value="ani">Animated</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="flex items-center justify-between gap-2 rounded border px-2 py-1.5">
-                      <span className="text-xs">Shiny</span>
-                      <Switch
-                        aria-label="Toggle shiny sprite"
-                        checked={spriteShiny}
-                        onCheckedChange={setSpriteShiny}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-2 rounded border px-2 py-1.5">
-                      <span className="text-xs">Back</span>
-                      <Switch
-                        aria-label="Toggle back sprite"
-                        checked={spriteBack}
-                        onCheckedChange={setSpriteBack}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between gap-2 rounded border px-2 py-1.5">
-                      <span className="text-xs">Female</span>
-                      <Switch
-                        aria-label="Toggle female sprite"
-                        checked={spriteFemale}
-                        onCheckedChange={setSpriteFemale}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-2">
-                    {(
-                      [
-                        { key: "normal-front", shiny: false, side: "front" as const },
-                        { key: "shiny-front", shiny: true, side: "front" as const },
-                        { key: "normal-back", shiny: false, side: "back" as const },
-                        { key: "shiny-back", shiny: true, side: "back" as const },
-                      ] as const
-                    ).map((v) => {
-                      const url = pokemonSprite(pokemon.name, {
-                        gen: effectiveGen,
-                        shiny: v.shiny,
-                        female: spriteFemale,
-                        side: v.side,
-                      });
-                      const previewSrc = url ?? pokemon.sprite;
-                      const isSelected =
-                        spriteShiny === v.shiny &&
-                        spriteBack === (v.side === "back");
-                      return (
-                        <button
-                          key={v.key}
-                          type="button"
-                          onClick={() => {
-                            setSpriteShiny(v.shiny);
-                            setSpriteBack(v.side === "back");
-                          }}
-                          className={cn(
-                            "rounded border p-1 hover:bg-muted/50 transition-colors",
-                            isSelected && "ring-1 ring-primary bg-muted",
-                          )}
-                          title={v.key.replace("-", " ")}
-                        >
-                          <Image
-                            src={previewSrc}
-                            alt={pokemon.name}
-                            width={48}
-                            height={48}
-                            className="mx-auto size-10 pixelated"
-                            unoptimized={isAnimatedSprite(previewSrc)}
-                          />
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
 
               <div className="text-center space-y-2">
                 <h1 className="text-xl font-medium">{pokemon.name}</h1>
