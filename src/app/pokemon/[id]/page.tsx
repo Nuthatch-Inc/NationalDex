@@ -663,7 +663,7 @@ function MoveGroup({
               className="flex items-center gap-2 text-xs py-1 border-b border-muted last:border-0 w-full text-left hover:bg-muted/50 transition-colors cursor-pointer"
             >
               {showLevel && (
-                <span className="w-8 text-muted-foreground tabular-nums">
+                <span className="w-10 shrink-0 text-muted-foreground tabular-nums whitespace-nowrap">
                   {move.levelLearnedAt > 0 ? `Lv.${move.levelLearnedAt}` : "—"}
                 </span>
               )}

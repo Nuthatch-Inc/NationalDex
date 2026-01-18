@@ -440,16 +440,16 @@ function MoveRow({ move }: { move: MoveListItem }) {
       >
         {move.type}
       </span>
-      <span className="text-right tabular-nums text-muted-foreground">
+      <span className="text-right tabular-nums text-muted-foreground whitespace-nowrap">
         {move.power ?? "—"}
       </span>
-      <span className="text-right tabular-nums text-muted-foreground">
+      <span className="text-right tabular-nums text-muted-foreground whitespace-nowrap">
         {move.accuracy ? `${move.accuracy}%` : "—"}
       </span>
-      <span className="text-right tabular-nums text-muted-foreground">
+      <span className="text-right tabular-nums text-muted-foreground whitespace-nowrap">
         {move.pp}
       </span>
-      <span className="text-center text-xs text-muted-foreground capitalize">
+      <span className="text-center text-xs text-muted-foreground capitalize whitespace-nowrap">
         {move.damageClass}
       </span>
     </Link>

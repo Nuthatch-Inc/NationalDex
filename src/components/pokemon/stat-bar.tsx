@@ -36,7 +36,7 @@ export function StatBar({
       {showLabel && (
         <span
           className={cn(
-            "text-muted-foreground truncate",
+            "text-muted-foreground truncate shrink-0",
             size === "sm" ? "w-12" : "w-16",
           )}
         >
@@ -46,7 +46,7 @@ export function StatBar({
       {showValue && (
         <span
           className={cn(
-            "text-right tabular-nums",
+            "text-right tabular-nums shrink-0 whitespace-nowrap",
             size === "sm" ? "w-6" : "w-8",
           )}
         >

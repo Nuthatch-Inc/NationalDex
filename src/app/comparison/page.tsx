@@ -250,8 +250,12 @@ function StatRow({ stat }: { stat: PokemonStat }) {
 
   return (
     <div className="flex items-center gap-2 text-[10px]">
-      <span className="w-10 text-muted-foreground truncate">{stat.name}</span>
-      <span className="w-6 text-right tabular-nums">{stat.value}</span>
+      <span className="w-10 shrink-0 text-muted-foreground truncate">
+        {stat.name}
+      </span>
+      <span className="w-6 shrink-0 text-right tabular-nums whitespace-nowrap">
+        {stat.value}
+      </span>
       <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all"
