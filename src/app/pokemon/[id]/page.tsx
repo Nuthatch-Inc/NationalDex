@@ -669,7 +669,7 @@ function MoveGroup({
               )}
               <span className="flex-1 font-medium">{move.name}</span>
               <TypeBadge type={move.type} size="sm" />
-              <span className="w-12 text-right tabular-nums text-muted-foreground">
+              <span className="w-16 shrink-0 text-right tabular-nums text-muted-foreground whitespace-nowrap">
                 {move.power ? `${move.power} pwr` : move.damageClass}
               </span>
             </Link>
