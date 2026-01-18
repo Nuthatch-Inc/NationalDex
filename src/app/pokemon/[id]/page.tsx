@@ -943,75 +943,75 @@ function PokemonPageSkeleton() {
   return (
     <div className="p-4 md:p-6">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
-          <div className="space-y-6 md:col-span-5 lg:col-span-5 xl:col-span-5 2xl:col-span-4 md:self-start">
-            <section className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Skeleton className="size-7" />
-                <Skeleton className="h-3 w-12" />
-                <Skeleton className="size-7" />
-              </div>
-              <div className="flex justify-center xl:justify-start gap-2">
-                <Skeleton className="h-4 w-4" />
-                <Skeleton className="h-4 w-4" />
-              </div>
-              <div className="flex flex-col items-center gap-3">
-                <Skeleton className="size-32 md:size-40 xl:size-44 2xl:size-48 mx-auto" />
-                <div className="w-full space-y-2">
-                  <Skeleton className="h-6 w-32 mx-auto" />
-                  <Skeleton className="h-3 w-24 mx-auto" />
-                  <div className="flex justify-center gap-2">
-                    <Skeleton className="h-5 w-16" />
-                    <Skeleton className="h-5 w-16" />
-                  </div>
+        <div className="space-y-6 md:col-span-5 lg:col-span-5 xl:col-span-5 2xl:col-span-4 md:self-start">
+          <section className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Skeleton className="size-7" />
+              <Skeleton className="h-3 w-12" />
+              <Skeleton className="size-7" />
+            </div>
+            <div className="flex justify-center xl:justify-start gap-2">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-4 w-4" />
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <Skeleton className="size-32 md:size-40 xl:size-44 2xl:size-48 mx-auto" />
+              <div className="w-full space-y-2">
+                <Skeleton className="h-6 w-32 mx-auto" />
+                <Skeleton className="h-3 w-24 mx-auto" />
+                <div className="flex justify-center gap-2">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-16" />
                 </div>
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Skeleton className="h-3 w-16" />
-                <div className="flex flex-wrap gap-1">
-                  {WEAKNESS_SKELETON_KEYS.map((key) => (
-                    <Skeleton key={key} className="h-5 w-14" />
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-3 w-16" />
-                <div className="flex flex-wrap gap-1">
-                  {RESISTANCE_SKELETON_KEYS.map((key) => (
-                    <Skeleton key={key} className="h-5 w-14" />
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* abilities */}
-            <Skeleton className="h-10 w-full" />
-
-            {/* base stats */}
-            <section className="space-y-3">
+          <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Skeleton className="h-3 w-16" />
-              {STAT_SKELETON_KEYS.map((key) => (
-                <Skeleton key={key} className="h-4 w-full" />
-              ))}
-            </section>
+              <div className="flex flex-wrap gap-1">
+                {WEAKNESS_SKELETON_KEYS.map((key) => (
+                  <Skeleton key={key} className="h-5 w-14" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-3 w-16" />
+              <div className="flex flex-wrap gap-1">
+                {RESISTANCE_SKELETON_KEYS.map((key) => (
+                  <Skeleton key={key} className="h-5 w-14" />
+                ))}
+              </div>
+            </div>
+          </section>
 
-            {/* evolution */}
-            <Skeleton className="h-10 w-full" />
+          {/* abilities */}
+          <Skeleton className="h-10 w-full" />
 
-            {/* variations */}
-            <Skeleton className="h-10 w-full" />
+          {/* base stats */}
+          <section className="space-y-3">
+            <Skeleton className="h-3 w-16" />
+            {STAT_SKELETON_KEYS.map((key) => (
+              <Skeleton key={key} className="h-4 w-full" />
+            ))}
+          </section>
 
-            {/* details */}
-            <Skeleton className="h-10 w-full" />
-          </div>
+          {/* evolution */}
+          <Skeleton className="h-10 w-full" />
 
-          <div className="space-y-6 md:col-span-7 lg:col-span-7 xl:col-span-7 2xl:col-span-8">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
+          {/* variations */}
+          <Skeleton className="h-10 w-full" />
+
+          {/* details */}
+          <Skeleton className="h-10 w-full" />
         </div>
+
+        <div className="space-y-6 md:col-span-7 lg:col-span-7 xl:col-span-7 2xl:col-span-8">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
     </div>
   );
 }
