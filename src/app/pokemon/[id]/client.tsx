@@ -894,7 +894,7 @@ function PokedexEntriesSection({
             <ChevronLeft className="size-3" />
           </Button>
         )}
-        <p className="flex-1 text-sm text-muted-foreground italic text-center leading-relaxed">
+        <p className="flex-1 text-xs md:text-sm text-muted-foreground italic text-center leading-snug md:leading-relaxed">
           "{selectedGroup.flavorText}"
         </p>
         {groupedEntries.length > 1 && (
@@ -950,9 +950,11 @@ function PokedexEntriesSection({
                     onClick={() => setPreferredGameVersion(entry.version)}
                     className={cn(
                       "px-2 py-0.5 text-[10px] rounded-full border transition-colors",
+                      colors.text,
+                      colors.border,
                       isSelected
-                        ? cn(colors.bg, colors.text, colors.border)
-                        : "text-muted-foreground border-muted/50 hover:border-muted-foreground",
+                        ? colors.bg
+                        : "bg-transparent opacity-60 hover:opacity-100",
                     )}
                   >
                     {getVersionDisplayName(entry.version)}
