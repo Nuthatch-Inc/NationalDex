@@ -8,16 +8,17 @@ export const toID = (name: string) =>
   name.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 export function getAllSpecies(
-  genNum = 9,
+  _genNum = 9,
   options?: {
     includeFormes?: boolean;
   },
 ) {
   const includeFormes = options?.includeFormes ?? false;
-  return Array.from(gens.get(genNum).species).filter((s) => {
-    // Only filter by num > 0 (valid dex entries)
-    // Don't filter by s.exists since that indicates competitive format availability,
-    // not whether the Pokemon actually exists in the National Dex
+  // Use Dex.species.all() to get ALL Pokemon from the National Dex,
+  // not just those available in a specific generation's games.
+  // This ensures Pokemon like #510 Liepard appear even though they're
+  // not in Scarlet/Violet.
+  return Dex.species.all().filter((s) => {
     if (s.num <= 0) return false;
     if (!includeFormes && s.forme) return false;
     return true;
