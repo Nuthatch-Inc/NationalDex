@@ -103,9 +103,6 @@ export function getDexPokemonList(
     if (formsMode === "none") continue;
 
     for (const form of group.forms) {
-      // Skip nonstandard forms (Mega, Gmax, etc.) as they don't have gen5 sprites
-      if (form.isNonstandard) continue;
-
       const formSprite = pokemonSprite(form.name);
       if (!formSprite) continue;
       if (formsMode === "distinct-sprites" && formSprite === baseSprite)

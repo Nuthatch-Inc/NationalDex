@@ -13,7 +13,7 @@ export function pokemonSprite(
   },
 ) {
   const sprite = Sprites.getPokemon(name, {
-    gen: options?.gen ?? "gen5",
+    gen: options?.gen ?? "ani",
     shiny: options?.shiny,
     gender: options?.female ? "F" : "M",
     side: options?.side === "back" ? "p1" : "p2",
