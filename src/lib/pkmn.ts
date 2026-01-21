@@ -15,7 +15,10 @@ export function getAllSpecies(
 ) {
   const includeFormes = options?.includeFormes ?? false;
   return Array.from(gens.get(genNum).species).filter((s) => {
-    if (!s.exists || s.num <= 0) return false;
+    // Only filter by num > 0 (valid dex entries)
+    // Don't filter by s.exists since that indicates competitive format availability,
+    // not whether the Pokemon actually exists in the National Dex
+    if (s.num <= 0) return false;
     if (!includeFormes && s.forme) return false;
     return true;
   });

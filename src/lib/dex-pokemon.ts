@@ -25,7 +25,7 @@ export function getDexPokemonVariationsByDexNumber(
   dexNumber: number,
 ): DexPokemonListItem[] {
   const all = getAllSpecies(genNum, { includeFormes: true }).filter(
-    (s) => s.num === dexNumber && s.exists,
+    (s) => s.num === dexNumber,
   );
   const base = all.find((s) => !s.forme) ?? all[0];
   if (!base) return [];
