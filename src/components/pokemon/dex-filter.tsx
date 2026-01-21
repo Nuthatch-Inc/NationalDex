@@ -170,14 +170,18 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
         <div className="flex items-center gap-2">
           <Popover open={genPopoverOpen} onOpenChange={setGenPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-full gap-1.5 sm:w-auto"
+              >
                 {filter.generations.length > 0
                   ? `${filter.generations.length} Gen${filter.generations.length > 1 ? "s" : ""}`
                   : "Generation"}
                 <ChevronDown className="h-3.5 w-3.5 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-2" align="start">
+            <PopoverContent className="w-56 p-2" align="start">
               <div className="space-y-1">
                 {GEN_RANGES.map((gen) => (
                   <label
@@ -190,7 +194,12 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
                       checked={filter.generations.includes(gen.id)}
                       onCheckedChange={() => handleGenerationToggle(gen.id)}
                     />
-                    <span>{gen.name}</span>
+                    <span>
+                      {gen.name}{" "}
+                      <span className="text-muted-foreground">
+                        ({gen.label})
+                      </span>
+                    </span>
                   </label>
                 ))}
               </div>

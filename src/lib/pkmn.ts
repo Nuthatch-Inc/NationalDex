@@ -165,15 +165,15 @@ export const GENERATIONS = [
 ] as const;
 
 export const GEN_RANGES = [
-  { id: "gen-1", name: "Gen I", min: 1, max: 151 },
-  { id: "gen-2", name: "Gen II", min: 152, max: 251 },
-  { id: "gen-3", name: "Gen III", min: 252, max: 386 },
-  { id: "gen-4", name: "Gen IV", min: 387, max: 493 },
-  { id: "gen-5", name: "Gen V", min: 494, max: 649 },
-  { id: "gen-6", name: "Gen VI", min: 650, max: 721 },
-  { id: "gen-7", name: "Gen VII", min: 722, max: 809 },
-  { id: "gen-8", name: "Gen VIII", min: 810, max: 905 },
-  { id: "gen-9", name: "Gen IX", min: 906, max: 1025 },
+  { id: "gen-1", name: "Gen I", label: "Red/Blue", min: 1, max: 151 },
+  { id: "gen-2", name: "Gen II", label: "Gold/Silver", min: 152, max: 251 },
+  { id: "gen-3", name: "Gen III", label: "Ruby/Sapphire", min: 252, max: 386 },
+  { id: "gen-4", name: "Gen IV", label: "Diamond/Pearl", min: 387, max: 493 },
+  { id: "gen-5", name: "Gen V", label: "Black/White", min: 494, max: 649 },
+  { id: "gen-6", name: "Gen VI", label: "X/Y", min: 650, max: 721 },
+  { id: "gen-7", name: "Gen VII", label: "Sun/Moon", min: 722, max: 809 },
+  { id: "gen-8", name: "Gen VIII", label: "Sword/Shield", min: 810, max: 905 },
+  { id: "gen-9", name: "Gen IX", label: "Scarlet/Violet", min: 906, max: 1025 },
 ] as const;
 
 export function getGenerationByPokemonId(pokemonId: number): string | null {
