@@ -9,7 +9,6 @@ import {
   ListPlus,
   Sparkles,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AddToListDialog } from "@/components/add-to-list-dialog";
@@ -61,7 +60,7 @@ import type {
 
 const MAX_POKEMON_ID = 1025;
 
-const isAnimatedSprite = (src: string) => src.toLowerCase().endsWith(".gif");
+const _isAnimatedSprite = (src: string) => src.toLowerCase().endsWith(".gif");
 
 // Display names for game versions
 const VERSION_DISPLAY_NAMES: Record<string, string> = {
@@ -1314,7 +1313,9 @@ function EvolutionNodeCard({
         pokemonId={id}
         width={96}
         height={96}
-        className={isSmall ? "size-10 md:size-12" : "size-16 md:size-20 lg:size-24"}
+        className={
+          isSmall ? "size-10 md:size-12" : "size-16 md:size-20 lg:size-24"
+        }
       />
       <span className={cn("text-center", isSmall ? "text-[10px]" : "text-xs")}>
         {name}

@@ -222,9 +222,25 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
         const sp = Dex.species.get(speciesId);
         if (!sp?.exists) throw new Error(`Species ${speciesId} not found`);
 
+        // Get all variants that share this dex number (regional forms, etc.)
+        // This ensures we find evolutions from any variant, not just the base form
+        // e.g., Farfetch'd-Galar evolves to Sirfetch'd, but Farfetch'd (Kanto) doesn't
+        const allVariants = getAllSpecies(9, { includeFormes: true }).filter(
+          (s) => s.num === sp.num,
+        );
+        const variantIds = new Set(allVariants.map((v) => toID(v.name)));
+
         const evolutions: EvolutionChainLink[] = [];
+        const seenEvoNums = new Set<number>(); // Track by dex number to avoid duplicates
+
         for (const otherSpecies of getAllSpecies(9, { includeFormes: true })) {
-          if (otherSpecies.prevo && toID(otherSpecies.prevo) === sp.id) {
+          // Check if this Pokemon evolves from any variant of the current species
+          if (
+            otherSpecies.prevo &&
+            variantIds.has(toID(otherSpecies.prevo)) &&
+            !seenEvoNums.has(otherSpecies.num)
+          ) {
+            seenEvoNums.add(otherSpecies.num);
             const evoDetails: EvolutionChainLink["evolutionDetails"] = [];
 
             if (otherSpecies.evoLevel) {
