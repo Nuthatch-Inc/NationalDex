@@ -25,7 +25,7 @@ export function getDexPokemonVariationsByDexNumber(
   dexNumber: number,
 ): DexPokemonListItem[] {
   const all = getAllSpecies(genNum, { includeFormes: true }).filter(
-    (s) => s.num === dexNumber && s.exists,
+    (s) => s.num === dexNumber,
   );
   const base = all.find((s) => !s.forme) ?? all[0];
   if (!base) return [];
@@ -103,6 +103,9 @@ export function getDexPokemonList(
     if (formsMode === "none") continue;
 
     for (const form of group.forms) {
+      // Skip nonstandard forms (Mega, Gmax, etc.) as they don't have reliable sprites
+      if (form.isNonstandard) continue;
+
       const formSprite = pokemonSprite(form.name);
       if (!formSprite) continue;
       if (formsMode === "distinct-sprites" && formSprite === baseSprite)

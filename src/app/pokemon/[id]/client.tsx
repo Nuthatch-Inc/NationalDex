@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AddToListDialog } from "@/components/add-to-list-dialog";
 import { useSecondaryToolbar } from "@/components/app-shell";
+import { PokemonImage } from "@/components/pokemon/pokemon-image";
 import { StatBar } from "@/components/pokemon/stat-bar";
 import { TypeBadge } from "@/components/pokemon/type-badge";
 import { Button } from "@/components/ui/button";
@@ -55,11 +56,7 @@ import { useSpritePreferences } from "@/hooks/use-sprite-preferences";
 import { getDexPokemonVariationsByDexNumber } from "@/lib/dex-pokemon";
 import { getOffensiveTypeMatchups, toID } from "@/lib/pkmn";
 import type { PokedexEntry } from "@/lib/pokeapi";
-import {
-  pokemonSprite,
-  pokemonSpriteById,
-  type SpriteGen,
-} from "@/lib/sprites";
+import { pokemonSprite, type SpriteGen } from "@/lib/sprites";
 import { cn } from "@/lib/utils";
 import type {
   EvolutionChainLink,
@@ -759,10 +756,9 @@ export function PokemonPageClient({
                 >
                   {variations.map((v) => {
                     const isCurrent = v.slug === toID(pokemon.name);
-                    const sprite =
-                      pokemonSprite(v.name, {
-                        gen: defaultPokemonSpriteGen,
-                      }) || pokemonSpriteById(v.id);
+                    const sprite = pokemonSprite(v.name, {
+                      gen: defaultPokemonSpriteGen,
+                    });
                     return (
                       <DropdownMenuItem key={v.slug} asChild>
                         <Link
@@ -772,13 +768,13 @@ export function PokemonPageClient({
                             isCurrent && "bg-muted",
                           )}
                         >
-                          <Image
+                          <PokemonImage
                             src={sprite}
                             alt={v.name}
+                            pokemonId={v.id}
                             width={20}
                             height={20}
-                            className="size-5 pixelated"
-                            unoptimized={isAnimatedSprite(sprite)}
+                            className="size-5"
                           />
                           <span className="text-sm">{v.name}</span>
                           {isCurrent && (

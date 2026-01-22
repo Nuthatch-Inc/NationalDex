@@ -1,8 +1,13 @@
 import { Sprites } from "@pkmn/img";
 import { toID } from "./pkmn";
 
-export type SpriteGen = "gen5" | "ani";
+export type SpriteGen = "gen5" | "ani" | "home";
 
+/**
+ * Get the primary Pokemon sprite URL.
+ * Uses PokemonDB Home sprites by default which have excellent form coverage.
+ * Falls back to Pokemon Showdown for female/back sprites.
+ */
 export function pokemonSprite(
   name: string,
   options?: {
@@ -12,13 +17,33 @@ export function pokemonSprite(
     side?: "front" | "back";
   },
 ) {
-  const sprite = Sprites.getPokemon(name, {
-    gen: options?.gen ?? "gen5",
-    shiny: options?.shiny,
-    gender: options?.female ? "F" : "M",
-    side: options?.side === "back" ? "p1" : "p2",
-  });
-  return sprite.url;
+  // Convert to slug format (lowercase, keep dashes for forms)
+  const slug = name.toLowerCase().replace(/[^a-z0-9-]/g, "");
+
+  // For female or back sprites, use Pokemon Showdown (PokemonDB doesn't have these)
+  if (options?.female || options?.side === "back") {
+    const sprite = Sprites.getPokemon(name, {
+      gen: options?.gen === "home" ? "ani" : (options?.gen ?? "ani"),
+      shiny: options?.shiny,
+      gender: options?.female ? "F" : "M",
+      side: options?.side === "back" ? "p1" : "p2",
+    });
+    return sprite.url;
+  }
+
+  if (options?.gen === "ani") {
+    const shinyPrefix = options?.shiny ? "-shiny" : "";
+    return `https://play.pokemonshowdown.com/sprites/ani${shinyPrefix}/${slug}.gif`;
+  }
+
+  if (options?.gen === "gen5") {
+    const shinyPrefix = options?.shiny ? "-shiny" : "";
+    return `https://play.pokemonshowdown.com/sprites/gen5${shinyPrefix}/${slug}.png`;
+  }
+
+  // Default: PokemonDB Home sprites (best form coverage)
+  const shinyPath = options?.shiny ? "shiny" : "normal";
+  return `https://img.pokemondb.net/sprites/home/${shinyPath}/${slug}.png`;
 }
 
 export function pokemonSpriteById(
