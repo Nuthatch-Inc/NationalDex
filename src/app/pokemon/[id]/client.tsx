@@ -1105,37 +1105,31 @@ function MoveTooltipContent({ move }: { move: PokemonMove }) {
 
       {/* Type Effectiveness - only for damaging moves */}
       {move.damageClass !== "Status" && (
-        <div className="space-y-1.5 pt-1 border-t border-muted">
-          {typeMatchups.superEffective.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1">
-              <span className="text-[10px] text-green-500 uppercase tracking-wider w-16 shrink-0">
-                2× vs
-              </span>
-              {typeMatchups.superEffective.map((t) => (
-                <TypeBadge key={t} type={t as PokemonMove["type"]} size="sm" />
-              ))}
-            </div>
-          )}
-          {typeMatchups.notVeryEffective.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1">
-              <span className="text-[10px] text-orange-500 uppercase tracking-wider w-16 shrink-0">
-                ½× vs
-              </span>
-              {typeMatchups.notVeryEffective.map((t) => (
-                <TypeBadge key={t} type={t as PokemonMove["type"]} size="sm" />
-              ))}
-            </div>
-          )}
-          {typeMatchups.noEffect.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1">
-              <span className="text-[10px] text-red-500 uppercase tracking-wider w-16 shrink-0">
-                0× vs
-              </span>
-              {typeMatchups.noEffect.map((t) => (
-                <TypeBadge key={t} type={t as PokemonMove["type"]} size="sm" />
-              ))}
-            </div>
-          )}
+        <div className="flex flex-wrap gap-1 pt-1 border-t border-muted">
+          {typeMatchups.superEffective.map((t) => (
+            <TypeBadge
+              key={t}
+              type={t as PokemonMove["type"]}
+              size="sm"
+              multiplier={2}
+            />
+          ))}
+          {typeMatchups.notVeryEffective.map((t) => (
+            <TypeBadge
+              key={t}
+              type={t as PokemonMove["type"]}
+              size="sm"
+              multiplier={0.5}
+            />
+          ))}
+          {typeMatchups.noEffect.map((t) => (
+            <TypeBadge
+              key={t}
+              type={t as PokemonMove["type"]}
+              size="sm"
+              multiplier={0}
+            />
+          ))}
         </div>
       )}
     </div>
