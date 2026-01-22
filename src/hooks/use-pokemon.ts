@@ -211,15 +211,16 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
       if (!evolutionChainUrl) throw new Error("No evolution chain");
 
       const startId = evolutionChainUrl.replace("evo-", "");
-      const startSpecies = gens.get(9).species.get(startId);
-      if (!startSpecies) throw new Error("Species not found");
+      // Use Dex.species.get() to include ALL Pokemon, not just those in Gen 9 games
+      const startSpecies = Dex.species.get(startId);
+      if (!startSpecies?.exists) throw new Error("Species not found");
 
       function buildChain(
         speciesId: string,
         evolutionDetails: EvolutionChainLink["evolutionDetails"] = [],
       ): EvolutionChainLink {
-        const sp = gens.get(9).species.get(speciesId);
-        if (!sp) throw new Error(`Species ${speciesId} not found`);
+        const sp = Dex.species.get(speciesId);
+        if (!sp?.exists) throw new Error(`Species ${speciesId} not found`);
 
         const evolutions: EvolutionChainLink[] = [];
         for (const otherSpecies of getAllSpecies(9, { includeFormes: true })) {
@@ -305,10 +306,8 @@ export function useEvolutionChain(evolutionChainUrl: string | null) {
 
       let baseSpecies = startSpecies;
       while (baseSpecies.prevo) {
-        const prev =
-          gens.get(9).species.get(toID(baseSpecies.prevo)) ??
-          gens.get(9).species.get(baseSpecies.prevo);
-        if (prev) baseSpecies = prev;
+        const prev = Dex.species.get(baseSpecies.prevo);
+        if (prev?.exists) baseSpecies = prev;
         else break;
       }
 
