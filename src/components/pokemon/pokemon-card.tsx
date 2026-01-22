@@ -393,11 +393,9 @@ function CompactCard({
               ))}
               {(() => {
                 const variant = getVariantFromName(pokemon.name);
-                return variant ? (
-                  <VariantBadge variant={variant} size="sm" />
-                ) : null;
-              })()}
-              {(() => {
+                if (variant) {
+                  return <VariantBadge variant={variant} size="sm" />;
+                }
                 const region = getRegionFromDexNumber(pokemon.id);
                 return region ? (
                   <RegionBadge region={region} size="sm" />
@@ -509,11 +507,9 @@ function DefaultCard({
             ))}
             {(() => {
               const variant = getVariantFromName(pokemon.name);
-              return variant ? (
-                <VariantBadge variant={variant} size="sm" />
-              ) : null;
-            })()}
-            {(() => {
+              if (variant) {
+                return <VariantBadge variant={variant} size="sm" />;
+              }
               const region = getRegionFromDexNumber(pokemon.id);
               return region ? <RegionBadge region={region} size="sm" /> : null;
             })()}
@@ -609,9 +605,9 @@ function DetailCard({
             ))}
             {(() => {
               const variant = getVariantFromName(pokemon.name);
-              return variant ? <VariantBadge variant={variant} /> : null;
-            })()}
-            {(() => {
+              if (variant) {
+                return <VariantBadge variant={variant} />;
+              }
               const region = getRegionFromDexNumber(pokemon.id);
               return region ? <RegionBadge region={region} /> : null;
             })()}
