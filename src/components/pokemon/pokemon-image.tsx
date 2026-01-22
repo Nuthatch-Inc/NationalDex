@@ -11,6 +11,7 @@ interface PokemonImageProps {
   width?: number;
   height?: number;
   className?: string;
+  priority?: boolean;
 }
 
 /**
@@ -46,6 +47,7 @@ export function PokemonImage({
   width = 96,
   height = 96,
   className,
+  priority = false,
 }: PokemonImageProps) {
   const [imgSrc, setImgSrc] = useState(src);
   const [fallbackIndex, setFallbackIndex] = useState(0);
@@ -65,7 +67,8 @@ export function PokemonImage({
       width={width}
       height={height}
       className={cn("pixelated", className)}
-      loading="lazy"
+      loading={priority ? undefined : "lazy"}
+      priority={priority}
       unoptimized
       onError={handleError}
     />

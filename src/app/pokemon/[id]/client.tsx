@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AddToListDialog } from "@/components/add-to-list-dialog";
 import { useSecondaryToolbar } from "@/components/app-shell";
+import { PokemonImage } from "@/components/pokemon/pokemon-image";
 import { StatBar } from "@/components/pokemon/stat-bar";
 import { TypeBadge } from "@/components/pokemon/type-badge";
 import { Button } from "@/components/ui/button";
@@ -602,13 +603,13 @@ export function PokemonPageClient({
           <section className="space-y-4">
             {/* Hero */}
             <div className="flex flex-col items-center gap-3">
-              <Image
+              <PokemonImage
                 src={currentHeroSprite}
                 alt={pokemon.name}
+                pokemonId={pokemon.id}
                 width={192}
                 height={192}
-                className="size-32 md:size-40 xl:size-44 2xl:size-48 mx-auto pixelated"
-                unoptimized={isAnimatedSprite(currentHeroSprite)}
+                className="size-32 md:size-40 xl:size-44 2xl:size-48 mx-auto"
                 priority
               />
 
