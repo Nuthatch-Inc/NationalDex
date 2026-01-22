@@ -103,8 +103,24 @@ export function getDexPokemonList(
     if (formsMode === "none") continue;
 
     for (const form of group.forms) {
-      // Skip nonstandard forms (Mega, Gmax, etc.) as they don't have reliable sprites
-      if (form.isNonstandard) continue;
+      // Skip certain nonstandard forms that shouldn't appear in the main list
+      const skipNonstandard = ["Gigantamax", "Future", "CAP", "LGPE"];
+      if (
+        form.isNonstandard &&
+        skipNonstandard.includes(form.isNonstandard as string)
+      )
+        continue;
+
+      // Skip Mega, Gmax, Totem, and other special battle forms
+      const formeLower = form.forme?.toLowerCase() ?? "";
+      if (
+        formeLower.includes("mega") ||
+        formeLower.includes("gmax") ||
+        formeLower.includes("eternamax") ||
+        formeLower.includes("totem") ||
+        formeLower === "primal"
+      )
+        continue;
 
       const formSprite = pokemonSprite(form.name);
       if (!formSprite) continue;
