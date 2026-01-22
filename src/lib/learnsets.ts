@@ -24,12 +24,19 @@ export async function getLearnset(
   if (cache.has(id)) {
     return cache.get(id);
   }
-  const gen = gens.get(genNum);
-  const learnset = await gen.learnsets.get(speciesName);
-  if (learnset) {
-    cache.set(id, learnset);
+
+  // Try the target generation first, then fall back to earlier generations
+  // This handles Pokemon not in Gen 9 games (like Kakuna)
+  for (let g = genNum; g >= 1; g--) {
+    const gen = gens.get(g);
+    const learnset = await gen.learnsets.get(speciesName);
+    if (learnset?.learnset && Object.keys(learnset.learnset).length > 0) {
+      cache.set(id, learnset);
+      return learnset;
+    }
   }
-  return learnset;
+
+  return undefined;
 }
 
 export function canLearn(
