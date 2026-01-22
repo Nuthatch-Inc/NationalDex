@@ -1308,16 +1308,13 @@ function EvolutionNodeCard({
         isCurrent && "bg-muted ring-1 ring-primary",
       )}
     >
-      <Image
+      <PokemonImage
         src={sprite}
         alt={name}
+        pokemonId={id}
         width={96}
         height={96}
-        className={cn(
-          "pixelated",
-          isSmall ? "size-10 md:size-12" : "size-16 md:size-20 lg:size-24",
-        )}
-        unoptimized={isAnimatedSprite(sprite)}
+        className={isSmall ? "size-10 md:size-12" : "size-16 md:size-20 lg:size-24"}
       />
       <span className={cn("text-center", isSmall ? "text-[10px]" : "text-xs")}>
         {name}
