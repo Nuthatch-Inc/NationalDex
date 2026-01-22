@@ -88,6 +88,56 @@ function VariantBadge({
 }
 
 // =============================================================================
+// Region Helpers
+// =============================================================================
+
+type Region =
+  | "Kanto"
+  | "Johto"
+  | "Hoenn"
+  | "Sinnoh"
+  | "Unova"
+  | "Kalos"
+  | "Alola"
+  | "Galar"
+  | "Paldea";
+
+/**
+ * Get the region a Pokemon is originally from based on its dex number.
+ */
+function getRegionFromDexNumber(dexNumber: number): Region | null {
+  if (dexNumber >= 1 && dexNumber <= 151) return "Kanto";
+  if (dexNumber >= 152 && dexNumber <= 251) return "Johto";
+  if (dexNumber >= 252 && dexNumber <= 386) return "Hoenn";
+  if (dexNumber >= 387 && dexNumber <= 493) return "Sinnoh";
+  if (dexNumber >= 494 && dexNumber <= 649) return "Unova";
+  if (dexNumber >= 650 && dexNumber <= 721) return "Kalos";
+  if (dexNumber >= 722 && dexNumber <= 809) return "Alola";
+  if (dexNumber >= 810 && dexNumber <= 905) return "Galar";
+  if (dexNumber >= 906 && dexNumber <= 1025) return "Paldea";
+  return null;
+}
+
+function RegionBadge({
+  region,
+  size = "sm",
+}: {
+  region: Region;
+  size?: "sm" | "default";
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center font-medium rounded border border-border bg-muted text-muted-foreground",
+        size === "sm" ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-xs",
+      )}
+    >
+      {region}
+    </span>
+  );
+}
+
+// =============================================================================
 // Types
 // =============================================================================
 
@@ -347,6 +397,12 @@ function CompactCard({
                   <VariantBadge variant={variant} size="sm" />
                 ) : null;
               })()}
+              {(() => {
+                const region = getRegionFromDexNumber(pokemon.id);
+                return region ? (
+                  <RegionBadge region={region} size="sm" />
+                ) : null;
+              })()}
             </div>
           </div>
         </div>
@@ -457,6 +513,10 @@ function DefaultCard({
                 <VariantBadge variant={variant} size="sm" />
               ) : null;
             })()}
+            {(() => {
+              const region = getRegionFromDexNumber(pokemon.id);
+              return region ? <RegionBadge region={region} size="sm" /> : null;
+            })()}
           </div>
         </div>
       </Link>
@@ -543,13 +603,17 @@ function DetailCard({
           <h3 className="text-lg font-medium mt-2">
             {getBaseName(pokemon.name)}
           </h3>
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-2 flex-wrap justify-center">
             {pokemon.types.map((type) => (
               <TypeBadge key={type} type={type} />
             ))}
             {(() => {
               const variant = getVariantFromName(pokemon.name);
               return variant ? <VariantBadge variant={variant} /> : null;
+            })()}
+            {(() => {
+              const region = getRegionFromDexNumber(pokemon.id);
+              return region ? <RegionBadge region={region} /> : null;
             })()}
           </div>
         </div>
