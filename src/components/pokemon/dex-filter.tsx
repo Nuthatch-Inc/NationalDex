@@ -92,6 +92,7 @@ export function useDexFilter() {
 interface DexFilterProps {
   onFilterChange: (filter: DexFilterState) => void;
   filter: DexFilterState;
+  collapsed?: boolean;
 }
 
 const CATEGORY_LABELS: Record<DexCategory, string> = {
@@ -108,7 +109,11 @@ const CATEGORY_PLACEHOLDERS: Record<DexCategory, string> = {
   items: "Search Items...",
 };
 
-export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
+export function DexFilter({
+  onFilterChange,
+  filter,
+  collapsed = false,
+}: DexFilterProps) {
   const handleSearchChange = useCallback(
     (value: string) => {
       onFilterChange({ ...filter, search: value });
@@ -177,22 +182,34 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
 
   return (
     <div className="space-y-3">
-      {/* Category Chips */}
-      <div className="flex flex-wrap gap-2">
-        {(["pokemon", "moves", "abilities", "items"] as const).map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => handleCategoryChange(cat)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              filter.category === cat
-                ? "bg-foreground text-background"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
-            }`}
-          >
-            {CATEGORY_LABELS[cat]}
-          </button>
-        ))}
+      {/* Category Chips - collapsible */}
+      <div
+        className={`grid transition-all duration-200 ease-in-out ${
+          collapsed
+            ? "grid-rows-[0fr] opacity-0"
+            : "grid-rows-[1fr] opacity-100"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="flex flex-wrap gap-2 pb-3">
+            {(["pokemon", "moves", "abilities", "items"] as const).map(
+              (cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                    filter.category === cat
+                      ? "bg-foreground text-background"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {CATEGORY_LABELS[cat]}
+                </button>
+              ),
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Search Input with embedded filter buttons */}
@@ -289,45 +306,65 @@ export function DexFilter({ onFilterChange, filter }: DexFilterProps) {
         </div>
       </div>
 
-      {/* Type Filters - only show for Pokemon */}
+      {/* Type Filters - only show for Pokemon, collapsible */}
       {filter.category === "pokemon" && (
-        <div className="flex flex-wrap gap-1.5">
-          {ALL_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => handleTypeToggle(type as PokemonType)}
-              className={`transition-opacity ${
-                filter.types.length > 0 &&
-                !filter.types.includes(type as PokemonType)
-                  ? "opacity-40 hover:opacity-70"
-                  : "opacity-100"
-              }`}
-            >
-              <TypeBadge type={type as PokemonType} size="sm" />
-            </button>
-          ))}
+        <div
+          className={`grid transition-all duration-200 ease-in-out ${
+            collapsed
+              ? "grid-rows-[0fr] opacity-0"
+              : "grid-rows-[1fr] opacity-100"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="flex flex-wrap gap-1.5">
+              {ALL_TYPES.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => handleTypeToggle(type as PokemonType)}
+                  className={`transition-opacity ${
+                    filter.types.length > 0 &&
+                    !filter.types.includes(type as PokemonType)
+                      ? "opacity-40 hover:opacity-70"
+                      : "opacity-100"
+                  }`}
+                >
+                  <TypeBadge type={type as PokemonType} size="sm" />
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Clear Filters */}
+      {/* Clear Filters - collapsible */}
       {hasActiveFilters && (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClearFilters}
-            className="h-7 text-xs"
-          >
-            <X className="mr-1 h-3 w-3" />
-            Clear filters
-          </Button>
-          {filter.types.length > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {filter.types.length} type{filter.types.length > 1 ? "s" : ""}{" "}
-              selected
-            </span>
-          )}
+        <div
+          className={`grid transition-all duration-200 ease-in-out ${
+            collapsed
+              ? "grid-rows-[0fr] opacity-0"
+              : "grid-rows-[1fr] opacity-100"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="h-7 text-xs"
+              >
+                <X className="mr-1 h-3 w-3" />
+                Clear filters
+              </Button>
+              {filter.types.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {filter.types.length} type{filter.types.length > 1 ? "s" : ""}{" "}
+                  selected
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

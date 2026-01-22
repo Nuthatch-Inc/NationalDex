@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import {
   DexFilter,
@@ -32,6 +32,37 @@ function HomeContent() {
   const [abilitiesDisplayCount, setAbilitiesDisplayCount] =
     useState(ITEMS_PER_PAGE);
   const [itemsDisplayCount, setItemsDisplayCount] = useState(ITEMS_PER_PAGE);
+  const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollThreshold = 50; // Minimum scroll distance before toggling
+
+  // Scroll direction detection for collapsible toolbar
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY.current;
+
+      // Only toggle if we've scrolled past the threshold
+      if (Math.abs(scrollDelta) > scrollThreshold) {
+        if (scrollDelta > 0 && currentScrollY > 100) {
+          // Scrolling down and past initial content
+          setToolbarCollapsed(true);
+        } else if (scrollDelta < 0) {
+          // Scrolling up
+          setToolbarCollapsed(false);
+        }
+        lastScrollY.current = currentScrollY;
+      }
+
+      // Always expand when near top
+      if (currentScrollY < 50) {
+        setToolbarCollapsed(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const loadingRowKeys = useMemo(
     () => Array.from({ length: 20 }, (_, i) => `loading-row-${i}`),
@@ -138,7 +169,11 @@ function HomeContent() {
     <div>
       {/* Sticky Filter Toolbar */}
       <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-4 md:px-6 py-3 lg:top-14">
-        <DexFilter filter={filter} onFilterChange={setFilter} />
+        <DexFilter
+          filter={filter}
+          onFilterChange={setFilter}
+          collapsed={toolbarCollapsed}
+        />
       </div>
 
       <div className="p-4 md:p-6">
