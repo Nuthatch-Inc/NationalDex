@@ -1,10 +1,12 @@
 "use client";
 
-import { Plus, Search, X } from "lucide-react";
+import { Plus, Search, Share2, X } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { PokemonCard } from "@/components/pokemon/pokemon-card";
+import { TeamImportExportDialog } from "@/components/team-import-export-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +29,7 @@ export default function TeamDetailPage() {
   const teamId = params.id as string;
   const { isLoaded, getTeam, addMember, removeMember, updateTeam } = useTeams();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -110,37 +113,50 @@ export default function TeamDetailPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-6">
-        {isEditingName ? (
-          <div className="flex gap-2 items-center">
-            <Input
-              value={editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSaveName();
-                if (e.key === "Escape") {
-                  setEditedName(team.name);
-                  setIsEditingName(false);
-                }
-              }}
-              onBlur={handleSaveName}
-              autoFocus
-              className="text-lg font-medium h-8"
-            />
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="text-lg font-medium hover:text-muted-foreground text-left"
-            onClick={() => setIsEditingName(true)}
-            title="Click to edit name"
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          {isEditingName ? (
+            <div className="flex gap-2 items-center">
+              <Input
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveName();
+                  if (e.key === "Escape") {
+                    setEditedName(team.name);
+                    setIsEditingName(false);
+                  }
+                }}
+                onBlur={handleSaveName}
+                autoFocus
+                className="text-lg font-medium h-8"
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="text-lg font-medium hover:text-muted-foreground text-left"
+              onClick={() => setIsEditingName(true)}
+              title="Click to edit name"
+            >
+              {team.name}
+            </button>
+          )}
+          <p className="text-xs text-muted-foreground">
+            {genInfo.name} ({genInfo.label}) • {team.members.length}/6 pokemon
+          </p>
+        </div>
+        {team.members.length > 0 && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsExportOpen(true)}
+            title="Export team"
           >
-            {team.name}
-          </button>
+            <Share2 className="size-4" />
+            <span className="hidden sm:inline ml-1">export</span>
+          </Button>
         )}
-        <p className="text-xs text-muted-foreground">
-          {genInfo.name} ({genInfo.label}) • {team.members.length}/6 pokemon
-        </p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -225,6 +241,13 @@ export default function TeamDetailPage() {
           />
         ))}
       </div>
+
+      <TeamImportExportDialog
+        open={isExportOpen}
+        onOpenChange={setIsExportOpen}
+        mode="export"
+        teamId={teamId}
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { Plus, Trash2, Users } from "lucide-react";
+import { Download, Plus, Trash2, Upload, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { TeamImportExportDialog } from "@/components/team-import-export-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,6 +30,8 @@ import { GENERATION_INFO, GENERATIONS_LIST } from "@/types/team";
 export default function TeamsPage() {
   const { teams, isLoaded, createTeam, deleteTeam } = useTeams();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamGeneration, setNewTeamGeneration] =
     useState<Generation>("generation-i");
@@ -43,7 +46,27 @@ export default function TeamsPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-6 flex items-center justify-end">
+      <div className="mb-6 flex items-center justify-end gap-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setIsImportOpen(true)}
+          title="Import team"
+        >
+          <Upload className="size-4" />
+          <span className="hidden sm:inline ml-1">import</span>
+        </Button>
+        {teams.length > 0 && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setIsExportOpen(true)}
+            title="Export teams"
+          >
+            <Download className="size-4" />
+            <span className="hidden sm:inline ml-1">export</span>
+          </Button>
+        )}
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="outline">
@@ -195,6 +218,17 @@ export default function TeamsPage() {
             })}
         </div>
       )}
+
+      <TeamImportExportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        mode="import"
+      />
+      <TeamImportExportDialog
+        open={isExportOpen}
+        onOpenChange={setIsExportOpen}
+        mode="export"
+      />
     </div>
   );
 }
