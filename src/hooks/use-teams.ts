@@ -1,6 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import {
+  copyToClipboard,
+  detectGenerationFromShowdown,
+  downloadFile,
+  exportTeamsToJSON,
+  exportTeamToJSON,
+  exportToShowdown,
+  importFromShowdown,
+  importTeamsFromJSON,
+} from "@/lib/team-export";
 import type { Generation, Team, TeamMember } from "@/types/team";
 
 const STORAGE_KEY = "pokedex-teams";
@@ -98,6 +108,105 @@ export function useTeams() {
     );
   }, []);
 
+  // Import teams from JSON format
+  const importTeamsJSON = useCallback(
+    (jsonString: string): { imported: number; errors: string[] } => {
+      const { teams: importedTeams, errors } = importTeamsFromJSON(jsonString);
+      if (importedTeams.length > 0) {
+        setTeams((prev) => [...prev, ...importedTeams]);
+      }
+      return { imported: importedTeams.length, errors };
+    },
+    [],
+  );
+
+  // Import a team from Showdown format
+  const importTeamShowdown = useCallback(
+    (
+      text: string,
+      teamName: string,
+      generation?: Generation,
+    ): { team: Team | null; errors: string[] } => {
+      // Auto-detect generation if not provided
+      const gen =
+        generation || detectGenerationFromShowdown(text) || "generation-ix";
+      const { members, errors } = importFromShowdown(text, gen);
+
+      if (members.length === 0) {
+        return { team: null, errors };
+      }
+
+      const now = Date.now();
+      const newTeam: Team = {
+        id: generateId(),
+        name: teamName,
+        generation: gen,
+        members,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      setTeams((prev) => [...prev, newTeam]);
+      return { team: newTeam, errors };
+    },
+    [],
+  );
+
+  // Export all teams to JSON
+  const exportAllTeamsJSON = useCallback((): string => {
+    return exportTeamsToJSON(teams);
+  }, [teams]);
+
+  // Export a single team to JSON
+  const exportTeamJSON = useCallback(
+    (teamId: string): string | null => {
+      const team = teams.find((t) => t.id === teamId);
+      if (!team) return null;
+      return exportTeamToJSON(team);
+    },
+    [teams],
+  );
+
+  // Export a team to Showdown format
+  const exportTeamShowdown = useCallback(
+    (teamId: string): string | null => {
+      const team = teams.find((t) => t.id === teamId);
+      if (!team) return null;
+      return exportToShowdown(team);
+    },
+    [teams],
+  );
+
+  // Download all teams as JSON file
+  const downloadAllTeams = useCallback(() => {
+    const json = exportTeamsToJSON(teams);
+    const date = new Date().toISOString().split("T")[0];
+    downloadFile(json, `pokemon-teams-${date}.json`, "application/json");
+  }, [teams]);
+
+  // Download a team as JSON file
+  const downloadTeam = useCallback(
+    (teamId: string) => {
+      const team = teams.find((t) => t.id === teamId);
+      if (!team) return;
+      const json = exportTeamToJSON(team);
+      const safeName = team.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+      downloadFile(json, `team-${safeName}.json`, "application/json");
+    },
+    [teams],
+  );
+
+  // Copy team to clipboard in Showdown format
+  const copyTeamShowdown = useCallback(
+    async (teamId: string): Promise<boolean> => {
+      const team = teams.find((t) => t.id === teamId);
+      if (!team) return false;
+      const showdown = exportToShowdown(team);
+      return copyToClipboard(showdown);
+    },
+    [teams],
+  );
+
   return {
     teams,
     isLoaded,
@@ -107,5 +216,14 @@ export function useTeams() {
     getTeam,
     addMember,
     removeMember,
+    // Import/Export
+    importTeamsJSON,
+    importTeamShowdown,
+    exportAllTeamsJSON,
+    exportTeamJSON,
+    exportTeamShowdown,
+    downloadAllTeams,
+    downloadTeam,
+    copyTeamShowdown,
   };
 }
