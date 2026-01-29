@@ -25,11 +25,6 @@ export interface FeatureConfig {
   accent?: string;
 }
 
-export interface StatConfig {
-  value: string;
-  label: string;
-}
-
 export interface FooterLink {
   label: string;
   href: string;
@@ -39,7 +34,6 @@ export interface FooterLink {
 export interface AboutPageConfig {
   hero: HeroConfig;
   features: FeatureConfig[];
-  stats: StatConfig[];
   footerLinks: FooterLink[];
   attribution: {
     dataSource: {
@@ -128,13 +122,6 @@ export const aboutConfig: AboutPageConfig = {
         "Full Pokedex with stats, moves, abilities, evolutions, and more.",
       accent: "#64748b",
     },
-  ],
-
-  stats: [
-    { value: "1000+", label: "Pokemon" },
-    { value: "900+", label: "Moves" },
-    { value: "300+", label: "Abilities" },
-    { value: "2000+", label: "Items" },
   ],
 
   footerLinks: [

@@ -7,7 +7,6 @@ import type {
   FeatureConfig,
   FooterLink,
   HeroConfig,
-  StatConfig,
 } from "./config";
 import { aboutConfig } from "./config";
 
@@ -44,38 +43,6 @@ function HeroSection({ hero }: { hero: HeroConfig }) {
       <p className="text-xs md:text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
         {hero.description}
       </p>
-    </section>
-  );
-}
-
-function StatItem({ stat, index }: { stat: StatConfig; index: number }) {
-  const delays = ["delay-0", "delay-75", "delay-150", "delay-200"];
-  return (
-    <div className={`text-center group ${delays[index]}`}>
-      <div className="relative inline-block">
-        <p className="text-2xl md:text-3xl font-semibold tabular-nums">
-          {stat.value}
-        </p>
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 group-hover:w-full h-px bg-foreground/20 transition-all duration-300" />
-      </div>
-      <p className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-2">
-        {stat.label}
-      </p>
-    </div>
-  );
-}
-
-function StatsSection({ stats }: { stats: StatConfig[] }) {
-  return (
-    <section className="py-8 md:py-10">
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.02] to-transparent" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 py-6 border-y border-foreground/5">
-          {stats.map((stat, i) => (
-            <StatItem key={stat.label} stat={stat} index={i} />
-          ))}
-        </div>
-      </div>
     </section>
   );
 }
@@ -217,14 +184,13 @@ function FooterSection({
 }
 
 export default function AboutPage() {
-  const { hero, features, stats, footerLinks, attribution } = aboutConfig;
+  const { hero, features, footerLinks, attribution } = aboutConfig;
 
   return (
     <div className="relative p-4 md:p-6">
       <FloatingShapes />
       <div className="relative max-w-2xl mx-auto space-y-6">
         <HeroSection hero={hero} />
-        <StatsSection stats={stats} />
         <FeaturesSection features={features} />
         <FooterSection links={footerLinks} attribution={attribution} />
       </div>
