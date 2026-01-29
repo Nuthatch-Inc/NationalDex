@@ -16,6 +16,10 @@ export interface HeroConfig {
   title: string;
   tagline: string;
   description: string;
+  cta?: {
+    label: string;
+    href: string;
+  };
 }
 
 export interface FeatureConfig {
@@ -50,6 +54,10 @@ export const aboutConfig: AboutPageConfig = {
     tagline: "Your Modern Pokedex Companion",
     description:
       "A fast, beautiful, and feature-rich Pokedex built for trainers who want instant access to everything Pokemon.",
+    cta: {
+      label: "Explore the Dex",
+      href: "/",
+    },
   },
 
   features: [

@@ -1,6 +1,6 @@
 "use client";
 
-import { Circle, ExternalLink, Hexagon, Square, Triangle } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type {
   AboutPageConfig,
@@ -10,39 +10,60 @@ import type {
 } from "./config";
 import { aboutConfig } from "./config";
 
-function FloatingShapes() {
+function HeroOrb() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
-      <Circle className="absolute top-12 left-[10%] size-24 stroke-1" />
-      <Square className="absolute top-32 right-[15%] size-16 stroke-1 rotate-12" />
-      <Triangle className="absolute top-48 left-[25%] size-12 stroke-1 -rotate-6" />
-      <Hexagon className="absolute top-20 right-[30%] size-20 stroke-1 rotate-45" />
-      <Circle className="absolute bottom-40 right-[10%] size-32 stroke-1" />
-      <Square className="absolute bottom-24 left-[20%] size-14 stroke-1 rotate-45" />
-      <Triangle className="absolute bottom-60 right-[25%] size-18 stroke-1 rotate-12" />
-      <Hexagon className="absolute bottom-32 left-[8%] size-10 stroke-1" />
+    <div className="relative size-32 md:size-40 mx-auto">
+      {/* Outer glow */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-rose-500/20 via-transparent to-indigo-500/20 blur-2xl" />
+      {/* Main orb */}
+      <div className="absolute inset-2 rounded-full bg-gradient-to-br from-foreground/[0.03] to-foreground/[0.08] border border-foreground/[0.06]" />
+      {/* Inner accent */}
+      <div className="absolute inset-6 rounded-full bg-gradient-to-tl from-rose-500/10 to-indigo-500/10" />
+      {/* Center dot */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="size-2 rounded-full bg-foreground/20" />
+      </div>
+      {/* Orbiting dot */}
+      <div className="absolute top-4 right-6 size-1.5 rounded-full bg-rose-400/40" />
+      <div className="absolute bottom-8 left-4 size-1 rounded-full bg-indigo-400/40" />
     </div>
   );
 }
 
 function HeroSection({ hero }: { hero: HeroConfig }) {
   return (
-    <section className="relative space-y-6 text-center py-12 md:py-16">
-      <div className="space-y-3">
-        <p className="text-[10px] text-muted-foreground/60 uppercase tracking-[0.2em]">
-          welcome to
+    <section className="relative text-center py-12 md:py-20">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-foreground/[0.02] via-transparent to-transparent pointer-events-none" />
+
+      <div className="relative space-y-8">
+        <HeroOrb />
+
+        <div className="space-y-4">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+            {hero.title}
+          </h1>
+          <p className="text-base md:text-lg text-muted-foreground font-medium">
+            {hero.tagline}
+          </p>
+        </div>
+
+        <p className="text-sm text-muted-foreground/80 max-w-md mx-auto leading-relaxed">
+          {hero.description}
         </p>
-        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-          {hero.title}
-        </h1>
+
+        {hero.cta && (
+          <div className="pt-2">
+            <Link
+              href={hero.cta.href}
+              className="group inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-foreground text-background hover:bg-foreground/90 transition-colors"
+            >
+              {hero.cta.label}
+              <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+        )}
       </div>
-      <div className="w-12 h-px bg-foreground/10 mx-auto" />
-      <p className="text-sm md:text-base text-foreground/80 font-medium">
-        {hero.tagline}
-      </p>
-      <p className="text-xs md:text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-        {hero.description}
-      </p>
     </section>
   );
 }
@@ -187,9 +208,8 @@ export default function AboutPage() {
   const { hero, features, footerLinks, attribution } = aboutConfig;
 
   return (
-    <div className="relative p-4 md:p-6">
-      <FloatingShapes />
-      <div className="relative max-w-2xl mx-auto space-y-6">
+    <div className="relative p-4 md:p-6 overflow-hidden">
+      <div className="relative max-w-2xl mx-auto space-y-8">
         <HeroSection hero={hero} />
         <FeaturesSection features={features} />
         <FooterSection links={footerLinks} attribution={attribution} />
