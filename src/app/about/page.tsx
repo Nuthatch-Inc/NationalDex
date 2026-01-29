@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
+import { Circle, ExternalLink, Hexagon, Square, Triangle } from "lucide-react";
 import Link from "next/link";
 import type {
   AboutPageConfig,
@@ -11,47 +11,113 @@ import type {
 } from "./config";
 import { aboutConfig } from "./config";
 
+function FloatingShapes() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.03] dark:opacity-[0.02]">
+      <Circle className="absolute top-12 left-[10%] size-24 stroke-1" />
+      <Square className="absolute top-32 right-[15%] size-16 stroke-1 rotate-12" />
+      <Triangle className="absolute top-48 left-[25%] size-12 stroke-1 -rotate-6" />
+      <Hexagon className="absolute top-20 right-[30%] size-20 stroke-1 rotate-45" />
+      <Circle className="absolute bottom-40 right-[10%] size-32 stroke-1" />
+      <Square className="absolute bottom-24 left-[20%] size-14 stroke-1 rotate-45" />
+      <Triangle className="absolute bottom-60 right-[25%] size-18 stroke-1 rotate-12" />
+      <Hexagon className="absolute bottom-32 left-[8%] size-10 stroke-1" />
+    </div>
+  );
+}
+
 function HeroSection({ hero }: { hero: HeroConfig }) {
   return (
-    <section className="space-y-4 text-center py-8 md:py-12">
-      <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-        {hero.title}
-      </h1>
-      <p className="text-sm md:text-base text-muted-foreground font-medium">
+    <section className="relative space-y-6 text-center py-12 md:py-16">
+      <div className="space-y-3">
+        <p className="text-[10px] text-muted-foreground/60 uppercase tracking-[0.2em]">
+          welcome to
+        </p>
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+          {hero.title}
+        </h1>
+      </div>
+      <div className="w-12 h-px bg-foreground/10 mx-auto" />
+      <p className="text-sm md:text-base text-foreground/80 font-medium">
         {hero.tagline}
       </p>
-      <p className="text-xs md:text-sm text-muted-foreground max-w-md mx-auto">
+      <p className="text-xs md:text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
         {hero.description}
       </p>
     </section>
   );
 }
 
+function StatItem({ stat, index }: { stat: StatConfig; index: number }) {
+  const delays = ["delay-0", "delay-75", "delay-150", "delay-200"];
+  return (
+    <div className={`text-center group ${delays[index]}`}>
+      <div className="relative inline-block">
+        <p className="text-2xl md:text-3xl font-semibold tabular-nums">
+          {stat.value}
+        </p>
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 group-hover:w-full h-px bg-foreground/20 transition-all duration-300" />
+      </div>
+      <p className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-2">
+        {stat.label}
+      </p>
+    </div>
+  );
+}
+
 function StatsSection({ stats }: { stats: StatConfig[] }) {
   return (
-    <section className="py-6 border-y">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="text-center">
-            <p className="text-xl md:text-2xl font-semibold">{stat.value}</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-              {stat.label}
-            </p>
-          </div>
-        ))}
+    <section className="py-8 md:py-10">
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-foreground/[0.02] to-transparent" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 py-6 border-y border-foreground/5">
+          {stats.map((stat, i) => (
+            <StatItem key={stat.label} stat={stat} index={i} />
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-function FeatureCard({ feature }: { feature: FeatureConfig }) {
+function FeatureCard({
+  feature,
+  index,
+}: {
+  feature: FeatureConfig;
+  index: number;
+}) {
   const Icon = feature.icon;
+  const isEven = index % 2 === 0;
+
   return (
-    <div className="flex items-start gap-3 p-4 border hover:bg-muted/50 transition-colors">
-      <Icon className="size-5 text-muted-foreground shrink-0 mt-0.5" />
-      <div className="space-y-1">
-        <p className="text-sm font-medium">{feature.title}</p>
-        <p className="text-xs text-muted-foreground">{feature.description}</p>
+    <div
+      className="group relative p-4 md:p-5 transition-all duration-300 hover:bg-foreground/[0.02]"
+      style={{
+        borderLeft: isEven ? `1px solid ${feature.accent}15` : undefined,
+        borderRight: !isEven ? `1px solid ${feature.accent}15` : undefined,
+      }}
+    >
+      <div className="flex items-start gap-4">
+        <div
+          className="relative shrink-0 p-2 rounded-sm transition-colors duration-300"
+          style={{ backgroundColor: `${feature.accent}08` }}
+        >
+          <Icon
+            className="size-4 transition-colors duration-300"
+            style={{ color: `${feature.accent}90` }}
+          />
+          <div
+            className="absolute inset-0 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{ backgroundColor: `${feature.accent}12` }}
+          />
+        </div>
+        <div className="space-y-1.5 min-w-0">
+          <p className="text-sm font-medium tracking-tight">{feature.title}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {feature.description}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -59,13 +125,17 @@ function FeatureCard({ feature }: { feature: FeatureConfig }) {
 
 function FeaturesSection({ features }: { features: FeatureConfig[] }) {
   return (
-    <section className="space-y-4">
-      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-        Features
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {features.map((feature) => (
-          <FeatureCard key={feature.title} feature={feature} />
+    <section className="space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-foreground/5" />
+        <p className="text-[10px] text-muted-foreground/60 uppercase tracking-[0.2em]">
+          Features
+        </p>
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-foreground/5" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        {features.map((feature, i) => (
+          <FeatureCard key={feature.title} feature={feature} index={i} />
         ))}
       </div>
     </section>
@@ -74,7 +144,7 @@ function FeaturesSection({ features }: { features: FeatureConfig[] }) {
 
 function FooterLinksSection({ links }: { links: FooterLink[] }) {
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap justify-center gap-6">
       {links.map((link) =>
         link.external ? (
           <a
@@ -82,7 +152,7 @@ function FooterLinksSection({ links }: { links: FooterLink[] }) {
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
+            className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors duration-200 inline-flex items-center gap-1.5"
           >
             {link.label}
             <ExternalLink className="size-3" />
@@ -91,7 +161,7 @@ function FooterLinksSection({ links }: { links: FooterLink[] }) {
           <Link
             key={link.label}
             href={link.href}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            className="text-xs text-muted-foreground/60 hover:text-foreground transition-colors duration-200"
           >
             {link.label}
           </Link>
@@ -107,19 +177,21 @@ function AttributionSection({
   attribution: AboutPageConfig["attribution"];
 }) {
   return (
-    <div className="text-xs text-muted-foreground space-y-1">
-      <p>
-        data:{" "}
+    <div className="text-center space-y-2">
+      <p className="text-[10px] text-muted-foreground/40">
+        data via{" "}
         <a
           href={attribution.dataSource.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:text-foreground"
+          className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
         >
           {attribution.dataSource.label}
         </a>
       </p>
-      <p>{attribution.disclaimer}</p>
+      <p className="text-[10px] text-muted-foreground/30">
+        {attribution.disclaimer}
+      </p>
     </div>
   );
 }
@@ -132,7 +204,12 @@ function FooterSection({
   attribution: AboutPageConfig["attribution"];
 }) {
   return (
-    <section className="pt-8 border-t space-y-4">
+    <section className="pt-10 space-y-6">
+      <div className="flex items-center gap-4">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-foreground/5" />
+        <div className="size-1 rounded-full bg-foreground/10" />
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-foreground/5" />
+      </div>
       <FooterLinksSection links={links} />
       <AttributionSection attribution={attribution} />
     </section>
@@ -143,8 +220,9 @@ export default function AboutPage() {
   const { hero, features, stats, footerLinks, attribution } = aboutConfig;
 
   return (
-    <div className="p-4 md:p-6">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <div className="relative p-4 md:p-6">
+      <FloatingShapes />
+      <div className="relative max-w-2xl mx-auto space-y-6">
         <HeroSection hero={hero} />
         <StatsSection stats={stats} />
         <FeaturesSection features={features} />

@@ -22,6 +22,7 @@ export interface FeatureConfig {
   icon: LucideIcon;
   title: string;
   description: string;
+  accent?: string;
 }
 
 export interface StatConfig {
@@ -63,59 +64,69 @@ export const aboutConfig: AboutPageConfig = {
       title: "Instant Search",
       description:
         "Find any Pokemon, move, ability, or item in milliseconds with smart search.",
+      accent: "#6366f1",
     },
     {
       icon: Heart,
       title: "Favorites",
       description:
         "Save your favorite Pokemon for quick access anytime, anywhere.",
+      accent: "#ec4899",
     },
     {
       icon: Users,
       title: "Team Builder",
       description:
         "Build and manage your dream teams with type coverage analysis.",
+      accent: "#14b8a6",
     },
     {
       icon: GitCompareArrows,
       title: "Compare Pokemon",
       description:
         "Side-by-side stat comparisons to find the perfect fit for your team.",
+      accent: "#f97316",
     },
     {
       icon: MapPin,
       title: "Locations",
       description:
         "Discover where to find Pokemon across all regions and games.",
+      accent: "#22c55e",
     },
     {
       icon: Moon,
       title: "Dark Mode",
       description: "Easy on the eyes with automatic light and dark themes.",
+      accent: "#8b5cf6",
     },
     {
       icon: Smartphone,
       title: "Install as App",
       description:
         "Add to your home screen for a native app experience on any device.",
+      accent: "#06b6d4",
     },
     {
       icon: Zap,
       title: "Lightning Fast",
       description:
         "Optimized for speed with instant navigation and offline support.",
+      accent: "#eab308",
     },
     {
       icon: Sparkles,
       title: "Animated Sprites",
       description:
         "Toggle between static and animated sprites for every Pokemon.",
+      accent: "#f43f5e",
     },
     {
       icon: Database,
       title: "Complete Data",
       description:
         "Full Pokedex with stats, moves, abilities, evolutions, and more.",
+      accent: "#64748b",
     },
   ],
 
