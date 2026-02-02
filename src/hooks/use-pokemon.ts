@@ -690,3 +690,34 @@ export function getPokemonIdFromUrl(url: string): number {
   const match = url.match(/\/pokemon\/(\d+)\//);
   return match ? Number.parseInt(match[1], 10) : 0;
 }
+
+// =============================================================================
+// Location Hooks
+// =============================================================================
+
+import {
+  type FormattedPokemonEncounter,
+  getAllRegions,
+  getFormattedPokemonEncounters,
+  type RegionWithLocations,
+} from "@/lib/pokeapi";
+
+export function useAllRegions() {
+  return useQuery<RegionWithLocations[]>({
+    queryKey: ["all-regions"],
+    queryFn: getAllRegions,
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+}
+
+export function usePokemonEncounters(pokemonId: number | string | null) {
+  return useQuery<FormattedPokemonEncounter[]>({
+    queryKey: ["pokemon-encounters", pokemonId],
+    queryFn: () => {
+      if (!pokemonId) throw new Error("Pokemon ID is required");
+      return getFormattedPokemonEncounters(pokemonId);
+    },
+    enabled: pokemonId !== null,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+}
