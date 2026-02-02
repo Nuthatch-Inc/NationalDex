@@ -6,6 +6,7 @@ import {
   Grid3X3,
   Heart,
   Info,
+  Keyboard,
   ListPlus,
   MapPin,
   MessageSquare,
@@ -27,11 +28,19 @@ import {
   useState,
 } from "react";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Kbd } from "@/components/ui/kbd";
 import {
   Sheet,
   SheetContent,
@@ -41,6 +50,17 @@ import {
 import { useComparison } from "@/hooks/use-comparison";
 import { cn } from "@/lib/utils";
 import { useNav } from "./navigation/nav-provider";
+
+const KEYBOARD_SHORTCUTS = [
+  { keys: ["⌘", "K"], description: "Open search" },
+  { keys: ["Esc"], description: "Close dialogs / clear search" },
+  { keys: ["?"], description: "Show keyboard shortcuts" },
+  {
+    keys: ["←", "→"],
+    description: "Navigate between Pokemon (on detail page)",
+  },
+  { keys: ["Enter"], description: "Submit guess (Who's That Pokemon)" },
+];
 
 type SecondaryToolbarState = {
   content: React.ReactNode | null;
@@ -85,6 +105,7 @@ const moreMenuItems = [
   { href: "/items", icon: Package, label: "Items" },
   { href: "/feedback", icon: MessageSquare, label: "Feedback" },
   { href: "/about", icon: Info, label: "About" },
+  { href: "#shortcuts", icon: Keyboard, label: "Shortcuts", action: true },
 ];
 
 interface AppShellProps {
@@ -100,6 +121,25 @@ export function AppShell({ children }: AppShellProps) {
   const prevPathname = useRef(pathname);
   const [secondaryToolbar, setSecondaryToolbar] =
     useState<SecondaryToolbarState | null>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  // Listen for ? key to open shortcuts dialog
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+      if (e.key === "?") {
+        e.preventDefault();
+        setShortcutsOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const setSecondaryToolbarStable = useCallback(
     (next: SecondaryToolbarState | null) => {
       setSecondaryToolbar(next);
@@ -239,6 +279,29 @@ export function AppShell({ children }: AppShellProps) {
   };
 
   const renderMoreMenuItem = (item: (typeof moreMenuItems)[0]) => {
+    // Handle action items (like shortcuts)
+    if ("action" in item && item.action) {
+      return (
+        <button
+          key={item.href}
+          type="button"
+          onClick={() => {
+            setMoreOpen(false);
+            if (item.label === "Shortcuts") {
+              setShortcutsOpen(true);
+            }
+          }}
+          className={cn(
+            "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left",
+            "text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          <item.icon className="size-5" strokeWidth={1.5} />
+          <span className="text-sm">{item.label}</span>
+        </button>
+      );
+    }
+
     const isActive =
       item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
     const isComparison = item.href === "/comparison";
@@ -303,6 +366,24 @@ export function AppShell({ children }: AppShellProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {moreMenuItems.map((item) => {
+                    // Handle action items (like shortcuts)
+                    if ("action" in item && item.action) {
+                      return (
+                        <DropdownMenuItem
+                          key={item.href}
+                          onClick={() => {
+                            if (item.label === "Shortcuts") {
+                              setShortcutsOpen(true);
+                            }
+                          }}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <item.icon className="size-4" strokeWidth={1.5} />
+                          <span>{item.label}</span>
+                        </DropdownMenuItem>
+                      );
+                    }
+
                     const isActive =
                       item.href === "/"
                         ? pathname === "/"
@@ -399,6 +480,38 @@ export function AppShell({ children }: AppShellProps) {
             </nav>
           </SheetContent>
         </Sheet>
+
+        {/* Keyboard Shortcuts Dialog */}
+        <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Keyboard Shortcuts</DialogTitle>
+              <DialogDescription>
+                Quick actions available throughout the app
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-4">
+              {KEYBOARD_SHORTCUTS.map((shortcut, i) => (
+                <div
+                  key={`shortcut-${i}`}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <span className="text-sm text-muted-foreground">
+                    {shortcut.description}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {shortcut.keys.map((key, j) => (
+                      <Kbd key={`key-${i}-${j}`}>{key}</Kbd>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-muted-foreground pt-2 border-t">
+              Press <Kbd>?</Kbd> anytime to show this dialog
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </SecondaryToolbarContext.Provider>
   );

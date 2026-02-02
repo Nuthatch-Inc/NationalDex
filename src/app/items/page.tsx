@@ -4,7 +4,7 @@ import { Filter, Search, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getAllItems, toID } from "@/lib/pkmn";
+import { GENERATIONS, getAllItems, toID } from "@/lib/pkmn";
 import { cn } from "@/lib/utils";
 import type { ItemListItem, ItemPocket } from "@/types/pokemon";
 import { ITEM_POCKET_COLORS, ITEM_POCKET_LABELS } from "@/types/pokemon";
@@ -12,6 +12,7 @@ import { ITEM_POCKET_COLORS, ITEM_POCKET_LABELS } from "@/types/pokemon";
 interface Filters {
   search: string;
   pockets: ItemPocket[];
+  generations: string[];
 }
 
 const ITEMS_PER_PAGE = 100;
@@ -27,27 +28,78 @@ const ALL_ITEM_POCKETS: ItemPocket[] = [
   "misc",
 ];
 
+// Categorize items based on their name patterns
+function categorizeItem(name: string, desc: string): ItemPocket {
+  const lowerName = name.toLowerCase();
+  const lowerDesc = desc.toLowerCase();
+
+  if (lowerName.includes("berry")) return "berries";
+  if (lowerName.includes("ball") && !lowerName.includes("iron"))
+    return "pokeballs";
+  if (
+    lowerName.includes("tm") ||
+    lowerName.includes("tr") ||
+    lowerName.includes("hm")
+  )
+    return "machines";
+  if (
+    lowerName.includes("potion") ||
+    lowerName.includes("heal") ||
+    lowerName.includes("elixir") ||
+    lowerName.includes("ether") ||
+    lowerName.includes("revive") ||
+    lowerName.includes("antidote") ||
+    lowerName.includes("awakening") ||
+    lowerName.includes("remedy") ||
+    lowerName.includes("restore")
+  )
+    return "medicine";
+  if (
+    lowerDesc.includes("raises") ||
+    lowerDesc.includes("battle") ||
+    lowerDesc.includes("attack") ||
+    lowerDesc.includes("defense") ||
+    lowerDesc.includes("speed") ||
+    lowerName.includes("x ") ||
+    lowerName.includes("dire hit")
+  )
+    return "battle";
+  if (lowerName.includes("mail")) return "mail";
+  if (
+    lowerName.includes("key") ||
+    lowerName.includes("ticket") ||
+    lowerName.includes("pass") ||
+    lowerName.includes("card")
+  )
+    return "key";
+
+  return "misc";
+}
+
 export default function ItemsPage() {
   const [filters, setFilters] = useState<Filters>({
     search: "",
     pockets: [],
+    generations: [],
   });
   const [showFilters, setShowFilters] = useState(false);
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Get all items synchronously
+  // Get all items synchronously with proper categorization
   const allItems = useMemo(() => {
-    return getAllItems().map(
-      (i): ItemListItem => ({
+    return getAllItems().map((i) => {
+      const desc = i.desc || i.shortDesc || "";
+      return {
         id: i.num,
         name: i.name,
         sprite: `https://play.pokemonshowdown.com/sprites/itemicons/${toID(i.name)}.png`,
-        category: i.desc?.split(".")[0] || "Item",
-        pocket: "misc" as ItemPocket,
+        category: desc.split(".")[0] || "Item",
+        pocket: categorizeItem(i.name, desc),
         cost: 0,
-      }),
-    );
+        generation: i.gen || 1,
+      };
+    });
   }, []);
 
   // Apply filters client-side
@@ -69,9 +121,17 @@ export default function ItemsPage() {
         return false;
       }
 
+      // Generation filter
+      if (filters.generations.length > 0) {
+        const itemGenId = `generation-${["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"][item.generation - 1]}`;
+        if (!filters.generations.includes(itemGenId)) {
+          return false;
+        }
+      }
+
       return true;
     });
-  }, [allItems, filters.search, filters.pockets]);
+  }, [allItems, filters.search, filters.pockets, filters.generations]);
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -99,8 +159,8 @@ export default function ItemsPage() {
   }, [handleObserver]);
 
   const filtersKey = useMemo(() => {
-    return `${filters.search}|${filters.pockets.join(",")}`;
-  }, [filters.search, filters.pockets]);
+    return `${filters.search}|${filters.pockets.join(",")}|${filters.generations.join(",")}`;
+  }, [filters.search, filters.pockets, filters.generations]);
 
   // Reset display count when filters change
   useEffect(() => {
@@ -108,7 +168,7 @@ export default function ItemsPage() {
     setDisplayCount(ITEMS_PER_PAGE);
   }, [filtersKey]);
 
-  const activeFilterCount = filters.pockets.length;
+  const activeFilterCount = filters.pockets.length + filters.generations.length;
 
   const togglePocket = (pocket: ItemPocket) => {
     setFilters((prev) => ({
@@ -119,8 +179,17 @@ export default function ItemsPage() {
     }));
   };
 
+  const toggleGeneration = (gen: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      generations: prev.generations.includes(gen)
+        ? prev.generations.filter((g) => g !== gen)
+        : [...prev.generations, gen],
+    }));
+  };
+
   const clearFilters = () => {
-    setFilters({ search: "", pockets: [] });
+    setFilters({ search: "", pockets: [], generations: [] });
   };
 
   return (
@@ -194,6 +263,41 @@ export default function ItemsPage() {
                     selected={filters.pockets.includes(pocket)}
                     onClick={() => togglePocket(pocket)}
                   />
+                ))}
+              </div>
+            </div>
+
+            {/* Generation */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Generation</Label>
+                {filters.generations.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters((prev) => ({ ...prev, generations: [] }))
+                    }
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {GENERATIONS.map((gen) => (
+                  <button
+                    key={gen.id}
+                    type="button"
+                    onClick={() => toggleGeneration(gen.id)}
+                    className={cn(
+                      "px-3 py-1 text-xs border rounded-full transition-colors",
+                      filters.generations.includes(gen.id)
+                        ? "bg-foreground text-background border-foreground"
+                        : "hover:bg-muted",
+                    )}
+                  >
+                    {gen.name}
+                  </button>
                 ))}
               </div>
             </div>

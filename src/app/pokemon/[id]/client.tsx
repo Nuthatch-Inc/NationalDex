@@ -4,13 +4,15 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  Dices,
   GitCompareArrows,
   Heart,
   ListPlus,
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AddToListDialog } from "@/components/add-to-list-dialog";
 import { useSecondaryToolbar } from "@/components/app-shell";
 import { PokemonImage } from "@/components/pokemon/pokemon-image";
@@ -443,6 +445,7 @@ export function PokemonPageClient({
   id,
   pokedexEntry,
 }: PokemonPageClientProps) {
+  const router = useRouter();
   const { pokemon, species, isLoading } = usePokemonWithSpecies(id);
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isInComparison, toggleComparison, canAddMore } = useComparison();
@@ -460,6 +463,11 @@ export function PokemonPageClient({
   const [spriteShiny, setSpriteShiny] = useState(false);
   const [spriteBack, setSpriteBack] = useState(false);
   const [spriteFemale, setSpriteFemale] = useState(false);
+
+  const handleRandomPokemon = useCallback(() => {
+    const randomId = Math.floor(Math.random() * MAX_POKEMON_ID) + 1;
+    router.push(`/pokemon/${randomId}`);
+  }, [router]);
 
   const typeEffectiveness = useMemo(() => {
     if (!pokemon) return null;
@@ -560,6 +568,18 @@ export function PokemonPageClient({
 
           <Button
             type="button"
+            onClick={handleRandomPokemon}
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 gap-1.5 text-muted-foreground hover:text-foreground"
+            title="Random Pokemon"
+          >
+            <Dices className="size-4" />
+            <span className="hidden sm:inline text-xs">random</span>
+          </Button>
+
+          <Button
+            type="button"
             onClick={() => toggleComparison(pokemon.id)}
             disabled={!canAddMore && !isInComparison(pokemon.id)}
             variant="ghost"
@@ -649,6 +669,7 @@ export function PokemonPageClient({
   }, [
     pokemon,
     canAddMore,
+    handleRandomPokemon,
     isFavorite,
     isInComparison,
     spriteBack,

@@ -22,9 +22,21 @@ interface Filters {
   types: PokemonType[];
   damageClasses: DamageClass[];
   generations: string[];
+  powerMin: number | null;
+  powerMax: number | null;
+  priorityOnly: boolean;
+  contactOnly: boolean;
 }
 
 const ITEMS_PER_PAGE = 100;
+
+const POWER_PRESETS = [
+  { label: "Any", min: null, max: null },
+  { label: "1-60", min: 1, max: 60 },
+  { label: "61-90", min: 61, max: 90 },
+  { label: "91-120", min: 91, max: 120 },
+  { label: "121+", min: 121, max: null },
+];
 
 export default function MovesPage() {
   const [filters, setFilters] = useState<Filters>({
@@ -32,25 +44,29 @@ export default function MovesPage() {
     types: [],
     damageClasses: [],
     generations: [],
+    powerMin: null,
+    powerMax: null,
+    priorityOnly: false,
+    contactOnly: false,
   });
   const [showFilters, setShowFilters] = useState(false);
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Get all moves synchronously
+  // Get all moves synchronously with extended data
   const allMoves = useMemo(() => {
-    return getAllMoves().map(
-      (m): MoveListItem => ({
-        id: m.num,
-        name: m.name,
-        type: m.type as PokemonType,
-        damageClass: m.category as DamageClass,
-        power: m.basePower || null,
-        accuracy: m.accuracy === true ? null : m.accuracy,
-        pp: m.pp,
-        generation: getGenerationName(m.gen),
-      }),
-    );
+    return getAllMoves().map((m) => ({
+      id: m.num,
+      name: m.name,
+      type: m.type as PokemonType,
+      damageClass: m.category as DamageClass,
+      power: m.basePower || null,
+      accuracy: m.accuracy === true ? null : m.accuracy,
+      pp: m.pp,
+      generation: getGenerationName(m.gen),
+      priority: m.priority ?? 0,
+      contact: m.flags?.contact ?? false,
+    }));
   }, []);
 
   // Apply filters client-side
@@ -79,12 +95,30 @@ export default function MovesPage() {
 
       // Generation filter
       if (filters.generations.length > 0) {
-        // Convert "Gen VII" → "generation-vii" to match GENERATIONS.id format
         const romanNumeral = move.generation.split(" ")[1]?.toLowerCase();
         const moveGenId = romanNumeral ? `generation-${romanNumeral}` : "";
         if (!filters.generations.includes(moveGenId)) {
           return false;
         }
+      }
+
+      // Power range filter
+      if (filters.powerMin !== null || filters.powerMax !== null) {
+        if (move.power === null) return false;
+        if (filters.powerMin !== null && move.power < filters.powerMin)
+          return false;
+        if (filters.powerMax !== null && move.power > filters.powerMax)
+          return false;
+      }
+
+      // Priority filter
+      if (filters.priorityOnly && move.priority <= 0) {
+        return false;
+      }
+
+      // Contact filter
+      if (filters.contactOnly && !move.contact) {
+        return false;
       }
 
       return true;
@@ -95,6 +129,10 @@ export default function MovesPage() {
     filters.generations,
     filters.search,
     filters.types,
+    filters.powerMin,
+    filters.powerMax,
+    filters.priorityOnly,
+    filters.contactOnly,
   ]);
 
   const handleObserver = useCallback(
@@ -128,12 +166,20 @@ export default function MovesPage() {
       filters.types.join(","),
       filters.damageClasses.join(","),
       filters.generations.join(","),
+      filters.powerMin,
+      filters.powerMax,
+      filters.priorityOnly,
+      filters.contactOnly,
     ].join("|");
   }, [
     filters.damageClasses,
     filters.generations,
     filters.search,
     filters.types,
+    filters.powerMin,
+    filters.powerMax,
+    filters.priorityOnly,
+    filters.contactOnly,
   ]);
 
   // Reset display count when filters change
@@ -145,7 +191,10 @@ export default function MovesPage() {
   const activeFilterCount =
     filters.types.length +
     filters.damageClasses.length +
-    filters.generations.length;
+    filters.generations.length +
+    (filters.powerMin !== null || filters.powerMax !== null ? 1 : 0) +
+    (filters.priorityOnly ? 1 : 0) +
+    (filters.contactOnly ? 1 : 0);
 
   const toggleType = (type: PokemonType) => {
     setFilters((prev) => ({
@@ -174,8 +223,25 @@ export default function MovesPage() {
     }));
   };
 
+  const setPowerRange = (min: number | null, max: number | null) => {
+    setFilters((prev) => ({
+      ...prev,
+      powerMin: min,
+      powerMax: max,
+    }));
+  };
+
   const clearFilters = () => {
-    setFilters({ search: "", types: [], damageClasses: [], generations: [] });
+    setFilters({
+      search: "",
+      types: [],
+      damageClasses: [],
+      generations: [],
+      powerMin: null,
+      powerMax: null,
+      priorityOnly: false,
+      contactOnly: false,
+    });
   };
 
   return (
@@ -320,6 +386,85 @@ export default function MovesPage() {
                     {gen.name}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Power Range */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Power</Label>
+                {(filters.powerMin !== null || filters.powerMax !== null) && (
+                  <button
+                    type="button"
+                    onClick={() => setPowerRange(null, null)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {POWER_PRESETS.map((preset) => {
+                  const isActive =
+                    filters.powerMin === preset.min &&
+                    filters.powerMax === preset.max;
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setPowerRange(preset.min, preset.max)}
+                      className={cn(
+                        "px-3 py-1 text-xs border rounded-full transition-colors",
+                        isActive
+                          ? "bg-foreground text-background border-foreground"
+                          : "hover:bg-muted",
+                      )}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Special Filters */}
+            <div className="space-y-2">
+              <Label>Special</Label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      priorityOnly: !prev.priorityOnly,
+                    }))
+                  }
+                  className={cn(
+                    "px-3 py-1 text-xs border rounded-full transition-colors",
+                    filters.priorityOnly
+                      ? "bg-foreground text-background border-foreground"
+                      : "hover:bg-muted",
+                  )}
+                >
+                  Priority moves
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      contactOnly: !prev.contactOnly,
+                    }))
+                  }
+                  className={cn(
+                    "px-3 py-1 text-xs border rounded-full transition-colors",
+                    filters.contactOnly
+                      ? "bg-foreground text-background border-foreground"
+                      : "hover:bg-muted",
+                  )}
+                >
+                  Contact moves
+                </button>
               </div>
             </div>
 
