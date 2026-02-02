@@ -293,3 +293,103 @@ export const ITEM_POCKET_LABELS: Record<ItemPocket, string> = {
   battle: "Battle Items",
   key: "Key Items",
 };
+
+// =============================================================================
+// Location Types
+// =============================================================================
+
+export type Region =
+  | "kanto"
+  | "johto"
+  | "hoenn"
+  | "sinnoh"
+  | "unova"
+  | "kalos"
+  | "alola"
+  | "galar"
+  | "hisui"
+  | "paldea";
+
+export interface LocationListItem {
+  id: number;
+  name: string;
+  region: Region | null;
+  areaCount: number;
+}
+
+export interface LocationArea {
+  id: number;
+  name: string;
+  encounterMethodRates: {
+    method: string;
+    rate: number;
+  }[];
+}
+
+export interface LocationDetail {
+  id: number;
+  name: string;
+  region: Region | null;
+  areas: LocationArea[];
+  gameIndices: { game: string; generation: string }[];
+}
+
+export interface PokemonEncounter {
+  locationName: string;
+  locationId: number;
+  areaName: string;
+  versionDetails: {
+    version: string;
+    maxChance: number;
+    encounterDetails: {
+      minLevel: number;
+      maxLevel: number;
+      method: string;
+      chance: number;
+      conditions: string[];
+    }[];
+  }[];
+}
+
+export interface LocationPokemonEncounter {
+  pokemonId: number;
+  pokemonName: string;
+  sprite: string;
+  versionDetails: {
+    version: string;
+    maxChance: number;
+    encounterDetails: {
+      minLevel: number;
+      maxLevel: number;
+      method: string;
+      chance: number;
+      conditions: string[];
+    }[];
+  }[];
+}
+
+export const REGION_COLORS: Record<Region, string> = {
+  kanto: "#EF4444",
+  johto: "#F59E0B",
+  hoenn: "#22C55E",
+  sinnoh: "#3B82F6",
+  unova: "#8B5CF6",
+  kalos: "#EC4899",
+  alola: "#F97316",
+  galar: "#14B8A6",
+  hisui: "#6366F1",
+  paldea: "#A855F7",
+};
+
+export const REGION_LABELS: Record<Region, string> = {
+  kanto: "Kanto",
+  johto: "Johto",
+  hoenn: "Hoenn",
+  sinnoh: "Sinnoh",
+  unova: "Unova",
+  kalos: "Kalos",
+  alola: "Alola",
+  galar: "Galar",
+  hisui: "Hisui",
+  paldea: "Paldea",
+};

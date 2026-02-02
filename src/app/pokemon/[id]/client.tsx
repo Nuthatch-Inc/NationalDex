@@ -42,13 +42,14 @@ import { usePokedexPreference } from "@/hooks/use-pokedex-preference";
 import {
   calculateTypeEffectiveness,
   useEvolutionChain,
+  usePokemonEncounters,
   usePokemonMoves,
   usePokemonWithSpecies,
 } from "@/hooks/use-pokemon";
 import { useSpritePreferences } from "@/hooks/use-sprite-preferences";
 import { getDexPokemonVariationsByDexNumber } from "@/lib/dex-pokemon";
 import { getOffensiveTypeMatchups, toID } from "@/lib/pkmn";
-import type { PokedexEntry } from "@/lib/pokeapi";
+import type { FormattedPokemonEncounter, PokedexEntry } from "@/lib/pokeapi";
 import { pokemonSprite, type SpriteGen } from "@/lib/sprites";
 import { cn } from "@/lib/utils";
 import type {
@@ -450,6 +451,8 @@ export function PokemonPageClient({
   const { data: moves, isLoading: movesLoading } = usePokemonMoves(id);
   const { data: evolutionChain, isLoading: evolutionLoading } =
     useEvolutionChain(species?.evolutionChainUrl ?? null);
+  const { data: encounters, isLoading: encountersLoading } =
+    usePokemonEncounters(pokemon?.id ?? null);
 
   const [spriteGenOverride, setSpriteGenOverride] = useState<
     "default" | SpriteGen
@@ -810,6 +813,12 @@ export function PokemonPageClient({
         <div className="space-y-6 md:col-span-7 lg:col-span-7 xl:col-span-7 2xl:col-span-8">
           {/* Moves */}
           <MovesSection moves={moves} isLoading={movesLoading} />
+
+          {/* Locations */}
+          <LocationsSection
+            encounters={encounters}
+            isLoading={encountersLoading}
+          />
         </div>
       </div>
     </div>
@@ -1234,6 +1243,472 @@ function MoveTooltipContent({ move }: { move: PokemonMove }) {
                   multiplier={0}
                 />
               ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Locations Section
+// ============================================================================
+
+const LOCATIONS_SKELETON_KEYS = Array.from(
+  { length: 4 },
+  (_, i) => `loc-skel-${i}`,
+);
+
+// Order for sorting versions (chronologically)
+const VERSION_ORDER = [
+  "red",
+  "blue",
+  "yellow",
+  "gold",
+  "silver",
+  "crystal",
+  "ruby",
+  "sapphire",
+  "emerald",
+  "firered",
+  "leafgreen",
+  "diamond",
+  "pearl",
+  "platinum",
+  "heartgold",
+  "soulsilver",
+  "black",
+  "white",
+  "black-2",
+  "white-2",
+  "x",
+  "y",
+  "omega-ruby",
+  "alpha-sapphire",
+  "sun",
+  "moon",
+  "ultra-sun",
+  "ultra-moon",
+  "lets-go-pikachu",
+  "lets-go-eevee",
+  "sword",
+  "shield",
+  "brilliant-diamond",
+  "shining-pearl",
+  "legends-arceus",
+  "scarlet",
+  "violet",
+];
+
+// Display names for game versions
+const VERSION_DISPLAY: Record<string, string> = {
+  red: "Red",
+  blue: "Blue",
+  yellow: "Yellow",
+  gold: "Gold",
+  silver: "Silver",
+  crystal: "Crystal",
+  ruby: "Ruby",
+  sapphire: "Sapphire",
+  emerald: "Emerald",
+  firered: "FireRed",
+  leafgreen: "LeafGreen",
+  diamond: "Diamond",
+  pearl: "Pearl",
+  platinum: "Platinum",
+  heartgold: "HeartGold",
+  soulsilver: "SoulSilver",
+  black: "Black",
+  white: "White",
+  "black-2": "Black 2",
+  "white-2": "White 2",
+  x: "X",
+  y: "Y",
+  "omega-ruby": "Omega Ruby",
+  "alpha-sapphire": "Alpha Sapphire",
+  sun: "Sun",
+  moon: "Moon",
+  "ultra-sun": "Ultra Sun",
+  "ultra-moon": "Ultra Moon",
+  "lets-go-pikachu": "Let's Go Pikachu",
+  "lets-go-eevee": "Let's Go Eevee",
+  sword: "Sword",
+  shield: "Shield",
+  "brilliant-diamond": "Brilliant Diamond",
+  "shining-pearl": "Shining Pearl",
+  "legends-arceus": "Legends: Arceus",
+  scarlet: "Scarlet",
+  violet: "Violet",
+};
+
+// Group versions by generation for better organization
+const VERSION_GENERATIONS: Record<string, string> = {
+  red: "Gen I",
+  blue: "Gen I",
+  yellow: "Gen I",
+  gold: "Gen II",
+  silver: "Gen II",
+  crystal: "Gen II",
+  ruby: "Gen III",
+  sapphire: "Gen III",
+  emerald: "Gen III",
+  firered: "Gen III",
+  leafgreen: "Gen III",
+  diamond: "Gen IV",
+  pearl: "Gen IV",
+  platinum: "Gen IV",
+  heartgold: "Gen IV",
+  soulsilver: "Gen IV",
+  black: "Gen V",
+  white: "Gen V",
+  "black-2": "Gen V",
+  "white-2": "Gen V",
+  x: "Gen VI",
+  y: "Gen VI",
+  "omega-ruby": "Gen VI",
+  "alpha-sapphire": "Gen VI",
+  sun: "Gen VII",
+  moon: "Gen VII",
+  "ultra-sun": "Gen VII",
+  "ultra-moon": "Gen VII",
+  "lets-go-pikachu": "Gen VII",
+  "lets-go-eevee": "Gen VII",
+  sword: "Gen VIII",
+  shield: "Gen VIII",
+  "brilliant-diamond": "Gen VIII",
+  "shining-pearl": "Gen VIII",
+  "legends-arceus": "Gen VIII",
+  scarlet: "Gen IX",
+  violet: "Gen IX",
+};
+
+function LocationsSection({
+  encounters,
+  isLoading,
+}: {
+  encounters?: FormattedPokemonEncounter[];
+  isLoading: boolean;
+}) {
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [showAllVersions, setShowAllVersions] = useState(false);
+
+  // Get all unique versions from encounters, organized by generation
+  const versionsByGen = useMemo(() => {
+    if (!encounters) return new Map<string, string[]>();
+    const versions = new Set<string>();
+    for (const enc of encounters) {
+      for (const v of enc.versions) {
+        versions.add(v.name);
+      }
+    }
+    const sorted = Array.from(versions).sort((a, b) => {
+      const orderA = VERSION_ORDER.indexOf(a);
+      const orderB = VERSION_ORDER.indexOf(b);
+      return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+    });
+
+    // Group by generation
+    const byGen = new Map<string, string[]>();
+    for (const v of sorted) {
+      const gen = VERSION_GENERATIONS[v] ?? "Other";
+      if (!byGen.has(gen)) byGen.set(gen, []);
+      byGen.get(gen)?.push(v);
+    }
+    return byGen;
+  }, [encounters]);
+
+  const availableVersions = useMemo(() => {
+    return Array.from(versionsByGen.values()).flat();
+  }, [versionsByGen]);
+
+  // Filter encounters by selected version
+  const filteredEncounters = useMemo(() => {
+    if (!encounters) return [];
+    if (!selectedVersion) return encounters;
+    return encounters
+      .map((enc) => ({
+        ...enc,
+        versions: enc.versions.filter((v) => v.name === selectedVersion),
+      }))
+      .filter((enc) => enc.versions.length > 0);
+  }, [encounters, selectedVersion]);
+
+  // Get location count for the current selection
+  const locationCount = filteredEncounters.length;
+
+  // Set default version when data loads
+  useEffect(() => {
+    if (availableVersions.length > 0 && !selectedVersion) {
+      // Default to most recent version
+      setSelectedVersion(availableVersions[availableVersions.length - 1]);
+    }
+  }, [availableVersions, selectedVersion]);
+
+  if (isLoading) {
+    return (
+      <section className="space-y-4">
+        <Label>locations</Label>
+        {LOCATIONS_SKELETON_KEYS.map((key) => (
+          <Skeleton key={key} className="h-16 w-full" />
+        ))}
+      </section>
+    );
+  }
+
+  if (!encounters || encounters.length === 0) {
+    return (
+      <section className="space-y-3">
+        <Label>locations</Label>
+        <p className="text-sm text-muted-foreground">
+          No wild encounter data available for this Pokemon.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label>locations ({locationCount})</Label>
+        {availableVersions.length > 1 && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowAllVersions(!showAllVersions)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showAllVersions ? "Hide versions" : "Show all versions"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Version selector - always visible when multiple versions */}
+      {availableVersions.length > 1 && (
+        <div className="space-y-3">
+          {/* Compact dropdown selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Game:</span>
+            <Select
+              value={selectedVersion ?? ""}
+              onValueChange={setSelectedVersion}
+            >
+              <SelectTrigger className="h-7 w-48 text-xs">
+                <SelectValue placeholder="Select version" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from(versionsByGen.entries()).map(([gen, versions]) => (
+                  <div key={gen}>
+                    <div className="px-2 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                      {gen}
+                    </div>
+                    {versions.map((v) => {
+                      // Count locations for this version
+                      const versionLocationCount = encounters.filter((e) =>
+                        e.versions.some((ver) => ver.name === v),
+                      ).length;
+                      return (
+                        <SelectItem key={v} value={v} className="text-xs">
+                          {VERSION_DISPLAY[v] ?? v} ({versionLocationCount})
+                        </SelectItem>
+                      );
+                    })}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Expanded version chips for quick switching */}
+          {showAllVersions && (
+            <div className="space-y-2 p-3 border rounded-lg bg-muted/30">
+              {Array.from(versionsByGen.entries()).map(([gen, versions]) => (
+                <div key={gen} className="space-y-1">
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    {gen}
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {versions.map((v) => {
+                      const isSelected = selectedVersion === v;
+                      const versionColors = getVersionColors(v);
+                      const versionLocationCount = encounters.filter((e) =>
+                        e.versions.some((ver) => ver.name === v),
+                      ).length;
+                      return (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setSelectedVersion(v)}
+                          className={cn(
+                            "px-2 py-0.5 text-[10px] rounded-full border transition-colors",
+                            versionColors.text,
+                            versionColors.border,
+                            isSelected
+                              ? versionColors.bg
+                              : "bg-transparent opacity-60 hover:opacity-100",
+                          )}
+                        >
+                          {VERSION_DISPLAY[v] ?? v} ({versionLocationCount})
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* No locations message for selected version */}
+      {filteredEncounters.length === 0 && selectedVersion && (
+        <p className="text-sm text-muted-foreground">
+          This Pokemon cannot be found in the wild in{" "}
+          {VERSION_DISPLAY[selectedVersion] ?? selectedVersion}.
+        </p>
+      )}
+
+      {/* Location list */}
+      <div className="space-y-2">
+        {filteredEncounters.map((enc) => (
+          <LocationEncounterCard
+            key={enc.locationAreaId}
+            encounter={enc}
+            selectedVersion={selectedVersion}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function LocationEncounterCard({
+  encounter,
+  selectedVersion,
+}: {
+  encounter: FormattedPokemonEncounter;
+  selectedVersion: string | null;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Get the version details for the selected version
+  const versionData = selectedVersion
+    ? encounter.versions.find((v) => v.name === selectedVersion)
+    : encounter.versions[0];
+
+  // Group details by method - must be called before any conditional returns
+  const methodGroups = useMemo(() => {
+    if (!versionData) return new Map();
+    const groups = new Map<
+      string,
+      {
+        minLevel: number;
+        maxLevel: number;
+        totalChance: number;
+        conditions: Set<string>;
+      }
+    >();
+    for (const detail of versionData.details) {
+      const existing = groups.get(detail.method);
+      if (existing) {
+        existing.minLevel = Math.min(existing.minLevel, detail.minLevel);
+        existing.maxLevel = Math.max(existing.maxLevel, detail.maxLevel);
+        existing.totalChance += detail.chance;
+        for (const c of detail.conditions) existing.conditions.add(c);
+      } else {
+        groups.set(detail.method, {
+          minLevel: detail.minLevel,
+          maxLevel: detail.maxLevel,
+          totalChance: detail.chance,
+          conditions: new Set(detail.conditions),
+        });
+      }
+    }
+    return groups;
+  }, [versionData]);
+
+  if (!versionData) return null;
+
+  // Calculate total encounter chance
+  const totalChance = versionData.maxChance;
+
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between p-3 text-left hover:bg-muted/50 transition-colors"
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-medium truncate">
+              {encounter.locationAreaName}
+            </h4>
+            <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+              {totalChance}% total
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+            {Array.from(methodGroups.entries()).map(([method, data]) => (
+              <span
+                key={method}
+                className="text-xs text-muted-foreground whitespace-nowrap"
+              >
+                {method}:{" "}
+                {data.minLevel === data.maxLevel
+                  ? `Lv.${data.minLevel}`
+                  : `Lv.${data.minLevel}-${data.maxLevel}`}
+              </span>
+            ))}
+          </div>
+        </div>
+        <ChevronRight
+          className={cn(
+            "size-4 text-muted-foreground shrink-0 transition-transform ml-2",
+            expanded && "rotate-90",
+          )}
+        />
+      </button>
+
+      {expanded && (
+        <div className="border-t px-3 py-2 bg-muted/30 space-y-2">
+          {versionData.details.map((detail, idx) => (
+            <div
+              key={`${detail.method}-${detail.minLevel}-${idx}`}
+              className="flex items-center justify-between text-xs gap-2"
+            >
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="font-medium shrink-0">{detail.method}</span>
+                {detail.conditions.length > 0 && (
+                  <span className="text-muted-foreground truncate">
+                    ({detail.conditions.join(", ")})
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-muted-foreground shrink-0">
+                <span className="tabular-nums">
+                  {detail.minLevel === detail.maxLevel
+                    ? `Lv.${detail.minLevel}`
+                    : `Lv.${detail.minLevel}-${detail.maxLevel}`}
+                </span>
+                <span className="tabular-nums w-8 text-right">
+                  {detail.chance}%
+                </span>
+              </div>
+            </div>
+          ))}
+
+          {/* Show which other versions have this location */}
+          {encounter.versions.length > 1 && (
+            <div className="pt-2 mt-2 border-t border-muted">
+              <span className="text-[10px] text-muted-foreground">
+                Also in:{" "}
+                {encounter.versions
+                  .filter((v) => v.name !== selectedVersion)
+                  .map((v) => VERSION_DISPLAY[v.name] ?? v.name)
+                  .join(", ")}
+              </span>
             </div>
           )}
         </div>
