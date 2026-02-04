@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "pokedex-comparison";
-const MAX_COMPARISON_ITEMS = 6;
+const PANEL_STATE_KEY = "pokedex-comparison-panel";
+
+export type ComparisonPanelState = "closed" | "minimized" | "expanded";
 
 export function useComparison() {
   const [comparison, setComparison] = useState<number[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [panelState, setPanelState] = useState<ComparisonPanelState>("closed");
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -18,19 +21,39 @@ export function useComparison() {
         setComparison([]);
       }
     }
+
+    // Restore panel state (default to minimized if there are items)
+    const panelStored = localStorage.getItem(PANEL_STATE_KEY);
+    if (panelStored) {
+      setPanelState(panelStored as ComparisonPanelState);
+    }
+
     setIsLoaded(true);
   }, []);
 
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(comparison));
+      // Auto-show minimized panel when first item is added
+      if (comparison.length > 0 && panelState === "closed") {
+        setPanelState("minimized");
+      }
+      // Auto-close panel when all items are removed
+      if (comparison.length === 0 && panelState !== "closed") {
+        setPanelState("closed");
+      }
     }
-  }, [comparison, isLoaded]);
+  }, [comparison, isLoaded, panelState]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(PANEL_STATE_KEY, panelState);
+    }
+  }, [panelState, isLoaded]);
 
   const addToComparison = useCallback((id: number) => {
     setComparison((prev) => {
       if (prev.includes(id)) return prev;
-      if (prev.length >= MAX_COMPARISON_ITEMS) return prev;
       return [...prev, id];
     });
   }, []);
@@ -44,7 +67,6 @@ export function useComparison() {
       if (prev.includes(id)) {
         return prev.filter((item) => item !== id);
       }
-      if (prev.length >= MAX_COMPARISON_ITEMS) return prev;
       return [...prev, id];
     });
   }, []);
@@ -58,7 +80,25 @@ export function useComparison() {
     setComparison([]);
   }, []);
 
-  const canAddMore = comparison.length < MAX_COMPARISON_ITEMS;
+  const expandPanel = useCallback(() => {
+    setPanelState("expanded");
+  }, []);
+
+  const minimizePanel = useCallback(() => {
+    setPanelState("minimized");
+  }, []);
+
+  const closePanel = useCallback(() => {
+    setPanelState("closed");
+  }, []);
+
+  const togglePanel = useCallback(() => {
+    setPanelState((prev) => {
+      if (prev === "closed") return "minimized";
+      if (prev === "minimized") return "expanded";
+      return "minimized";
+    });
+  }, []);
 
   return {
     comparison,
@@ -68,7 +108,11 @@ export function useComparison() {
     toggleComparison,
     isInComparison,
     clearComparison,
-    canAddMore,
-    maxItems: MAX_COMPARISON_ITEMS,
+    // Panel state
+    panelState,
+    expandPanel,
+    minimizePanel,
+    closePanel,
+    togglePanel,
   };
 }

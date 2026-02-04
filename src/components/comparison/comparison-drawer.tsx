@@ -1,11 +1,10 @@
 "use client";
 
 import {
-  ArrowLeft,
   ArrowUpDown,
   ChevronDown,
+  ChevronUp,
   GitCompareArrows,
-  Plus,
   Trash2,
   Users,
   X,
@@ -59,135 +58,212 @@ type SortOption =
   | "spdef"
   | "speed";
 
-export default function ComparisonPage() {
-  const { comparison, isLoaded, removeFromComparison, clearComparison } =
-    useComparison();
+export function ComparisonDrawer() {
+  const {
+    comparison,
+    isLoaded,
+    removeFromComparison,
+    clearComparison,
+    panelState,
+    expandPanel,
+    minimizePanel,
+    closePanel,
+  } = useComparison();
   const [sortBy, setSortBy] = useState<SortOption>("id");
   const [activeTab, setActiveTab] = useState("cards");
 
-  if (!isLoaded) {
-    return (
-      <div className="p-4 md:p-6">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <ComparisonCardSkeleton key={`skeleton-${i}`} />
-          ))}
-        </div>
-      </div>
-    );
+  // Don't render until loaded or if panel is closed
+  if (!isLoaded || panelState === "closed" || comparison.length === 0) {
+    return null;
   }
 
-  if (comparison.length === 0) {
-    return (
-      <div className="p-4 md:p-6">
-        <div className="py-16 text-center">
-          <GitCompareArrows className="size-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-sm text-muted-foreground">no pokemon to compare</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            click the compare icon on any pokemon to add it here
-          </p>
-          <Link href="/" className="mt-4 inline-block">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="size-4 mr-2" />
-              browse pokemon
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const isExpanded = panelState === "expanded";
 
   return (
-    <div className="p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-medium">
-            comparing {comparison.length} pokemon
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select
-            value={sortBy}
-            onValueChange={(v) => setSortBy(v as SortOption)}
-          >
-            <SelectTrigger className="w-[130px] h-8 text-xs">
-              <ArrowUpDown className="size-3 mr-1" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="id">By ID</SelectItem>
-              <SelectItem value="total">By Total</SelectItem>
-              <SelectItem value="hp">By HP</SelectItem>
-              <SelectItem value="attack">By Attack</SelectItem>
-              <SelectItem value="defense">By Defense</SelectItem>
-              <SelectItem value="spatk">By Sp. Atk</SelectItem>
-              <SelectItem value="spdef">By Sp. Def</SelectItem>
-              <SelectItem value="speed">By Speed</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="ghost" size="sm" onClick={clearComparison}>
-            <Trash2 className="size-4 mr-1" />
-            clear
-          </Button>
-        </div>
-      </div>
+    <div
+      className={cn(
+        "fixed z-40 transition-all duration-300 ease-in-out",
+        // Position: bottom on mobile with padding for nav, full screen on desktop when expanded
+        "left-0 right-0",
+        isExpanded
+          ? "bottom-0 lg:bottom-0 top-0 lg:top-14"
+          : "bottom-12 lg:bottom-0",
+      )}
+    >
+      {/* Backdrop when expanded */}
+      {isExpanded && (
+        <button
+          type="button"
+          className="absolute inset-0 bg-black/50 lg:hidden cursor-default"
+          onClick={minimizePanel}
+          aria-label="Close comparison panel"
+        />
+      )}
 
-      {/* Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-4"
+      {/* Main Panel */}
+      <div
+        className={cn(
+          "absolute left-0 right-0 bottom-0 bg-background border-t shadow-lg transition-all duration-300 ease-in-out",
+          isExpanded
+            ? "h-full lg:h-[70vh] max-h-[calc(100vh-3rem)] lg:max-h-[70vh] rounded-t-xl"
+            : "h-auto",
+        )}
       >
-        <TabsList>
-          <TabsTrigger value="cards">cards</TabsTrigger>
-          <TabsTrigger value="table">table</TabsTrigger>
-          <TabsTrigger value="coverage">coverage</TabsTrigger>
-        </TabsList>
+        {/* Header - always visible */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: conditionally interactive header */}
+        <div
+          className={cn(
+            "flex items-center justify-between px-4 py-2 border-b",
+            !isExpanded && "cursor-pointer hover:bg-muted/50",
+          )}
+          onClick={!isExpanded ? expandPanel : undefined}
+          onKeyDown={
+            !isExpanded ? (e) => e.key === "Enter" && expandPanel() : undefined
+          }
+          role={!isExpanded ? "button" : undefined}
+          tabIndex={!isExpanded ? 0 : undefined}
+        >
+          <div className="flex items-center gap-3">
+            <GitCompareArrows className="size-4 text-muted-foreground" />
+            <span className="text-sm font-medium">
+              comparing {comparison.length} pokemon
+            </span>
 
-        <TabsContent value="cards" className="space-y-4">
-          {/* Comparison Grid */}
-          <div className="overflow-x-auto pb-4">
-            <div className="inline-flex gap-4 min-w-full">
-              <SortedComparisonCards
-                pokemonIds={comparison}
-                sortBy={sortBy}
-                onRemove={removeFromComparison}
-              />
-              <AddMoreCard />
-            </div>
+            {/* Preview sprites when minimized */}
+            {!isExpanded && (
+              <div className="flex -space-x-2 ml-2">
+                {comparison.slice(0, 4).map((id) => (
+                  // biome-ignore lint/performance/noImgElement: external sprite URLs
+                  <img
+                    key={id}
+                    src={pokemonSpriteById(id)}
+                    alt=""
+                    className="size-8 pixelated rounded-full bg-muted border-2 border-background"
+                  />
+                ))}
+                {comparison.length > 4 && (
+                  <span className="size-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
+                    +{comparison.length - 4}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-        </TabsContent>
 
-        <TabsContent value="table">
-          <StatsComparisonTable pokemonIds={comparison} sortBy={sortBy} />
-        </TabsContent>
+          <div className="flex items-center gap-1">
+            {isExpanded && (
+              <>
+                <Select
+                  value={sortBy}
+                  onValueChange={(v) => setSortBy(v as SortOption)}
+                >
+                  <SelectTrigger className="w-[110px] h-7 text-xs">
+                    <ArrowUpDown className="size-3 mr-1" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="id">By ID</SelectItem>
+                    <SelectItem value="total">By Total</SelectItem>
+                    <SelectItem value="hp">By HP</SelectItem>
+                    <SelectItem value="attack">By Attack</SelectItem>
+                    <SelectItem value="defense">By Defense</SelectItem>
+                    <SelectItem value="spatk">By Sp. Atk</SelectItem>
+                    <SelectItem value="spdef">By Sp. Def</SelectItem>
+                    <SelectItem value="speed">By Speed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearComparison();
+                  }}
+                  className="h-7 text-xs"
+                >
+                  <Trash2 className="size-3 mr-1" />
+                  clear
+                </Button>
+              </>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                isExpanded ? minimizePanel() : expandPanel();
+              }}
+            >
+              {isExpanded ? (
+                <ChevronDown className="size-4" />
+              ) : (
+                <ChevronUp className="size-4" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                closePanel();
+              }}
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        </div>
 
-        <TabsContent value="coverage">
-          <TeamCoverageSection pokemonIds={comparison} />
-        </TabsContent>
-      </Tabs>
+        {/* Expanded content */}
+        {isExpanded && (
+          <div className="flex-1 overflow-hidden h-[calc(100%-3rem)]">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="h-full flex flex-col"
+            >
+              <div className="px-4 py-2 border-b">
+                <TabsList>
+                  <TabsTrigger value="cards">cards</TabsTrigger>
+                  <TabsTrigger value="table">table</TabsTrigger>
+                  <TabsTrigger value="coverage">coverage</TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent
+                value="cards"
+                className="flex-1 overflow-auto p-4 m-0"
+              >
+                <div className="flex gap-4 pb-4 overflow-x-auto">
+                  {comparison.map((id) => (
+                    <ComparisonCard
+                      key={id}
+                      pokemonId={id}
+                      onRemove={() => removeFromComparison(id)}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent
+                value="table"
+                className="flex-1 overflow-auto p-4 m-0"
+              >
+                <StatsComparisonTable pokemonIds={comparison} />
+              </TabsContent>
+
+              <TabsContent
+                value="coverage"
+                className="flex-1 overflow-auto p-4 m-0"
+              >
+                <TeamCoverageSection pokemonIds={comparison} />
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+      </div>
     </div>
-  );
-}
-
-function SortedComparisonCards({
-  pokemonIds,
-  onRemove,
-}: {
-  pokemonIds: number[];
-  sortBy: SortOption;
-  onRemove: (id: number) => void;
-}) {
-  // We need to sort the cards, but we can't call hooks conditionally
-  // So we render all cards and let them sort themselves via CSS order
-  // For now, we just render them in order and let the user sort
-  return (
-    <>
-      {pokemonIds.map((id) => (
-        <ComparisonCard key={id} pokemonId={id} onRemove={() => onRemove(id)} />
-      ))}
-    </>
   );
 }
 
@@ -215,11 +291,9 @@ function ComparisonCard({
   const total = pokemon.stats.reduce((sum, s) => sum + s.value, 0);
   const maxStat = Math.max(...pokemon.stats.map((s) => s.value));
 
-  // Filter teams where this Pokemon can be added
   const availableTeams = teams.filter((team) => {
     if (team.members.length >= 6) return false;
     if (team.members.some((m) => m.id === pokemon.id)) return false;
-    // For simplicity, allow any Pokemon since the generation system is complex
     return true;
   });
 
@@ -237,16 +311,15 @@ function ComparisonCard({
 
   return (
     <>
-      <Card className="w-72 flex-shrink-0 p-4 relative">
-        {/* Actions */}
+      <Card className="w-64 flex-shrink-0 p-3 relative">
         <div className="absolute top-2 right-2 flex gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                className="p-1 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               >
-                <ChevronDown className="size-4" />
+                <ChevronDown className="size-3" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -264,18 +337,18 @@ function ComparisonCard({
         </div>
 
         <Link href={`/pokemon/${pokemon.id}`} className="block">
-          <div className="flex flex-col items-center mb-4">
-            <span className="text-xs text-muted-foreground tabular-nums">
+          <div className="flex flex-col items-center mb-3">
+            <span className="text-[10px] text-muted-foreground tabular-nums">
               #{pokemon.id.toString().padStart(3, "0")}
             </span>
             {/* biome-ignore lint/performance/noImgElement: external sprite URLs */}
             <img
               src={pokemon.sprite}
               alt={pokemon.name}
-              className="size-24 pixelated"
+              className="size-16 pixelated"
               loading="lazy"
             />
-            <h3 className="text-sm font-medium mt-1">{pokemon.name}</h3>
+            <h3 className="text-xs font-medium mt-1">{pokemon.name}</h3>
             <div className="flex gap-1 mt-1">
               {pokemon.types.map((type) => (
                 <TypeBadge key={type} type={type} size="sm" />
@@ -284,106 +357,76 @@ function ComparisonCard({
           </div>
         </Link>
 
-        {/* Physical Stats */}
-        <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-          <div className="text-center p-2 bg-muted rounded">
-            <div className="text-muted-foreground">Height</div>
-            <div className="font-medium">
-              {(pokemon.height / 10).toFixed(1)}m
-            </div>
-          </div>
-          <div className="text-center p-2 bg-muted rounded">
-            <div className="text-muted-foreground">Weight</div>
-            <div className="font-medium">
-              {(pokemon.weight / 10).toFixed(1)}kg
-            </div>
-          </div>
-        </div>
-
         {/* Base Stats */}
-        <div className="mb-3">
-          <Label>base stats</Label>
-          <div className="space-y-1 mt-1">
+        <div className="mb-2">
+          <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
+            base stats
+          </span>
+          <div className="space-y-0.5 mt-1">
             {pokemon.stats.map((stat) => (
               <StatRow key={stat.name} stat={stat} maxStat={maxStat} />
             ))}
-            <div className="flex justify-between pt-1 border-t text-xs">
+            <div className="flex justify-between pt-1 border-t text-[10px]">
               <span className="text-muted-foreground">Total</span>
               <span className="font-medium tabular-nums">{total}</span>
             </div>
           </div>
         </div>
 
-        {/* Abilities */}
-        <div className="mb-3">
-          <Label>abilities</Label>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {pokemon.abilities.map((ability) => (
-              <span
-                key={ability.name}
-                className={cn(
-                  "text-[10px] px-1.5 py-0.5 border rounded",
-                  ability.isHidden && "text-muted-foreground border-dashed",
-                )}
-              >
-                {ability.name}
-                {ability.isHidden && " (H)"}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Type Effectiveness */}
+        {/* Type Effectiveness - compact */}
         {typeEffectiveness && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 text-[9px]">
             <div>
-              <Label>weak to</Label>
-              <div className="flex flex-wrap gap-0.5 mt-1">
+              <span className="text-muted-foreground uppercase tracking-wider">
+                weak
+              </span>
+              <div className="flex flex-wrap gap-0.5 mt-0.5">
                 {typeEffectiveness.weaknesses.length > 0 ? (
-                  typeEffectiveness.weaknesses.map(({ type, multiplier }) => (
-                    <TypeBadge
-                      key={type}
-                      type={type}
-                      multiplier={multiplier}
-                      size="sm"
-                    />
-                  ))
+                  typeEffectiveness.weaknesses
+                    .slice(0, 4)
+                    .map(({ type, multiplier }) => (
+                      <TypeBadge
+                        key={type}
+                        type={type}
+                        multiplier={multiplier}
+                        size="sm"
+                      />
+                    ))
                 ) : (
-                  <span className="text-[10px] text-muted-foreground">
-                    None
+                  <span className="text-muted-foreground">None</span>
+                )}
+                {typeEffectiveness.weaknesses.length > 4 && (
+                  <span className="text-muted-foreground">
+                    +{typeEffectiveness.weaknesses.length - 4}
                   </span>
                 )}
               </div>
             </div>
             <div>
-              <Label>resists</Label>
-              <div className="flex flex-wrap gap-0.5 mt-1">
+              <span className="text-muted-foreground uppercase tracking-wider">
+                resist
+              </span>
+              <div className="flex flex-wrap gap-0.5 mt-0.5">
                 {typeEffectiveness.resistances.length > 0 ||
                 typeEffectiveness.immunities.length > 0 ? (
-                  <>
-                    {typeEffectiveness.resistances.map(
-                      ({ type, multiplier }) => (
-                        <TypeBadge
-                          key={type}
-                          type={type}
-                          multiplier={multiplier}
-                          size="sm"
-                        />
-                      ),
-                    )}
-                    {typeEffectiveness.immunities.map((type) => (
+                  [
+                    ...typeEffectiveness.resistances,
+                    ...typeEffectiveness.immunities.map((type) => ({
+                      type,
+                      multiplier: 0,
+                    })),
+                  ]
+                    .slice(0, 4)
+                    .map(({ type, multiplier }) => (
                       <TypeBadge
                         key={type}
                         type={type}
-                        multiplier={0}
+                        multiplier={multiplier}
                         size="sm"
                       />
-                    ))}
-                  </>
+                    ))
                 ) : (
-                  <span className="text-[10px] text-muted-foreground">
-                    None
-                  </span>
+                  <span className="text-muted-foreground">None</span>
                 )}
               </div>
             </div>
@@ -433,7 +476,7 @@ function ComparisonCard({
                       <div className="text-left">
                         <div className="font-medium">{team.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {genInfo.name} • {team.members.length}/6
+                          {genInfo.name} - {team.members.length}/6
                         </div>
                       </div>
                       <div className="flex -space-x-2">
@@ -475,38 +518,23 @@ function ComparisonCard({
   );
 }
 
-function AddMoreCard() {
-  return (
-    <Link href="/" className="block">
-      <Card className="w-72 flex-shrink-0 p-4 h-full min-h-[400px] flex flex-col items-center justify-center border-dashed hover:bg-muted/50 transition-colors">
-        <Plus className="size-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground mt-2">add pokemon</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          click the compare button on any pokemon
-        </p>
-      </Card>
-    </Link>
-  );
-}
-
 function StatRow({ stat, maxStat }: { stat: PokemonStat; maxStat: number }) {
   const percentage = Math.min((stat.value / 255) * 100, 100);
   const isHighest = stat.value === maxStat;
 
-  // Use a gradient based on the stat value
   const getBarColor = (value: number) => {
-    if (value >= 150) return "#22c55e"; // green
-    if (value >= 100) return "#84cc16"; // lime
-    if (value >= 75) return "#eab308"; // yellow
-    if (value >= 50) return "#f97316"; // orange
-    return "#ef4444"; // red
+    if (value >= 150) return "#22c55e";
+    if (value >= 100) return "#84cc16";
+    if (value >= 75) return "#eab308";
+    if (value >= 50) return "#f97316";
+    return "#ef4444";
   };
 
   return (
-    <div className="flex items-center gap-2 text-[10px]">
+    <div className="flex items-center gap-1.5 text-[9px]">
       <span
         className={cn(
-          "w-12 shrink-0 truncate",
+          "w-10 shrink-0 truncate",
           isHighest ? "text-foreground font-medium" : "text-muted-foreground",
         )}
       >
@@ -514,13 +542,13 @@ function StatRow({ stat, maxStat }: { stat: PokemonStat; maxStat: number }) {
       </span>
       <span
         className={cn(
-          "w-7 shrink-0 text-right tabular-nums whitespace-nowrap",
+          "w-6 shrink-0 text-right tabular-nums",
           isHighest && "font-medium text-green-600 dark:text-green-400",
         )}
       >
         {stat.value}
       </span>
-      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all"
           style={{
@@ -533,41 +561,27 @@ function StatRow({ stat, maxStat }: { stat: PokemonStat; maxStat: number }) {
   );
 }
 
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
-      {children}
-    </span>
-  );
-}
-
 function ComparisonCardSkeleton() {
   return (
-    <Card className="w-72 flex-shrink-0 p-4">
-      <div className="flex flex-col items-center mb-4">
-        <Skeleton className="h-3 w-8" />
-        <Skeleton className="size-24 mt-2" />
-        <Skeleton className="h-4 w-20 mt-2" />
+    <Card className="w-64 flex-shrink-0 p-3">
+      <div className="flex flex-col items-center mb-3">
+        <Skeleton className="h-2 w-6" />
+        <Skeleton className="size-16 mt-2" />
+        <Skeleton className="h-3 w-16 mt-2" />
         <div className="flex gap-1 mt-1">
-          <Skeleton className="h-4 w-12" />
+          <Skeleton className="h-4 w-10" />
         </div>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={`row-skeleton-${i}`} className="h-3 w-full" />
+          <Skeleton key={`row-skeleton-${i}`} className="h-2 w-full" />
         ))}
       </div>
     </Card>
   );
 }
 
-// Stats Comparison Table for side-by-side stat comparison
-function StatsComparisonTable({
-  pokemonIds,
-}: {
-  pokemonIds: number[];
-  sortBy: SortOption;
-}) {
+function StatsComparisonTable({ pokemonIds }: { pokemonIds: number[] }) {
   return (
     <Card className="p-4 overflow-x-auto">
       <h2 className="text-sm font-medium mb-4">stats comparison</h2>
@@ -608,9 +622,9 @@ function PokemonTableHeader({ pokemonId }: { pokemonId: number }) {
         <img
           src={pokemon.sprite}
           alt={pokemon.name}
-          className="size-10 pixelated"
+          className="size-8 pixelated"
         />
-        <span className="font-medium">{pokemon.name}</span>
+        <span className="font-medium text-[10px]">{pokemon.name}</span>
         <div className="flex gap-0.5">
           {pokemon.types.map((type) => (
             <TypeBadge key={type} type={type} size="sm" />
@@ -649,7 +663,6 @@ function StatsComparisonRows({ pokemonIds }: { pokemonIds: number[] }) {
     .map((q) => q.data)
     .filter(Boolean) as NonNullable<(typeof pokemonQueries)[0]["data"]>[];
 
-  // Find highest and lowest stat for each row
   const getStatExtremes = (statIndex: number) => {
     const values = pokemonData.map((p) => p.stats[statIndex].value);
     return {
@@ -671,7 +684,7 @@ function StatsComparisonRows({ pokemonIds }: { pokemonIds: number[] }) {
         return (
           <tr key={statName} className="border-b">
             <td className="py-2 pr-4 text-muted-foreground">{statName}</td>
-            {pokemonData.map((pokemon, _idx) => {
+            {pokemonData.map((pokemon) => {
               const value = pokemon.stats[statIndex].value;
               const isMax = value === max && max !== min;
               const isMin = value === min && max !== min;
@@ -714,7 +727,6 @@ function StatsComparisonRows({ pokemonIds }: { pokemonIds: number[] }) {
   );
 }
 
-// Team Coverage Section
 function TeamCoverageSection({ pokemonIds }: { pokemonIds: number[] }) {
   // biome-ignore lint/correctness/useHookAtTopLevel: pokemonIds array is stable from localStorage state
   const pokemonQueries = pokemonIds.map((id) => usePokemon(id.toString()));
@@ -737,21 +749,20 @@ function TeamCoverageSection({ pokemonIds }: { pokemonIds: number[] }) {
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-sm font-medium">team type coverage analysis</h2>
+        <h2 className="text-sm font-medium">team type coverage</h2>
         <span className="text-xs text-muted-foreground">
           {pokemonData.length} pokemon
         </span>
       </div>
 
-      {/* Pokemon team preview */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
         {pokemonData.map((pokemon) => (
-          <div key={pokemon.id} className="flex flex-col items-center">
+          <div key={pokemon.id} className="flex flex-col items-center shrink-0">
             {/* biome-ignore lint/performance/noImgElement: external sprite URLs */}
             <img
               src={pokemon.sprite}
               alt={pokemon.name}
-              className="size-12 pixelated"
+              className="size-10 pixelated"
             />
             <div className="flex gap-0.5 mt-1">
               {pokemon.types.map((type) => (

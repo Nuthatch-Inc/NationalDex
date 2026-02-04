@@ -27,6 +27,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { ComparisonDrawer } from "@/components/comparison/comparison-drawer";
 import {
   Dialog,
   DialogContent,
@@ -512,6 +513,9 @@ export function AppShell({ children }: AppShellProps) {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Comparison Drawer - available on all pages */}
+        <ComparisonDrawer />
       </div>
     </SecondaryToolbarContext.Provider>
   );
