@@ -79,7 +79,6 @@ export async function generateMetadata({
     return { title: "Pokémon not found" };
   }
 
-  const pokedexEntry = await getPokedexEntry(species.num);
   const dexNum = String(species.num).padStart(3, "0");
   const types = [species.types[0], species.types[1]].filter(Boolean).join("/");
   const bst = Object.values(species.baseStats).reduce(
@@ -87,13 +86,9 @@ export async function generateMetadata({
     0,
   );
 
-  const description = pokedexEntry?.entries[0]?.flavorText
-    ? `${pokedexEntry.genus}. ${types} type. BST ${bst}. ${pokedexEntry.entries[0].flavorText}`
-    : `${types} type Pokémon. Base stat total: ${bst}.`;
-
   const ogImageUrl = `${SITE_URL}/pokemon/${id}/opengraph-image`;
 
-  // Build detailed alt text with all info rendered in the OG image
+  // Build detailed description with all info rendered in the OG image
   const variant = getVariantFromName(species.name);
   const region = getRegionFromDexNumber(species.num);
   const statsSummary = STAT_ORDER.map(
@@ -103,7 +98,7 @@ export async function generateMetadata({
   if (variant) badges.push(VARIANT_DISPLAY_NAMES[variant] ?? variant);
   if (region) badges.push(region);
   const badgeText = badges.length > 0 ? ` ${badges.join(", ")}.` : "";
-  const imageAlt = `${species.name} #${dexNum}. ${types} type.${badgeText} Stats: ${statsSummary}. BST ${bst}.`;
+  const description = `${types} type.${badgeText} Stats: ${statsSummary}. BST ${bst}.`;
 
   return {
     title: `${species.name} (#${dexNum})`,
@@ -121,7 +116,7 @@ export async function generateMetadata({
           secureUrl: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: imageAlt,
+          alt: description,
           type: "image/png",
         },
       ],
@@ -131,7 +126,7 @@ export async function generateMetadata({
       images: [
         {
           url: ogImageUrl,
-          alt: imageAlt,
+          alt: description,
           width: 1200,
           height: 630,
         },
