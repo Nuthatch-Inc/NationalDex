@@ -24,6 +24,75 @@ const STAT_LABELS: Record<string, string> = {
 const STAT_ORDER = ["hp", "atk", "def", "spa", "spd", "spe"] as const;
 const MAX_STAT = 255;
 
+// Matches stat-bar.tsx color logic
+function getStatColor(value: number): string {
+  const pct = (value / MAX_STAT) * 100;
+  if (pct > 75) return "#22c55e";
+  if (pct > 50) return "#eab308";
+  return "#ef4444";
+}
+
+// Matches pokemon-card.tsx variant logic
+const VARIANT_SUFFIXES = [
+  "Gmax",
+  "Mega",
+  "Mega-X",
+  "Mega-Y",
+  "Alola",
+  "Galar",
+  "Hisui",
+  "Paldea",
+];
+
+const VARIANT_DISPLAY_NAMES: Record<string, string> = {
+  Gmax: "Gigantamax",
+  Mega: "Mega",
+  "Mega-X": "Mega X",
+  "Mega-Y": "Mega Y",
+  Alola: "Alolan",
+  Galar: "Galarian",
+  Hisui: "Hisuian",
+  Paldea: "Paldean",
+};
+
+function getVariantFromName(name: string): string | null {
+  for (const suffix of VARIANT_SUFFIXES) {
+    if (name.endsWith(`-${suffix}`)) return suffix;
+  }
+  return null;
+}
+
+function getBaseName(name: string): string {
+  const variant = getVariantFromName(name);
+  if (variant) return name.slice(0, -(variant.length + 1));
+  return name;
+}
+
+// Matches pokemon-card.tsx region logic
+type Region =
+  | "Kanto"
+  | "Johto"
+  | "Hoenn"
+  | "Sinnoh"
+  | "Unova"
+  | "Kalos"
+  | "Alola"
+  | "Galar"
+  | "Paldea";
+
+function getRegionFromDexNumber(dexNumber: number): Region | null {
+  if (dexNumber >= 1 && dexNumber <= 151) return "Kanto";
+  if (dexNumber >= 152 && dexNumber <= 251) return "Johto";
+  if (dexNumber >= 252 && dexNumber <= 386) return "Hoenn";
+  if (dexNumber >= 387 && dexNumber <= 493) return "Sinnoh";
+  if (dexNumber >= 494 && dexNumber <= 649) return "Unova";
+  if (dexNumber >= 650 && dexNumber <= 721) return "Kalos";
+  if (dexNumber >= 722 && dexNumber <= 809) return "Alola";
+  if (dexNumber >= 810 && dexNumber <= 905) return "Galar";
+  if (dexNumber >= 906 && dexNumber <= 1025) return "Paldea";
+  return null;
+}
+
 export default async function OGImage({
   params,
 }: {
@@ -54,6 +123,7 @@ export default async function OGImage({
   }
 
   const name = species.name;
+  const baseName = getBaseName(name);
   const dexNum = species.num;
   const types = [species.types[0], species.types[1]].filter(
     Boolean,
@@ -67,11 +137,17 @@ export default async function OGImage({
   }));
   const bst = stats.reduce((sum, s) => sum + s.value, 0);
 
-  // Use Pokemon Showdown gen5 sprites (static PNGs, reliable GitHub-hosted CDN)
+  // Badges
+  const variant = getVariantFromName(name);
+  const region = getRegionFromDexNumber(dexNum);
+  const badges: string[] = [];
+  if (variant) badges.push(VARIANT_DISPLAY_NAMES[variant] ?? variant);
+  if (region) badges.push(region);
+
+  // Sprite
   const slug = pokemonDbSlug(name);
   const spriteUrl = `https://play.pokemonshowdown.com/sprites/gen5/${slug}.png`;
 
-  // Fetch sprite as base64 for embedding
   let spriteBase64: string | null = null;
   try {
     const res = await fetch(spriteUrl);
@@ -84,14 +160,6 @@ export default async function OGImage({
     // Sprite fetch failed — render without it
   }
 
-  // Darken a hex color for gradient
-  function darken(hex: string, amount: number): string {
-    const r = Math.max(0, Number.parseInt(hex.slice(1, 3), 16) - amount);
-    const g = Math.max(0, Number.parseInt(hex.slice(3, 5), 16) - amount);
-    const b = Math.max(0, Number.parseInt(hex.slice(5, 7), 16) - amount);
-    return `rgb(${r}, ${g}, ${b})`;
-  }
-
   return new ImageResponse(
     <div
       style={{
@@ -100,13 +168,13 @@ export default async function OGImage({
         display: "flex",
         flexDirection: "column",
         padding: "48px 56px",
-        background: `linear-gradient(135deg, ${darken(typeColor, 80)} 0%, ${darken(typeColor, 140)} 100%)`,
+        background: `linear-gradient(145deg, #0c0c0e 0%, #18181b 50%, ${darken(typeColor, 120)} 100%)`,
         color: "#fff",
         fontFamily: "monospace",
         position: "relative",
       }}
     >
-      {/* Top section: sprite + name + types */}
+      {/* Top section: sprite + name + types + badges */}
       <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
         {/* Sprite */}
         {spriteBase64 ? (
@@ -118,11 +186,12 @@ export default async function OGImage({
               width: "200px",
               height: "200px",
               borderRadius: "24px",
-              backgroundColor: "rgba(255,255,255,0.08)",
+              backgroundColor: "rgba(255,255,255,0.06)",
+              border: `2px solid ${typeColor}33`,
               flexShrink: 0,
             }}
           >
-            {/* biome-ignore lint/performance/noImgElement: ImageResponse uses raw HTML, not React components */}
+            {/* biome-ignore lint/performance/noImgElement: ImageResponse uses raw HTML */}
             <img
               src={spriteBase64}
               width={160}
@@ -140,16 +209,18 @@ export default async function OGImage({
               width: "200px",
               height: "200px",
               borderRadius: "24px",
-              backgroundColor: "rgba(255,255,255,0.08)",
+              backgroundColor: "rgba(255,255,255,0.06)",
+              border: "2px solid rgba(255,255,255,0.1)",
               flexShrink: 0,
               fontSize: "64px",
+              opacity: 0.3,
             }}
           >
             ?
           </div>
         )}
 
-        {/* Name + types */}
+        {/* Name + types + badges */}
         <div
           style={{
             display: "flex",
@@ -164,18 +235,20 @@ export default async function OGImage({
               gap: "16px",
             }}
           >
-            <span style={{ fontSize: "56px", fontWeight: 700 }}>{name}</span>
+            <span style={{ fontSize: "56px", fontWeight: 700 }}>
+              {baseName}
+            </span>
             <span
               style={{
                 fontSize: "32px",
                 fontWeight: 400,
-                opacity: 0.6,
+                opacity: 0.5,
               }}
             >
               #{String(dexNum).padStart(3, "0")}
             </span>
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             {types.map((t) => (
               <div
                 key={t}
@@ -193,6 +266,25 @@ export default async function OGImage({
                 }}
               >
                 {t}
+              </div>
+            ))}
+            {badges.map((badge) => (
+              <div
+                key={badge}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "6px 16px",
+                  borderRadius: "9999px",
+                  backgroundColor: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  fontSize: "20px",
+                  fontWeight: 500,
+                  color: "rgba(255,255,255,0.8)",
+                }}
+              >
+                {badge}
               </div>
             ))}
           </div>
@@ -224,7 +316,7 @@ export default async function OGImage({
                 fontWeight: 600,
                 width: "48px",
                 textAlign: "right",
-                opacity: 0.8,
+                opacity: 0.6,
               }}
             >
               {STAT_LABELS[s.key]}
@@ -246,7 +338,7 @@ export default async function OGImage({
                 flex: 1,
                 height: "20px",
                 borderRadius: "10px",
-                backgroundColor: "rgba(255,255,255,0.12)",
+                backgroundColor: "rgba(255,255,255,0.08)",
                 overflow: "hidden",
               }}
             >
@@ -256,7 +348,7 @@ export default async function OGImage({
                   width: `${(s.value / MAX_STAT) * 100}%`,
                   height: "100%",
                   borderRadius: "10px",
-                  backgroundColor: typeColor,
+                  backgroundColor: getStatColor(s.value),
                 }}
               />
             </div>
@@ -278,7 +370,7 @@ export default async function OGImage({
               fontWeight: 600,
               width: "48px",
               textAlign: "right",
-              opacity: 0.8,
+              opacity: 0.6,
             }}
           >
             BST
@@ -304,12 +396,19 @@ export default async function OGImage({
           right: "48px",
           fontSize: "22px",
           fontWeight: 600,
-          opacity: 0.4,
+          opacity: 0.35,
         }}
       >
-        nationaldex
+        nationaldex.app
       </div>
     </div>,
     { ...size },
   );
+}
+
+function darken(hex: string, amount: number): string {
+  const r = Math.max(0, Number.parseInt(hex.slice(1, 3), 16) - amount);
+  const g = Math.max(0, Number.parseInt(hex.slice(3, 5), 16) - amount);
+  const b = Math.max(0, Number.parseInt(hex.slice(5, 7), 16) - amount);
+  return `rgb(${r}, ${g}, ${b})`;
 }
