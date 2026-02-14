@@ -10,7 +10,7 @@ import {
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://nationaldex.vercel.app";
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.nationaldex.app";
 
   const staticPages: MetadataRoute.Sitemap = [
     {
