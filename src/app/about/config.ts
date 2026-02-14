@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  CloudSun,
   Database,
   GitCompareArrows,
   Github,
@@ -14,6 +13,12 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
+import { Butterfly } from "@/components/icons/bluesky";
+
+type IconComponent =
+  | LucideIcon
+  | ComponentType<SVGProps<SVGSVGElement> & { className?: string }>;
 
 export interface HeroConfig {
   title: string;
@@ -26,7 +31,7 @@ export interface HeroConfig {
 }
 
 export interface FeatureConfig {
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
   description: string;
   accent?: string;
@@ -47,7 +52,7 @@ export interface DataSource {
 export interface ContactLink {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: IconComponent;
 }
 
 export interface AboutPageConfig {
@@ -56,6 +61,8 @@ export interface AboutPageConfig {
   footerLinks: FooterLink[];
   contact: {
     title: string;
+    handle: string;
+    handleHref: string;
     links: ContactLink[];
   };
   attribution: {
@@ -129,7 +136,7 @@ export const aboutConfig: AboutPageConfig = {
       icon: Zap,
       title: "Lightning Fast",
       description:
-        "Optimized for speed with instant navigation and offline support.",
+        "Optimized for speed with instant navigation.",
       accent: "#eab308",
     },
     {
@@ -159,7 +166,9 @@ export const aboutConfig: AboutPageConfig = {
   ],
 
   contact: {
-    title: "built by @linesofcode",
+    title: "built by",
+    handle: "@linesofcode",
+    handleHref: "https://linesofcode.dev",
     links: [
       {
         label: "GitHub",
@@ -174,7 +183,7 @@ export const aboutConfig: AboutPageConfig = {
       {
         label: "Bluesky",
         href: "https://bsky.app/profile/linesofcode.bsky.social",
-        icon: CloudSun,
+        icon: Butterfly,
       },
     ],
   },
