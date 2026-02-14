@@ -52,7 +52,13 @@ export function getAllNatures() {
 }
 
 export function getSpecies(name: string, genNum = 9) {
-  return gens.get(genNum).species.get(name);
+  // Try generation-scoped lookup first, then fall back to global Dex.
+  // Forms like Mega/Gmax may not exist in the target generation's data
+  // but are still valid entries in the National Dex.
+  const genResult = gens.get(genNum).species.get(name);
+  if (genResult) return genResult;
+  const dexResult = Dex.species.get(name);
+  return dexResult.exists ? dexResult : undefined;
 }
 
 export function getMove(name: string, genNum = 9) {
