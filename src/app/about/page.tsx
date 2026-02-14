@@ -19,7 +19,7 @@ function Hero() {
   return (
     <section className="px-6 pt-20 pb-12 md:pt-28 md:pb-16">
       <div className="max-w-3xl mx-auto">
-        <div className="text-[10px] text-muted-foreground/40 uppercase tracking-[0.3em] mb-8 font-medium">
+        <div className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.3em] mb-8 font-medium">
           v0.1.0
         </div>
 
@@ -28,14 +28,14 @@ function Hero() {
         </h1>
 
         <div className="flex items-center gap-2 mb-6">
-          <span className="text-muted-foreground/30 select-none">{">"}</span>
+          <span className="text-muted-foreground/50 select-none">{">"}</span>
           <p className="text-lg md:text-xl text-muted-foreground">
             {hero.tagline}
             <span className="inline-block w-[2px] h-[1.1em] bg-foreground/50 ml-1 align-text-bottom animate-pulse" />
           </p>
         </div>
 
-        <p className="text-sm text-muted-foreground/60 max-w-md leading-relaxed mb-10">
+        <p className="text-sm text-muted-foreground/80 max-w-md leading-relaxed mb-10">
           {hero.description}
         </p>
 
@@ -79,7 +79,7 @@ function FeatureCard({
         </div>
         <div>
           <h3 className="text-sm font-medium mb-1.5">{feature.title}</h3>
-          <p className="text-xs text-muted-foreground/60 leading-relaxed">
+          <p className="text-xs text-muted-foreground/80 leading-relaxed">
             {feature.description}
           </p>
         </div>
@@ -94,7 +94,7 @@ function Features() {
   return (
     <section className="px-6 py-12 md:py-16">
       <div className="max-w-3xl mx-auto">
-        <div className="text-[10px] text-muted-foreground/40 uppercase tracking-[0.3em] mb-8 font-medium">
+        <div className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.3em] mb-8 font-medium">
           Features
         </div>
         <div className="grid md:grid-cols-3 gap-3">
@@ -119,7 +119,7 @@ function Footer() {
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground/50">
+            <span className="text-xs text-muted-foreground/70">
               {contact.title}{" "}
               <a
                 href={contact.handleHref}
@@ -139,7 +139,7 @@ function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground/40 hover:text-foreground transition-colors"
+                    className="text-muted-foreground/60 hover:text-foreground transition-colors"
                     aria-label={link.label}
                   >
                     <Icon className="size-3.5" />
@@ -148,7 +148,7 @@ function Footer() {
               })}
             </div>
           </div>
-          <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground/50">
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground/70">
             {footerLinks.map((link: FooterLink) =>
               link.external ? (
                 <a
@@ -172,7 +172,7 @@ function Footer() {
             )}
           </div>
         </div>
-        <p className="text-[10px] text-muted-foreground/30 leading-relaxed">
+        <p className="text-[10px] text-muted-foreground/50 leading-relaxed">
           data via{" "}
           {attribution.dataSources.map((source: DataSource, index: number) => (
             <span key={source.label}>
@@ -180,7 +180,7 @@ function Footer() {
                 href={source.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline underline-offset-2 hover:text-muted-foreground/60"
+                className="underline underline-offset-2 hover:text-muted-foreground/80"
               >
                 {source.label}
               </a>
