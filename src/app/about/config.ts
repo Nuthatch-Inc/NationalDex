@@ -200,6 +200,6 @@ export const aboutConfig: AboutPageConfig = {
         description: "Sprites and competitive data",
       },
     ],
-    disclaimer: "Pokemon is a trademark of Nintendo",
+    disclaimer: "MIT Licensed · Pokemon is a trademark of Nintendo",
   },
 };
