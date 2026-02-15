@@ -200,6 +200,7 @@ export const aboutConfig: AboutPageConfig = {
         description: "Sprites and competitive data",
       },
     ],
-    disclaimer: "MIT Licensed · Pokemon is a trademark of Nintendo",
+    disclaimer:
+      "MIT Licensed · Pokemon is a trademark of Nintendo / Creatures Inc. / GAME FREAK Inc. This project is not affiliated with or endorsed by any of these companies.",
   },
 };
