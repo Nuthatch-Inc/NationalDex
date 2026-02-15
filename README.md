@@ -18,13 +18,6 @@ nationaldex is a modern web-based Pokedex covering the full National Dex across 
 
 ## Running locally
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org) (v18+)
-- [Yarn](https://yarnpkg.com), npm, or [Bun](https://bun.sh)
-
-### Setup
-
 ```bash
 # Clone the repo
 git clone https://github.com/TimMikeladze/nationaldex.git
