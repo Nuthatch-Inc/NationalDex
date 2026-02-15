@@ -24,10 +24,10 @@ git clone https://github.com/TimMikeladze/nationaldex.git
 cd nationaldex
 
 # Install dependencies
-yarn install
+bun install
 
 # Start the dev server
-yarn dev
+bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -38,17 +38,17 @@ No database or environment variables are required. All Pokemon data is bundled a
 
 | Command | Description |
 |---|---|
-| `yarn dev` | Start the development server |
-| `yarn build` | Build for production |
-| `yarn start` | Start the production server |
-| `yarn lint` | Run linting and format checks |
-| `yarn lint:fix` | Auto-fix linting issues |
+| `bun dev` | Start the development server |
+| `bun build` | Build for production |
+| `bun start` | Start the production server |
+| `bun lint` | Run linting and format checks |
+| `bun lint:fix` | Auto-fix linting issues |
 
 ## Contributing
 
 1. Fork the repo and create your branch from `main`
-2. Run `yarn install` to set up dependencies
-3. Make your changes and verify they pass `yarn lint` and `yarn build`
+2. Run `bun install` to set up dependencies
+3. Make your changes and verify they pass `bun lint` and `bun build`
 4. Open a pull request
 
 ## Data attribution
