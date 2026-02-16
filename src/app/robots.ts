@@ -5,11 +5,19 @@ export default function robots(): MetadataRoute.Robots {
   const baseUrl = SITE_URL;
 
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/api/", "/settings", "/favorites", "/teams/", "/lists/"],
-    },
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/api/", "/settings", "/favorites", "/teams/", "/lists/"],
+      },
+      {
+        userAgent: "Googlebot",
+        allow: "/",
+        disallow: ["/api/", "/settings", "/favorites", "/teams/", "/lists/"],
+      },
+    ],
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }

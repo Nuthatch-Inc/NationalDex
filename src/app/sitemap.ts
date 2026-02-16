@@ -39,11 +39,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/abilities`,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    },
-    {
       url: `${baseUrl}/items`,
       changeFrequency: "weekly",
       priority: 0.6,
@@ -57,6 +52,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/locations`,
       changeFrequency: "weekly",
       priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/feedback`,
+      changeFrequency: "monthly",
+      priority: 0.2,
     },
   ];
 

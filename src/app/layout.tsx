@@ -23,18 +23,41 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "nationaldex",
+    default: "nationaldex — The Pokedex App",
     template: "%s | nationaldex",
   },
-  description: "The Pokedex App",
+  description:
+    "Browse Pokemon stats, moves, abilities, items, type matchups, and more. Build teams, compare Pokemon, and explore all generations in one app.",
+  keywords: [
+    "pokedex",
+    "pokemon",
+    "nationaldex",
+    "pokemon stats",
+    "pokemon moves",
+    "pokemon abilities",
+    "pokemon types",
+    "pokemon team builder",
+    "pokemon type coverage",
+    "pokemon comparison",
+  ],
   manifest: "/manifest.json",
   openGraph: {
     siteName: "nationaldex",
     type: "website",
     locale: "en_US",
+    title: "nationaldex — The Pokedex App",
+    description:
+      "Browse Pokemon stats, moves, abilities, items, type matchups, and more. Build teams and explore all generations.",
+    url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",
+    title: "nationaldex — The Pokedex App",
+    description:
+      "Browse Pokemon stats, moves, abilities, items, type matchups, and more.",
+  },
+  alternates: {
+    canonical: SITE_URL,
   },
   appleWebApp: {
     capable: true,
