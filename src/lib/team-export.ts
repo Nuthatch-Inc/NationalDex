@@ -257,30 +257,46 @@ export function importFromShowdown(
 }
 
 /**
- * Try to detect generation from Pokemon in import text
+ * Try to detect generation from Pokemon in import text.
+ * If Pokemon span multiple generations, returns "national-dex".
  */
 export function detectGenerationFromShowdown(text: string): Generation | null {
   const parsed = parseShowdownFormat(text);
-  let maxNum = 0;
+  const pokemonNums: number[] = [];
 
   for (const pokemon of parsed.pokemon) {
     const species = Dex.species.get(pokemon.species);
     if (species?.exists && species.num > 0) {
-      maxNum = Math.max(maxNum, species.num);
+      pokemonNums.push(species.num);
     }
   }
 
-  if (maxNum === 0) return null;
+  if (pokemonNums.length === 0) return null;
 
-  // Find the generation that contains this Pokemon
-  for (const gen of GENERATIONS_LIST) {
-    const [, maxId] = GENERATION_INFO[gen].pokemonRange;
-    if (maxNum <= maxId) {
-      return gen;
+  // Find each Pokemon's generation
+  const pokemonGens = new Set<Generation>();
+  for (const num of pokemonNums) {
+    for (const gen of GENERATIONS_LIST) {
+      if (gen === "national-dex") continue;
+      const [minId, maxId] = GENERATION_INFO[gen].pokemonRange;
+      if (num >= minId && num <= maxId) {
+        pokemonGens.add(gen);
+        break;
+      }
     }
   }
 
-  return "generation-ix"; // Default to latest
+  // If Pokemon span multiple generations, return national-dex
+  if (pokemonGens.size > 1) {
+    return "national-dex";
+  }
+
+  // If all Pokemon are from the same generation, return that
+  if (pokemonGens.size === 1) {
+    return [...pokemonGens][0];
+  }
+
+  return "national-dex"; // Default to national dex
 }
 
 // JSON Export/Import types

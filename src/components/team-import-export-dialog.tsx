@@ -73,7 +73,7 @@ export function TeamImportExportDialog({
 
     const gen =
       selectedGeneration === "auto"
-        ? detectGenerationFromShowdown(importText) || "generation-ix"
+        ? detectGenerationFromShowdown(importText) || "national-dex"
         : selectedGeneration;
 
     const { team: newTeam, errors } = importTeamShowdown(

@@ -129,7 +129,7 @@ export function useTeams() {
     ): { team: Team | null; errors: string[] } => {
       // Auto-detect generation if not provided
       const gen =
-        generation || detectGenerationFromShowdown(text) || "generation-ix";
+        generation || detectGenerationFromShowdown(text) || "national-dex";
       const { members, errors } = importFromShowdown(text, gen);
 
       if (members.length === 0) {
