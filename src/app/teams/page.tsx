@@ -51,14 +51,14 @@ export default function TeamsPage() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamGeneration, setNewTeamGeneration] =
-    useState<Generation>("generation-i");
+    useState<Generation>("national-dex");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const handleCreate = () => {
     if (!newTeamName.trim()) return;
     const team = createTeam(newTeamName.trim(), newTeamGeneration);
     setNewTeamName("");
-    setNewTeamGeneration("generation-i");
+    setNewTeamGeneration("national-dex");
     setIsCreateOpen(false);
     router.push(`/teams/${team.id}`);
   };
@@ -119,8 +119,8 @@ export default function TeamsPage() {
               <DialogHeader>
                 <DialogTitle>create new team</DialogTitle>
                 <DialogDescription>
-                  Choose a name and generation for your team. Pokemon will be
-                  limited to that generation&apos;s range.
+                  Choose a name and generation for your team. Select National
+                  Dex to pick Pokemon from all generations.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">

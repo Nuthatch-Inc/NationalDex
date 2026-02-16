@@ -1,4 +1,5 @@
 export type Generation =
+  | "national-dex"
   | "generation-i"
   | "generation-ii"
   | "generation-iii"
@@ -28,6 +29,11 @@ export const GENERATION_INFO: Record<
   Generation,
   { name: string; label: string; pokemonRange: [number, number] }
 > = {
+  "national-dex": {
+    name: "National Dex",
+    label: "All Generations",
+    pokemonRange: [1, 1025],
+  },
   "generation-i": { name: "Gen I", label: "Red/Blue", pokemonRange: [1, 151] },
   "generation-ii": {
     name: "Gen II",
@@ -68,6 +74,7 @@ export const GENERATION_INFO: Record<
 };
 
 export const GENERATIONS_LIST: Generation[] = [
+  "national-dex",
   "generation-i",
   "generation-ii",
   "generation-iii",

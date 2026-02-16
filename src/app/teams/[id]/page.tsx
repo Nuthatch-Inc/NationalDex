@@ -111,7 +111,7 @@ export default function TeamDetailPage() {
   }
 
   const genInfo = GENERATION_INFO[team.generation];
-  const [startId, endId] = genInfo.pokemonRange;
+  const isNationalDex = team.generation === "national-dex";
 
   return (
     <div className="p-4 md:p-6">
@@ -154,7 +154,10 @@ export default function TeamDetailPage() {
               </button>
             )}
             <p className="text-xs text-muted-foreground">
-              {genInfo.name} ({genInfo.label}) • {team.members.length}/6 pokemon
+              {isNationalDex
+                ? genInfo.name
+                : `${genInfo.name} (${genInfo.label})`}{" "}
+              • {team.members.length}/6 pokemon
             </p>
           </div>
           <div className="flex gap-2">
@@ -245,9 +248,13 @@ export default function TeamDetailPage() {
         onOpenChange={setIsAddOpen}
         onSelect={handleAddPokemon}
         excludeIds={team.members.map((m) => m.id)}
-        idRange={[startId, endId]}
+        idRange={isNationalDex ? undefined : genInfo.pokemonRange}
         title="add pokemon"
-        description={`Select a ${genInfo.name} pokemon (#${startId}-${endId}) to add to your team`}
+        description={
+          isNationalDex
+            ? "Select any pokemon to add to your team"
+            : `Select a ${genInfo.name} pokemon (#${genInfo.pokemonRange[0]}-${genInfo.pokemonRange[1]}) to add to your team`
+        }
       />
 
       {/* Export Dialog */}
