@@ -414,7 +414,7 @@ export function AppShell({ children }: AppShellProps) {
             "pt-(--app-top-offset) lg:pt-0 lg:mt-(--app-top-offset)",
           )}
         >
-          <div className="w-full">{children}</div>
+          <div className="w-full min-h-full">{children}</div>
         </main>
 
         {/* Mobile/Tablet Bottom Nav - hidden on desktop */}
