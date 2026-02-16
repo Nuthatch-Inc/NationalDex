@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Teams",
-  description: "Your Pokemon teams on nationaldex.",
+  description: "Your Pokemon teams on NationalDex.",
   robots: { index: false, follow: false },
 };
 

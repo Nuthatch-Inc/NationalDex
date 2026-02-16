@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Learn about nationaldex — a modern Pokedex app with stats, moves, abilities, type coverage, team building, and more for all Pokemon generations.",
+    "Learn about NationalDex — a modern Pokedex app with stats, moves, abilities, type coverage, team building, and more for all Pokemon generations.",
   openGraph: {
-    title: "About nationaldex",
+    title: "About NationalDex",
     description:
       "A modern Pokedex app with stats, moves, abilities, type coverage, team building, and more for all Pokemon generations.",
   },

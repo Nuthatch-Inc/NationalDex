@@ -77,7 +77,7 @@ export interface AboutPageConfig {
 
 export const aboutConfig: AboutPageConfig = {
   hero: {
-    title: "nationaldex",
+    title: "NationalDex",
     tagline: "The Pokedex App",
     description:
       "A fast, beautiful, and feature-rich Pokedex built for trainers who want instant access to everything Pokemon.",

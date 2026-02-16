@@ -3,11 +3,11 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Feedback",
   description:
-    "Send feedback, report bugs, or request features for nationaldex.",
+    "Send feedback, report bugs, or request features for NationalDex.",
   openGraph: {
     title: "Feedback",
     description:
-      "Send feedback, report bugs, or request features for nationaldex.",
+      "Send feedback, report bugs, or request features for NationalDex.",
   },
 };
 

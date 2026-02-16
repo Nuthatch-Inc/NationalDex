@@ -103,7 +103,7 @@ export async function generateMetadata({
       title: `${species.name} (#${dexNum})`,
       description,
       url: `${SITE_URL}/pokemon/${id}`,
-      siteName: "nationaldex",
+      siteName: "NationalDex",
       type: "article",
       locale: "en_US",
     },

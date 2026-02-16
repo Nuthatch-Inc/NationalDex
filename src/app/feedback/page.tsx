@@ -21,7 +21,7 @@ export default function FeedbackPage() {
 
           <div className="space-y-3">
             <a
-              href="https://github.com/yourusername/nationaldex/issues"
+              href="https://github.com/TimMikeladze/nationaldex/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"

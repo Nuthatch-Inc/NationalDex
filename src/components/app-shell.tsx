@@ -303,7 +303,7 @@ export function AppShell({ children }: AppShellProps) {
         <header className="hidden lg:flex fixed top-0 left-0 right-0 z-50 h-14 items-center border-b bg-background px-6 fixed-bottom-stable">
           <div className="flex w-full items-center justify-between">
             <Link href="/" className="text-lg font-medium">
-              nationaldex
+              NationalDex
             </Link>
             <nav className="flex items-center gap-1">
               {navItems.map((item) => renderNavItem(item, "desktop"))}

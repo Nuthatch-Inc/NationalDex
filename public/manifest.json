@@ -1,6 +1,6 @@
 {
-  "name": "nationaldex",
-  "short_name": "nationaldex",
+  "name": "NationalDex",
+  "short_name": "NationalDex",
   "description": "The Pokedex App",
   "start_url": "/",
   "display": "standalone",
