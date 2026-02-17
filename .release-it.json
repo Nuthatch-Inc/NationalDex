@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "before:init": "bun run check"
+  },
+  "github": {
+    "release": true
+  },
+  "npm": {
+    "publish": false
+  }
+}
