@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import { Providers } from "@/components/providers";
 import { PwaLoadingScreen } from "@/components/pwa-loading-screen";
 import { SITE_URL } from "@/lib/utils";
@@ -76,6 +77,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+        <Script
+          src={
+            process.env.NEXT_PUBLIC_UMAMI_URL ||
+            "https://cloud.umami.is/script.js"
+          }
+          data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+          strategy="afterInteractive"
+        />
+      )}
       <body className={`${mono.variable} font-mono antialiased`}>
         <div
           id="pwa-loading-screen"
