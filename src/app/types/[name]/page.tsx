@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import {
   getAllTypes,
   getOffensiveTypeMatchups,
@@ -33,6 +34,9 @@ export async function generateMetadata({
   return {
     title: `${type.name} Type`,
     description,
+    alternates: {
+      canonical: `/types/${name}`,
+    },
     openGraph: {
       title: `${type.name} Type`,
       description,
@@ -42,5 +46,6 @@ export async function generateMetadata({
 
 export default async function TypeDetailPage({ params }: PageProps) {
   const { name } = await params;
+  if (!getType(name)) notFound();
   return <TypeDetailClient name={name} />;
 }

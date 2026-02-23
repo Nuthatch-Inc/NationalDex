@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Types",
   description:
     "Explore all Pokemon types — view type matchups, strengths, weaknesses, and resistances at a glance.",
+  alternates: {
+    canonical: "/types",
+  },
   openGraph: {
     title: "Pokemon Types",
     description:

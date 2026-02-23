@@ -58,7 +58,7 @@ export const metadata: Metadata = {
       "Browse Pokemon stats, moves, abilities, items, type matchups, and more.",
   },
   alternates: {
-    canonical: SITE_URL,
+    canonical: "/",
   },
   appleWebApp: {
     capable: true,

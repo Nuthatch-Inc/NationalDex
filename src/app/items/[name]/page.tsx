@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { formatName, getAllItems, getItem, toID } from "@/lib/pkmn";
 import { ItemDetailClient } from "./client";
 
@@ -27,6 +28,9 @@ export async function generateMetadata({
   return {
     title: formatName(item.name),
     description,
+    alternates: {
+      canonical: `/items/${name}`,
+    },
     openGraph: {
       title: formatName(item.name),
       description,
@@ -36,5 +40,6 @@ export async function generateMetadata({
 
 export default async function ItemDetailPage({ params }: PageProps) {
   const { name } = await params;
+  if (!getItem(name)) notFound();
   return <ItemDetailClient name={name} />;
 }

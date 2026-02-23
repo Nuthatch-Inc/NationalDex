@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { formatName, getAllMoves, getMove, toID } from "@/lib/pkmn";
 import { MoveDetailClient } from "./client";
 
@@ -29,6 +30,9 @@ export async function generateMetadata({
   return {
     title: formatName(move.name),
     description,
+    alternates: {
+      canonical: `/moves/${name}`,
+    },
     openGraph: {
       title: formatName(move.name),
       description,
@@ -38,5 +42,6 @@ export async function generateMetadata({
 
 export default async function MoveDetailPage({ params }: PageProps) {
   const { name } = await params;
+  if (!getMove(name)) notFound();
   return <MoveDetailClient name={name} />;
 }

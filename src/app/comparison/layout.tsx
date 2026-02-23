@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Compare Pokemon",
   description:
     "Compare Pokemon side by side — stats, types, abilities, and more. Find the best Pokemon for your team.",
+  alternates: {
+    canonical: "/comparison",
+  },
   openGraph: {
     title: "Compare Pokemon",
     description:

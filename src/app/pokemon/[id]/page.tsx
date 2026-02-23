@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getAllSpecies, getSpecies, toID } from "@/lib/pkmn";
 import { getPokedexEntry } from "@/lib/pokeapi";
 import { SITE_URL } from "@/lib/utils";
@@ -99,6 +100,9 @@ export async function generateMetadata({
   return {
     title: `${species.name} (#${dexNum})`,
     description,
+    alternates: {
+      canonical: `/pokemon/${id}`,
+    },
     openGraph: {
       title: `${species.name} (#${dexNum})`,
       description,
@@ -116,6 +120,9 @@ export async function generateMetadata({
 export default async function PokemonPage({ params }: PageProps) {
   const { id } = await params;
   const species = getSpecies(id);
+
+  if (!species) notFound();
+
   const pokedexEntry = await getPokedexEntry(id);
 
   const jsonLd = species

@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Moves",
   description:
     "Browse all Pokemon moves — filter by type, category, power, accuracy, and PP. Find the perfect moves for your team.",
+  alternates: {
+    canonical: "/moves",
+  },
   openGraph: {
     title: "Pokemon Moves",
     description:

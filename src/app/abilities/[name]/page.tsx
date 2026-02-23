@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { formatName, getAbility, getAllAbilities, toID } from "@/lib/pkmn";
 import { AbilityDetailClient } from "./client";
 
@@ -29,6 +30,9 @@ export async function generateMetadata({
   return {
     title: formatName(ability.name),
     description,
+    alternates: {
+      canonical: `/abilities/${name}`,
+    },
     openGraph: {
       title: formatName(ability.name),
       description,
@@ -38,5 +42,6 @@ export async function generateMetadata({
 
 export default async function AbilityDetailPage({ params }: PageProps) {
   const { name } = await params;
+  if (!getAbility(name)) notFound();
   return <AbilityDetailClient name={name} />;
 }

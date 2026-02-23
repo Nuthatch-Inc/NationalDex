@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Feedback",
   description:
     "Send feedback, report bugs, or request features for NationalDex.",
+  alternates: {
+    canonical: "/feedback",
+  },
   openGraph: {
     title: "Feedback",
     description:

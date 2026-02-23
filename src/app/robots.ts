@@ -4,17 +4,14 @@ import { SITE_URL } from "@/lib/utils";
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = SITE_URL;
 
+  const disallow = ["/api/", "/settings", "/favorites", "/teams/", "/lists/"];
+
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/settings", "/favorites", "/teams/", "/lists/"],
-      },
-      {
-        userAgent: "Googlebot",
-        allow: "/",
-        disallow: ["/api/", "/settings", "/favorites", "/teams/", "/lists/"],
+        disallow,
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
