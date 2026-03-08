@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { getAllSpecies, getSpecies, toID } from "@/lib/pkmn";
+import { getPokedexEntry } from "@/lib/pokeapi";
 import { pokemonDbSlug } from "@/lib/sprites";
 import { type PokemonType, TYPE_COLORS } from "@/types/pokemon";
 
@@ -143,6 +144,14 @@ export default async function OGImage({
   const badges: string[] = [];
   if (variant) badges.push(VARIANT_DISPLAY_NAMES[variant] ?? variant);
   if (region) badges.push(region);
+
+  // Pokédex quote
+  const pokedexEntry = await getPokedexEntry(dexNum);
+  let quote: string | null = null;
+  if (pokedexEntry && pokedexEntry.entries.length > 0) {
+    const idx = Math.floor(Math.random() * pokedexEntry.entries.length);
+    quote = pokedexEntry.entries[idx].flavorText;
+  }
 
   // Sprite
   const slug = pokemonDbSlug(name);
@@ -387,6 +396,27 @@ export default async function OGImage({
           </span>
         </div>
       </div>
+
+      {/* Pokédex quote */}
+      {quote && (
+        <div
+          style={{
+            display: "flex",
+            marginTop: "24px",
+            padding: "16px 20px",
+            borderRadius: "12px",
+            backgroundColor: "rgba(255,255,255,0.05)",
+            borderLeft: `3px solid ${typeColor}`,
+            fontSize: "18px",
+            fontStyle: "italic",
+            lineHeight: "1.5",
+            color: "rgba(255,255,255,0.7)",
+            maxWidth: "100%",
+          }}
+        >
+          {quote}
+        </div>
+      )}
 
       {/* Branding */}
       <div
