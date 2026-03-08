@@ -145,16 +145,22 @@ export default async function OGImage({
   if (variant) badges.push(VARIANT_DISPLAY_NAMES[variant] ?? variant);
   if (region) badges.push(region);
 
-  // Pokédex quote
+  // Pokédex quote — pick the shortest unique entry that best fits the OG image
   const pokedexEntry = await getPokedexEntry(dexNum);
   let quote: string | null = null;
   if (pokedexEntry && pokedexEntry.entries.length > 0) {
-    const idx = Math.floor(Math.random() * pokedexEntry.entries.length);
-    quote = pokedexEntry.entries[idx].flavorText;
-  }
-  // Cap length so the quote stays within 2 lines and doesn't overlap stats
-  if (quote && quote.length > 150) {
-    quote = quote.slice(0, 147) + "…";
+    const MAX_QUOTE_LENGTH = 120;
+    const uniqueTexts = [...new Set(pokedexEntry.entries.map((e) => e.flavorText))];
+    // Prefer the longest entry that still fits within the limit
+    const fitting = uniqueTexts
+      .filter((t) => t.length <= MAX_QUOTE_LENGTH)
+      .sort((a, b) => b.length - a.length);
+    quote = fitting[0] ?? null;
+    // If nothing fits, truncate the shortest available entry
+    if (!quote) {
+      const shortest = uniqueTexts.sort((a, b) => a.length - b.length)[0];
+      quote = shortest.slice(0, MAX_QUOTE_LENGTH - 1) + "…";
+    }
   }
 
   // Sprite
@@ -400,20 +406,20 @@ export default async function OGImage({
         </div>
       </div>
 
-      {/* Pokédex quote — absolutely positioned to avoid overlapping stats or branding */}
+      {/* Pokédex quote — top-right corner */}
       {quote && (
         <div
           style={{
             position: "absolute",
-            bottom: "64px",
-            left: "56px",
+            top: "48px",
             right: "56px",
+            maxWidth: "420px",
             display: "flex",
-            padding: "16px 20px",
+            padding: "14px 18px",
             borderRadius: "12px",
             backgroundColor: "rgba(255,255,255,0.05)",
             borderLeft: `3px solid ${typeColor}`,
-            fontSize: "18px",
+            fontSize: "17px",
             fontStyle: "italic",
             lineHeight: "1.5",
             color: "rgba(255,255,255,0.7)",
