@@ -9,6 +9,8 @@ import {
 } from "@/lib/pkmn";
 import { SITE_URL } from "@/lib/utils";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = SITE_URL;
 
