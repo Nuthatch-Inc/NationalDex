@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { formatName } from "@/lib/pkmn";
 import { LocationDetailClient } from "./client";
 
+export const dynamicParams = false;
+export async function generateStaticParams() {
+  return [];
+}
+
 interface PageProps {
   params: Promise<{ name: string }>;
 }

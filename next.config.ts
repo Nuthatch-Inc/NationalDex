@@ -2,12 +2,14 @@ import type { NextConfig } from "next";
 import packageJson from "./package.json";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "export",
   reactCompiler: true,
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? "",
   env: {
     NEXT_PUBLIC_APP_VERSION: packageJson.version,
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

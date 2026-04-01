@@ -31,6 +31,11 @@ import { cn } from "@/lib/utils";
 import type { TeamMember } from "@/types/team";
 import { GENERATION_INFO } from "@/types/team";
 
+export const dynamicParams = false;
+export async function generateStaticParams() {
+  return [];
+}
+
 export default function TeamDetailPage() {
   const params = useParams();
   const router = useRouter();

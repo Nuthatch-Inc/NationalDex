@@ -13,6 +13,11 @@ import { cn } from "@/lib/utils";
 import type { ListItem, ListItemType } from "@/types/list";
 import { LIST_ITEM_TYPE_COLORS, LIST_ITEM_TYPE_LABELS } from "@/types/list";
 
+export const dynamicParams = false;
+export async function generateStaticParams() {
+  return [];
+}
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
